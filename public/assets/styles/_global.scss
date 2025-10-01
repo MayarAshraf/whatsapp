@@ -1,0 +1,86 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap");
+
+
+:root {
+  --title-font: "Poppins", sans-serif;
+  --body-font: "Roboto", sans-serif;
+  --body-bg: #ecece5;
+  --primary-color: #25d366;
+  --primary-dark-color: #1da851;
+  --accent-color: #128c7e;
+  --secondary-color: #075e54;
+
+  &[dir="rtl"] {
+    --title-font: "Cairo", sans-serif;
+    --body-font: "Cairo", sans-serif;
+  }
+}
+
+body {
+  text-align: start;
+  color: #222;
+  background-color: var(--body-bg);
+  font-family: var(--body-font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #eeeeee;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #cecece;
+  border-radius: 8px;
+}
+
+button,
+a {
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+[dir="rtl"] {
+  * {
+    letter-spacing: normal !important;
+  }
+}
+
+iframe {
+  border: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+textarea {
+  resize: none;
+}
+
+input,
+textarea {
+  font-family: var(--body-font);
+  font-size: 1rem;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}

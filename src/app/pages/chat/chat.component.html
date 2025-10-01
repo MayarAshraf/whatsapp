@@ -1,0 +1,224 @@
+<div class="h-screen p-5">
+  <div
+    class="grid grid-nogutter h-full shadow-2 border-round-lg overflow-hidden"
+  >
+    <div class="col-4 h-full">
+      <div class="user-list surface-50 p-5 overflow-y-auto">
+        <input
+          type="text"
+          pInputText
+          [placeholder]="'search'"
+          class="border-none w-full mb-3"
+          [(ngModel)]="searchTerm"
+        />
+        <ul class="list-none p-0 m-0 flex flex-column gap-3">
+          @if (!usersLoading()) { @for (user of filteredUsers(); track $index) {
+          <li
+            class="flex align-items-center gap-3 p-2 cursor-pointer"
+            (click)="selectUser(user)"
+            [class.active]="selectedUser()?.id === user.id"
+          >
+            <div
+              class="flex flex-shrink-0 w-4rem h-4rem border-circle shadow-1 relative"
+              [class.status-ring]="user?.user_status === 'Online'"
+            >
+              <img
+                class="w-full h-full border-circle img-cover"
+                alt="user"
+                [src]="user.featured_image || 'assets/media/avatar.svg'"
+              />
+            </div>
+            <div class="flex flex-auto flex-column gap-2 overflow-hidden">
+              <div class="flex justify-content-between w-full">
+                <p
+                  class="font-semibold m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                >
+                  {{ user.sender_name }}
+                </p>
+                <p class="font-semibold text-400 m-0 flex-shrink-0">
+                  {{ user?.last_message_at | date : "shortTime" }}
+                </p>
+              </div>
+              <div
+                class="flex justify-content-between align-items-center w-full"
+              >
+                @if (typingUsers()[user?.id]) {
+                <p class="font-semibold m-0 text-primary">typing...</p>
+                } @else {
+                <p
+                  class="font-semibold text-400 m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                >
+                  {{ user?.last_message?.message }}
+                </p>
+                } @if (user?.unread_count > 0) {
+                <p
+                  class="message-count text-xs m-0 border-circle text-white flex align-items-center justify-content-center font-semibold flex-shrink-0"
+                >
+                  {{ user.unread_count }}
+                </p>
+                }
+              </div>
+            </div>
+          </li>
+          } @empty {
+          <p class="text-500 font-semibold">{{ "no users found" }}</p>
+          } } @else { @for (i of [1, 2, 3, 4, 5]; track $index) {
+          <div class="flex align-items-center gap-2 p-2">
+            <p-skeleton shape="circle" size="4rem" styleClass="mr-2" />
+            <div class="w-full">
+              <p-skeleton width="100%" height=".6rem" styleClass="mb-2" />
+              <p-skeleton width="50%" height=".6rem" />
+            </div>
+          </div>
+          } }
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-8 h-full">
+      @if (selectedUser()) {
+      <div class="chat-window flex flex-column">
+        <div class="chat-header flex align-items-center p-3">
+          <img
+            [src]="selectedUser().featured_image || 'assets/media/avatar.svg'"
+            alt="Profile"
+            class="w-4rem h-4rem border-circle img-cover shadow-1 relative"
+            [class.status-ring]="selectedUser().user_status === 'Online'"
+          />
+          <div class="flex flex-column ml-3">
+            <span class="font-semibold">{{ selectedUser().sender_name }}</span>
+            <span
+              class="text-sm"
+              [ngStyle]="{
+                    color: selectedUser().user_status === 'Online' ? '#25d366' : '#9ca3af',
+                  }"
+              >{{ selectedUser().user_status }}</span
+            >
+          </div>
+        </div>
+
+        <div class="messages overflow-y-auto p-3 h-full" #messagesContainer>
+          @if (!messagesLoading()) { @for (msg of combinedMessages(); track
+          msg.message_id) {
+          <div
+            class="message-wrapper"
+            [class.self]="msg.direction === 'inbound'"
+          >
+            <div class="message" [class.optimistic]="msg.isOptimistic">
+              <div class="message-content">
+                <bdi>{{ msg.message }}</bdi>
+              </div>
+              <div class="message-meta">
+                <small
+                  class="text-400"
+                  [class.text-white-alpha-80]="
+                    msg.sender_id !== currentUserId
+                  "
+                >
+                  {{ msg.created_at | date : "shortTime" }}
+                </small>
+                @if (msg.sender_id === currentUserId) { @if
+                (msg.isOptimistic) {
+                <small class="text-400"
+                  ><i class="pi pi-spinner pi-spin text-xs"></i
+                ></small>
+                } @else if (!msg.read_at && selectedUser().user_status ===
+                "Offline") {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 512 512"
+                  class="message-status"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M200.359 382.269L61.057 251.673l21.886-23.346l116.698 109.404l229.045-229.044l22.628 22.626z"
+                  />
+                </svg>
+                } @else if (msg.read_at) {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  class="message-status read"
+                >
+                  <g fill="#13b1ce" fill-rule="evenodd" clip-rule="evenodd">
+                    <path
+                      d="M15.62 3.596L7.815 12.81l-.728-.033L4 8.382l.754-.53l2.744 3.907L14.917 3z"
+                    />
+                    <path
+                      d="m7.234 8.774l4.386-5.178L10.917 3l-4.23 4.994zm-1.55.403l.548.78l-.547-.78zm-1.617 1.91l.547.78l-.799.943l-.728-.033L0 8.382l.754-.53l2.744 3.907l.57-.672z"
+                    />
+                  </g>
+                </svg>
+                } @else {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  class="message-status"
+                >
+                  <g
+                    fill="currentColor"
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                  >
+                    <path
+                      d="M15.62 3.596L7.815 12.81l-.728-.033L4 8.382l.754-.53l2.744 3.907L14.917 3z"
+                    />
+                    <path
+                      d="m7.234 8.774l4.386-5.178L10.917 3l-4.23 4.994zm-1.55.403l.548.78l-.547-.78zm-1.617 1.91l.547.78l-.799.943l-.728-.033L0 8.382l.754-.53l2.744 3.907l.57-.672z"
+                    />
+                  </g>
+                </svg>
+                } }
+              </div>
+            </div>
+          </div>
+          } } @else {
+          <div class="flex align-items-center justify-content-center h-full">
+            <i class="pi pi-spinner pi-spin text-2xl text-primary"></i>
+          </div>
+          } @if (typingUsers()[selectedUser()?.id]) {
+          <div class="message-wrapper">
+            <div class="message typing-indicator">
+              <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+
+        <div class="p-2 border-1 border-white mt-auto">
+          <input
+            pInputText
+            [(ngModel)]="newMessage"
+            (keydown.enter)="sendMessage()"
+            (input)="sendTypingEvent()"
+            [placeholder]="'type a message'"
+          />
+        </div>
+      </div>
+      } @else {
+      <div
+        class="surface-50 flex flex-column align-items-center justify-content-center gap-2 h-full p-5"
+      >
+        <i class="fab fa-whatsapp text-7xl primary-color mb-3"></i>
+        <h4 class="text-600 font-medium m-0">WhatsApp Web</h4>
+        <p class="text-700 text-sm m-0">
+          Send and receive messages without keeping your phone online.
+        </p>
+        <p class="text-700 text-sm m-0">
+          Use WhatsApp on up to 4 linked devices and 1 phone at the same time.
+        </p>
+      </div>
+      }
+    </div>
+  </div>
+</div>
