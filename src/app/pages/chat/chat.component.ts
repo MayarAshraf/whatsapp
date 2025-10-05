@@ -123,23 +123,12 @@ export default class ChatComponent implements OnInit, OnDestroy {
 
   selectUser(user: any) {
     this.messages.set([]);
+    this.newMessage.set('');
     this.selectedUser.set(user);
     this.channelName.set(`private-conversation.${user.id}`);
     this.channel = this.pusher.subscribe(this.channelName());
-    // this.messagesLoading.set(true);
-    // this.#api
-    //   .request('post', 'chat-messages', { receiver_id: user.id })
-    //   .pipe(
-    //     finalize(() => this.messagesLoading.set(false)),
-    //     map(({ data }) => data),
-    //     tap((data) => {
-    //       this.messages.set(data);
-    //       user.unread_message_count = 0;
-    //       this.scrollToBottom();
-    //     })
-    //   )
-    //   .pipe(takeUntilDestroyed(this.#destroyRef))
-    //   .subscribe();
+    this.messagesLoading.set(true);
+    this.getConversationHistory();
 
     if (this.channel) {
       this.channel.unbind('MessageEvent');
@@ -151,6 +140,71 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.bindChannelEvents();
   }
 
+  // getConversationHistory() {
+  //   this.#api
+  //     .request('post', 'conversations/conversation-history', {
+  //       id: this.selectedUser().id,
+  //     })
+  //     .pipe(
+  //       finalize(() => this.messagesLoading.set(false)),
+  //       map(({ data }) => data.data.map((data: any) => ({ ...data.record }))),
+  //       tap((data) => {
+  //         this.messages.set(data);
+  //         this.selectedUser().unread_count = 0;
+  //         this.scrollToBottom();
+  //       })
+  //     )
+  //     .pipe(takeUntilDestroyed(this.#destroyRef))
+  //     .subscribe();
+  // }
+  pageSize = 20; // Number of messages per request
+  currentStart = 0; // Offset for pagination
+  hasMoreMessages = true; // Track if more messages are available
+
+  getConversationHistory(reset: boolean = true) {
+    if (reset) {
+      this.currentStart = 0;
+      this.hasMoreMessages = true;
+      this.messages.set([]);
+    }
+    if (!this.hasMoreMessages) return;
+
+    this.messagesLoading.set(true);
+    this.#api
+      .request('post', 'conversations/conversation-history', {
+        id: this.selectedUser().id,
+        start: this.currentStart,
+        length: this.pageSize,
+      })
+      .pipe(
+        finalize(() => this.messagesLoading.set(false)),
+        map(({ data }) => data.data.map((data: any) => ({ ...data.record }))),
+        tap((data) => {
+          if (data.length < this.pageSize) this.hasMoreMessages = false;
+          if (reset) {
+            this.messages.set(data);
+            this.scrollToBottom();
+          } else {
+            this.messages.set([...data, ...this.messages()]);
+          }
+          this.selectedUser().unread_count = 0;
+          this.currentStart += data.length;
+        })
+      )
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe();
+  }
+  onScroll() {
+    const container = this.messagesContainer()?.nativeElement;
+    if (
+      container &&
+      container.scrollTop === 0 &&
+      this.hasMoreMessages &&
+      !this.messagesLoading()
+    ) {
+      this.getConversationHistory(false);
+    }
+  }
   // markMessagesAsRead(senderId: number | undefined) {
   //   this.#api
   //     .request('post', 'mark-as-read', {
@@ -183,66 +237,37 @@ export default class ChatComponent implements OnInit, OnDestroy {
   bindChannelEvents() {
     if (!this.channel) return;
 
-    this.channel.bind('chat-user-updated', (event: any) => {
-      const updatedUser = event.user;
+    this.channel.bind('ConversationUpdated', (event: any) => {
+      console.log('Incoming message:', event);
+
+      const conversationId = event.id;
       const usersCopy = [...this.allUsers()];
-      const existingIndex = usersCopy.findIndex((u) => u.id === updatedUser.id);
+      const existingIndex = usersCopy.findIndex((u) => u.id === conversationId);
 
       if (existingIndex !== -1) {
+        const updatedUser = {
+          ...event,
+        };
         usersCopy.splice(existingIndex, 1);
-        this.allUsers.set([updatedUser, ...usersCopy]);
-      } else {
         this.allUsers.set([updatedUser, ...usersCopy]);
       }
     });
-    this.channel.bind('MessageEvent', (data: any) => {
-      console.log('Incoming message:', data);
 
+    this.channel.bind('MessageEvent', (data: any) => {
       const selected = this.selectedUser();
       if (!selected) return;
 
-      // ✅ Compare "from" and "to" with the selected user's phone/id
-      // const isCurrentChat =
-      //   (data.from === selected.phone && data.to === tselected) ||
-      //   (data.to === selected.phone && data.from === this.currentUserPhone);
       if (data.conversation_id !== selected.id) return;
-      // Remove optimistic messages if they match this incoming message
+
       this.messages.update((messages) =>
         messages.filter(
           (msg) => !msg.isOptimistic || msg.message !== data.message
         )
       );
 
-      // Append the new message
       this.messages.update((messages) => [...messages, data]);
-
-      // this.markMessagesAsRead(selected.id);
       this.scrollToBottom();
     });
-
-    // this.channel.bind('MessageEvent', (data: Message) => {
-    //   console.log(data);
-    //   const selected = this.selectedUser();
-    //   if (!selected) return;
-
-    //   const isCurrentChat =
-    //     (data.sender_id === selected.id &&
-    //       data.receiver_id === this.selectedUser()?.id) ||
-    //     (data.receiver_id === selected.id &&
-    //       data.sender_id === this.selectedUser()?.id);
-
-    //   if (isCurrentChat) {
-    //     this.messages.update((messages) =>
-    //       messages.filter(
-    //         (msg) => !msg.isOptimistic || msg.message !== data.message
-    //       )
-    //     );
-
-    //     this.messages.update((messages) => [...messages, data]);
-    //     this.markMessagesAsRead(this.selectedUser().id);
-    //     this.scrollToBottom();
-    //   }
-    // });
 
     this.channel.bind('message-read', (event: any) => {
       const readerId = event.reader_id;
@@ -286,6 +311,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       message: content,
       created_at: new Date().toISOString(),
       isOptimistic: true,
+      direction: 'outbound',
     };
 
     this.messages.update((messages) => [...messages, optimisticMessage]);

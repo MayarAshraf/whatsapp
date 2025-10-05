@@ -1,41 +1,46 @@
-<div class="h-screen p-5">
-  <div
-    class="grid grid-nogutter h-full shadow-2 border-round-lg overflow-hidden"
-  >
-    <div class="col-4 h-full">
-      <div class="user-list surface-50 p-5 overflow-y-auto">
-        <input
-          type="text"
-          pInputText
-          [placeholder]="'search'"
-          class="border-none w-full mb-3"
-          [(ngModel)]="searchTerm"
-        />
-        <ul class="list-none p-0 m-0 flex flex-column gap-3">
+<div class="h-screen">
+  <div class="grid grid-nogutter h-full overflow-hidden">
+    <div class="col-3 h-full">
+      <div class="user-list p-3 overflow-y-auto">
+        <div class="search-container mb-3 px-2">
+          <i class="pi pi-search search-icon ml-1"></i>
+          <input
+            type="text"
+            pInputText
+            [placeholder]="'Search'"
+            class="search-input w-full"
+            [(ngModel)]="searchTerm"
+          />
+        </div>
+        <ul class="list-none p-0 m-0 flex flex-column">
           @if (!usersLoading()) { @for (user of filteredUsers(); track $index) {
           <li
-            class="flex align-items-center gap-3 p-2 cursor-pointer"
+            class="flex align-items-center gap-3 p-2 cursor-pointer user-item"
             (click)="selectUser(user)"
             [class.active]="selectedUser()?.id === user.id"
           >
             <div
-              class="flex flex-shrink-0 w-4rem h-4rem border-circle shadow-1 relative"
-              [class.status-ring]="user?.user_status === 'Online'"
+              class="flex flex-shrink-0 w-3rem h-3rem border-circle relative"
             >
               <img
                 class="w-full h-full border-circle img-cover"
                 alt="user"
                 [src]="user.featured_image || 'assets/media/avatar.svg'"
               />
+              @if (user?.user_status === 'Online') {
+              <span class="status-indicator"></span>
+              }
             </div>
-            <div class="flex flex-auto flex-column gap-2 overflow-hidden">
-              <div class="flex justify-content-between w-full">
+            <div class="flex flex-auto flex-column gap-1 overflow-hidden">
+              <div
+                class="flex justify-content-between w-full align-items-center"
+              >
                 <p
-                  class="font-semibold m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                  class="font-semibold m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap user-name"
                 >
                   {{ user.sender_name }}
                 </p>
-                <p class="font-semibold text-400 m-0 flex-shrink-0">
+                <p class="text-xs text-300 m-0 flex-shrink-0">
                   {{ user?.last_message_at | date : "shortTime" }}
                 </p>
               </div>
@@ -43,10 +48,10 @@
                 class="flex justify-content-between align-items-center w-full"
               >
                 @if (typingUsers()[user?.id]) {
-                <p class="font-semibold m-0 text-primary">typing...</p>
+                <p class="text-sm m-0 text-primary font-medium">typing...</p>
                 } @else {
                 <p
-                  class="font-semibold text-400 m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap"
+                  class="text-sm text-300 m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap"
                 >
                   {{ user?.last_message?.message }}
                 </p>
@@ -61,12 +66,14 @@
             </div>
           </li>
           } @empty {
-          <p class="text-500 font-semibold">{{ "no users found" }}</p>
+          <p class="text-white-alpha-70 font-semibold">
+            {{ "no users found" }}
+          </p>
           } } @else { @for (i of [1, 2, 3, 4, 5]; track $index) {
           <div class="flex align-items-center gap-2 p-2">
-            <p-skeleton shape="circle" size="4rem" styleClass="mr-2" />
-            <div class="w-full">
-              <p-skeleton width="100%" height=".6rem" styleClass="mb-2" />
+            <p-skeleton shape="circle" size="3rem" class="mr-2" />
+            <div class="flex-auto">
+              <p-skeleton width="100%" height=".6rem" class="mb-2" />
               <p-skeleton width="50%" height=".6rem" />
             </div>
           </div>
@@ -75,14 +82,16 @@
       </div>
     </div>
 
-    <div class="col-8 h-full">
+    <div class="col-9 h-full">
       @if (selectedUser()) {
       <div class="chat-window flex flex-column">
-        <div class="chat-header flex align-items-center p-3">
+        <div class="chat-header flex align-items-center p-2">
           <img
-            [src]="selectedUser().featured_image || 'assets/media/avatar.svg'"
+            [src]="
+              selectedUser().featured_image || 'assets/media/avatar.svg'
+            "
             alt="Profile"
-            class="w-4rem h-4rem border-circle img-cover shadow-1 relative"
+            class="w-3rem h-3rem border-circle img-cover relative"
             [class.status-ring]="selectedUser().user_status === 'Online'"
           />
           <div class="flex flex-column ml-3">
@@ -90,19 +99,22 @@
             <span
               class="text-sm"
               [ngStyle]="{
-                    color: selectedUser().user_status === 'Online' ? '#25d366' : '#9ca3af',
+                    color: selectedUser().user_status === 'Online' ? '#4ade80' : '#9ca3af',
                   }"
               >{{ selectedUser().user_status }}</span
             >
           </div>
         </div>
-
-        <div class="messages overflow-y-auto p-3 h-full" #messagesContainer>
+        <div
+          #messagesContainer
+          class="messages overflow-y-auto p-3 h-full"
+          (scroll)="onScroll()"
+        >
           @if (!messagesLoading()) { @for (msg of combinedMessages(); track
           msg.message_id) {
           <div
             class="message-wrapper"
-            [class.self]="msg.direction === 'inbound'"
+            [class.self]="msg.direction === 'outbound'"
           >
             <div class="message" [class.optimistic]="msg.isOptimistic">
               <div class="message-content">
@@ -110,15 +122,13 @@
               </div>
               <div class="message-meta">
                 <small
-                  class="text-400"
-                  [class.text-white-alpha-80]="
-                    msg.sender_id !== currentUserId
+                  [class]="
+                    msg.direction === 'outbound' ? 'text-300' : 'text-400'
                   "
                 >
                   {{ msg.created_at | date : "shortTime" }}
                 </small>
-                @if (msg.sender_id === currentUserId) { @if
-                (msg.isOptimistic) {
+                @if (msg.sender_id === currentUserId) { @if (msg.isOptimistic) {
                 <small class="text-400"
                   ><i class="pi pi-spinner pi-spin text-xs"></i
                 ></small>
@@ -144,7 +154,7 @@
                   viewBox="0 0 16 16"
                   class="message-status read"
                 >
-                  <g fill="#13b1ce" fill-rule="evenodd" clip-rule="evenodd">
+                  <g fill="#60a5fa" fill-rule="evenodd" clip-rule="evenodd">
                     <path
                       d="M15.62 3.596L7.815 12.81l-.728-.033L4 8.382l.754-.53l2.744 3.907L14.917 3z"
                     />
@@ -195,13 +205,13 @@
           }
         </div>
 
-        <div class="p-2 border-1 border-white mt-auto">
+        <div class="p-3 mt-auto">
           <input
             pInputText
             [(ngModel)]="newMessage"
             (keydown.enter)="sendMessage()"
             (input)="sendTypingEvent()"
-            [placeholder]="'type a message'"
+            [placeholder]="'Type a message'"
           />
         </div>
       </div>
@@ -209,14 +219,11 @@
       <div
         class="surface-50 flex flex-column align-items-center justify-content-center gap-2 h-full p-5"
       >
-        <i class="fab fa-whatsapp text-7xl primary-color mb-3"></i>
-        <h4 class="text-600 font-medium m-0">WhatsApp Web</h4>
-        <p class="text-700 text-sm m-0">
-          Send and receive messages without keeping your phone online.
-        </p>
-        <p class="text-700 text-sm m-0">
-          Use WhatsApp on up to 4 linked devices and 1 phone at the same time.
-        </p>
+        <iframe
+          src="https://lottie.host/embed/ea3a541c-f8c3-482c-8be4-ec92a2b84b0f/4Fk6wpCisr.lottie"
+        ></iframe>
+        <h4 class="text-600 text-xl font-medium m-0">Start a Conversation</h4>
+        <p class="text-700 text-sm m-0">Select a contact to start messaging</p>
       </div>
       }
     </div>
