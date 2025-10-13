@@ -1,4 +1,3 @@
-import { environment } from '@env';
 import {
   HttpClient,
   HttpContext,
@@ -6,6 +5,7 @@ import {
   HttpParams,
 } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { environment } from '@env';
 import { GlobalApiResponse } from './global';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
@@ -26,7 +26,7 @@ export type RequestParams =
 export class ApiService {
   #http = inject(HttpClient);
   #apiUrl = environment.API_URL;
-  #token = '1|WAFsyLOOWL44b6c6QxMoV5CUysFuYLT2PpqD2MP259458e0c';
+  #token = '1|XFFBaLy77QoQOLlCNpSpFivsmxebmYG2vwtOK5ea8d6dc7ea';
 
   request<T, R = GlobalApiResponse>(
     method: HttpMethod,
