@@ -1,10 +1,19 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/web-chat', pathMatch: 'full' },
+  { path: '', redirectTo: '/chat', pathMatch: 'full' },
+
   {
-    path: 'chat',
-    loadComponent: () => import('./pages/chat/chat.component'),
+    path: '',
+    // canMatch: [AuthGuard],
+    loadComponent: () =>
+      import('@layout/content-layout/content-layout.component'),
+    children: [
+      {
+        path: 'chat',
+        loadComponent: () => import('./pages/chat/chat.component'),
+      },
+    ],
   },
   {
     path: 'web-chat',

@@ -1,0 +1,29 @@
+<app-menu-sidebar />
+
+<div class="layout-wrapper">
+  @if (showRetryBanner()) {
+  <div class="error-banner py-1 px-3 bg-orange-400 text-white">
+    <div class="flex gap-2 align-items-center">
+      <h2 class="m-0 text-sm font-semibold">Network Error</h2>
+      <p class="m-0 text-sm">
+        Unable to access this page due to a network issue.
+      </p>
+      <p-button
+        size="small"
+        [link]="true"
+        styleClass="p-0 text-white"
+        label="Refresh Page"
+        (onClick)="retry()"
+      />
+    </div>
+  </div>
+  }
+
+  <div class="layout-main-container">
+    <div class="layout-main">
+      <router-outlet />
+    </div>
+  </div>
+
+  <app-footer />
+</div>

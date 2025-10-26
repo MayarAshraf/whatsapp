@@ -1,0 +1,21 @@
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.error-banner {
+  @media (width >=992px) {
+    width: calc(100% - var(--sidebar-width));
+    margin-inline-start: var(--sidebar-width);
+  }
+}
+
+.layout-main-container {
+  flex-grow: 1;
+  padding-inline: var(--layout-inline-padding);
+
+  @media (width >=992px) {
+    margin-inline-start: var(--sidebar-width);
+  }
+}

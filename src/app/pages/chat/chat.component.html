@@ -1,72 +1,94 @@
 <div class="h-screen">
   <div class="grid grid-nogutter h-full overflow-hidden">
     <div class="col-3 h-full">
-      <div class="user-list p-3 overflow-y-auto">
-        <div class="search-container mb-3 px-2">
-          <i class="pi pi-search search-icon ml-1"></i>
-          <input
-            type="text"
-            pInputText
-            [placeholder]="'Search'"
-            class="search-input w-full"
-            [(ngModel)]="searchTerm"
-          />
+      <div class="user-list overflow-y-auto border-right-1 border-300">
+        <div
+          class="flex align-items-center justify-content-between gap-2 my-3 mx-2"
+        >
+          <div
+            class="search-container flex align-items-center justify-content-between px-3 bg-white border-1 border-300 border-round-3xl"
+          >
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              pInputText
+              [placeholder]="'Search'"
+              class="search-input w-full h-full border-0 shadow-none pl-2"
+              [(ngModel)]="searchTerm"
+            />
+          </div>
+          <i class="fa-solid fa-user-plus"></i>
         </div>
-        <ul class="list-none p-0 m-0 flex flex-column">
+        <div class="mx-2">
+          <ul
+            class="list-none p-0 m-0 flex align-items-center justify-content-between"
+          >
+            <li class="text-sm font-semibold">
+              <span>All Status</span>
+              <i class="fa-solid fa-chevron-down text-xs ml-2"></i>
+            </li>
+            <li class="text-sm font-semibold">
+              <span>Newest</span>
+              <i class="fa-solid fa-chevron-down text-xs ml-2"></i>
+            </li>
+            <li class="text-sm font-semibold">
+              <i class="fa-solid fa-filter"></i>
+            </li>
+          </ul>
+        </div>
+        <ul class="list-none p-0 m-0 mt-2 flex flex-column">
           @if (!usersLoading()) { @for (user of filteredUsers(); track $index) {
           <li
-            class="flex align-items-center gap-3 p-2 cursor-pointer user-item"
+            class="p-2 cursor-pointer user-item"
             (click)="selectUser(user)"
             [class.active]="selectedUser()?.id === user.id"
           >
-            <div
-              class="flex flex-shrink-0 w-3rem h-3rem border-circle relative"
-            >
-              <img
-                class="w-full h-full border-circle img-cover"
-                alt="user"
-                [src]="user.featured_image || 'assets/media/avatar.svg'"
-              />
-              @if (user?.user_status === 'Online') {
-              <span class="status-indicator"></span>
-              }
-            </div>
-            <div class="flex flex-auto flex-column gap-1 overflow-hidden">
+            <div class="flex align-items-center gap-2">
               <div
-                class="flex justify-content-between w-full align-items-center"
+                class="flex flex-shrink-0 w-2.5rem h-2.5rem border-circle relative"
               >
-                <p
-                  class="font-semibold m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap user-name"
-                >
-                  {{ user.sender_name }}
-                </p>
-                <p class="text-xs text-300 m-0 flex-shrink-0">
-                  {{ user?.last_message_at | date : "shortTime" }}
-                </p>
-              </div>
-              <div
-                class="flex justify-content-between align-items-center w-full"
-              >
-                @if (typingUsers()[user?.id]) {
-                <p class="text-sm m-0 text-primary font-medium">typing...</p>
-                } @else {
-                <p
-                  class="text-sm text-300 m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap"
-                >
-                  {{ user?.last_message?.message }}
-                </p>
-                } @if (user?.unread_count > 0) {
-                <p
-                  class="message-count text-xs m-0 border-circle text-white flex align-items-center justify-content-center font-semibold flex-shrink-0"
-                >
-                  {{ user.unread_count }}
-                </p>
+                <img
+                  class="w-full h-full border-circle img-cover"
+                  alt="user"
+                  [src]="user.featured_image || 'assets/media/profile.png'"
+                />
+                @if (user?.user_status === 'Online') {
+                <span class="status-indicator"></span>
                 }
               </div>
+              <p
+                class="font-semibold m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap user-name"
+              >
+                {{ user.sender_name }}
+              </p>
+              <p
+                class="text-xs font-semibold text-400 m-0 ml-auto flex-shrink-0"
+              >
+                {{ user?.last_message_at | date : "shortTime" }}
+              </p>
+            </div>
+            <div
+              class="flex justify-content-between align-items-center mt-2 w-full"
+            >
+              @if (typingUsers()[user?.id]) {
+              <p class="text-sm m-0 text-primary font-medium">typing...</p>
+              } @else {
+              <p
+                class="text-sm font-normal m-0 text-overflow-ellipsis overflow-hidden white-space-nowrap"
+              >
+                {{ user?.last_message?.message }}
+              </p>
+              } @if (user?.unread_count > 0) {
+              <p
+                class="message-count text-xs m-0 border-circle flex align-items-center justify-content-center font-semibold flex-shrink-0"
+              >
+                {{ user.unread_count }}
+              </p>
+              }
             </div>
           </li>
           } @empty {
-          <p class="text-white-alpha-70 font-semibold">
+          <p class="m-2 font-semibold">
             {{ "no users found" }}
           </p>
           } } @else { @for (i of [1, 2, 3, 4, 5]; track $index) {
@@ -87,9 +109,7 @@
       <div class="chat-window flex flex-column">
         <div class="chat-header flex align-items-center p-2">
           <img
-            [src]="
-              selectedUser().featured_image || 'assets/media/avatar.svg'
-            "
+            [src]="selectedUser().featured_image || 'assets/media/profile.png'"
             alt="Profile"
             class="w-3rem h-3rem border-circle img-cover relative"
             [class.status-ring]="selectedUser().user_status === 'Online'"
@@ -111,7 +131,7 @@
           (scroll)="onScroll()"
         >
           @if (!messagesLoading()) { @for (msg of combinedMessages(); track
-          msg.message_id) {
+          $index) {
           <div
             class="message-wrapper"
             [class.self]="msg.direction === 'outbound'"
@@ -205,14 +225,29 @@
           }
         </div>
 
-        <div class="p-3 mt-auto">
-          <input
-            pInputText
+        <div
+          class="flex flex-column align-items-center p-3 border-top-1 border-300 mt-auto"
+        >
+          <textarea
+            #messageInput
+            pTextarea
             [(ngModel)]="newMessage"
             (keydown.enter)="sendMessage()"
             (input)="sendTypingEvent()"
-            [placeholder]="'Type a message'"
-          />
+            placeholder="Type a message"
+            [autoResize]="false"
+            class="w-full border-0 shadow-none p-0 overflow-hidden"
+            rows="1"
+          ></textarea>
+          <div
+            class="w-full flex align-content-center justify-content-between text-500"
+          >
+            <div class="flex align-items-center gap-4">
+              <i class="fa-solid fa-face-smile"></i>
+              <i class="fa-solid fa-link"></i>
+            </div>
+            <p-button icon="fa-solid fa-paper-plane" aria-label="Send" />
+          </div>
         </div>
       </div>
       } @else {
@@ -221,6 +256,7 @@
       >
         <iframe
           src="https://lottie.host/embed/ea3a541c-f8c3-482c-8be4-ec92a2b84b0f/4Fk6wpCisr.lottie"
+          style="border: 0"
         ></iframe>
         <h4 class="text-600 text-xl font-medium m-0">Start a Conversation</h4>
         <p class="text-700 text-sm m-0">Select a contact to start messaging</p>

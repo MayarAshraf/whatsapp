@@ -87,9 +87,7 @@
       <div class="chat-window flex flex-column">
         <div class="chat-header flex align-items-center p-2">
           <img
-            [src]="
-              selectedUser().featured_image || 'assets/media/avatar.svg'
-            "
+            [src]="selectedUser().featured_image || 'assets/media/avatar.svg'"
             alt="Profile"
             class="w-3rem h-3rem border-circle img-cover relative"
             [class.status-ring]="selectedUser().user_status === 'Online'"
@@ -111,7 +109,7 @@
           (scroll)="onScroll()"
         >
           @if (!messagesLoading()) { @for (msg of combinedMessages(); track
-          msg.message_id) {
+          $index) {
           <div
             class="message-wrapper"
             [class.self]="msg.direction === 'outbound'"
@@ -219,9 +217,9 @@
       <div
         class="surface-50 flex flex-column align-items-center justify-content-center gap-2 h-full p-5"
       >
-        <iframe
+        <!-- <iframe
           src="https://lottie.host/embed/ea3a541c-f8c3-482c-8be4-ec92a2b84b0f/4Fk6wpCisr.lottie"
-        ></iframe>
+        ></iframe> -->
         <h4 class="text-600 text-xl font-medium m-0">Start a Conversation</h4>
         <p class="text-700 text-sm m-0">Select a contact to start messaging</p>
       </div>

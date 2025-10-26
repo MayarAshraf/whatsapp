@@ -1,0 +1,16 @@
+.layout-footer {
+  background-color: var(--surface-0);
+  border-top: 1px solid var(--surface-100);
+  padding-block: 10px;
+  padding-inline: var(--layout-inline-padding);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+
+  @media (width >=992px) {
+    width: calc(100% - var(--sidebar-width));
+    margin-inline-start: var(--sidebar-width);
+  }
+}

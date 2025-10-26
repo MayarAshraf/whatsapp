@@ -18,7 +18,7 @@ import { BadgeModule } from 'primeng/badge';
 import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import Pusher from 'pusher-js';
-import { catchError, finalize, map, of, tap } from 'rxjs';
+import { finalize, map, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 interface Message {
@@ -52,6 +52,7 @@ export default class WebChatComponent implements OnInit, OnDestroy {
   #api = inject(ApiService);
   #authService = inject(AuthService);
   #destroyRef = inject(DestroyRef);
+  #ws = new WebSocket('wss://8xrespond.com:8443/app/8xmeb');
 
   // currentUser = this.#authService.currentUser;
   currentUserId = 1;
@@ -91,20 +92,41 @@ export default class WebChatComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     Pusher.logToConsole = true;
-    this.pusher = new Pusher('6b7c7c9491ca172ce5d7', {
+
+    this.pusher = new Pusher('8xmeb', {
       cluster: 'mt1',
+      wsHost: '8xrespond.com',
+      wsPort: 8443,
+      wssPort: 8443,
+      forceTLS: true,
+      enabledTransports: ['ws', 'wss'],
+      disableStats: true,
       authEndpoint: 'https://8x-test.8xrespond.com/api/v1/broadcasting/auth',
       auth: {
         headers: {
-          Authorization: `Bearer 1|WAFsyLOOWL44b6c6QxMoV5CUysFuYLT2PpqD2MP259458e0c`,
+          Authorization: `Bearer 1|7Db4hKovsNdgzh5RpdXzvEGvuJkYkQpilvu7Uigt8d900808`,
           Accept: 'application/json',
         },
       },
     });
+    this.#ws.onopen = () => {
+      console.log('🔌 WebSocket connected');
+    };
 
-    // this.channelName.set(`private-conversation.3`);
-    // this.channel = this.pusher.subscribe(this.channelName());
-    this.bindChannelEvents();
+    this.#ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('📩 Incoming WebSocket message:', data);
+
+      if (data.event === 'server-confirm') {
+        console.log('✅ Server confirmed message delivery', data.data);
+      }
+
+      if (data.event === 'new-message') {
+        console.log('💬 New message from other client:', data.data);
+      }
+    };
+
+    // this.#ws.connect();
   }
 
   ngOnDestroy() {
@@ -173,8 +195,8 @@ export default class WebChatComponent implements OnInit, OnDestroy {
     this.#api
       .request('post', 'conversations/conversation-history', {
         id: this.selectedUser().id,
-        start: this.currentStart,
-        length: this.pageSize,
+        // start: this.currentStart,
+        // length: this.pageSize,
       })
       .pipe(
         finalize(() => this.messagesLoading.set(false)),
@@ -238,8 +260,6 @@ export default class WebChatComponent implements OnInit, OnDestroy {
     if (!this.channel) return;
 
     this.channel.bind('ConversationUpdated', (event: any) => {
-      console.log('Incoming message:', event);
-
       const conversationId = event.id;
       const usersCopy = [...this.allUsers()];
       const existingIndex = usersCopy.findIndex((u) => u.id === conversationId);
@@ -254,6 +274,8 @@ export default class WebChatComponent implements OnInit, OnDestroy {
     });
 
     this.channel.bind('MessageEvent', (data: any) => {
+      console.log('Incoming message:', data);
+
       const selected = this.selectedUser();
       if (!selected) return;
 
@@ -295,6 +317,23 @@ export default class WebChatComponent implements OnInit, OnDestroy {
         this.typingUsers.set(updated);
       }, 1000);
     });
+
+    this.channel.bind('client-message', (event: any) => {
+      console.log('Server broadcasted message', event);
+      const selected = this.selectedUser();
+      if (!selected) return;
+
+      if (event.conversation_id !== selected.id) return;
+
+      this.messages.update((messages) =>
+        messages.filter(
+          (msg) => !msg.isOptimistic || msg.message !== event.message
+        )
+      );
+
+      this.messages.update((messages) => [...messages, event]);
+      this.scrollToBottom();
+    });
   }
 
   sendMessage() {
@@ -306,7 +345,7 @@ export default class WebChatComponent implements OnInit, OnDestroy {
 
     const optimisticMessage: Message = {
       message_id: Date.now(),
-      // sender_id: this.conversationId()!,
+      sender_id: this.conversationId(),
       receiver_id: selectedUser.id,
       message: content,
       created_at: new Date().toISOString(),
@@ -318,23 +357,21 @@ export default class WebChatComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
     this.newMessage.set('');
 
-    this.#api
-      .request('post', 'conversations/reply', {
+    const payload = {
+      event: 'client-message',
+      channel: 'private-conversation.4',
+      subdomain: '8x-test.8xrespond.com',
+      data: {
+        conversation_id: selectedUser.id,
+        user_id: this.currentUserId,
         message: content,
         type: 'text',
-        conversation_id: selectedUser.id,
-      })
-      .pipe(
-        catchError((error) => {
-          this.messages.update((messages) =>
-            messages.filter(
-              (msg) => !msg.isOptimistic || msg.message !== content
-            )
-          );
-          return of(error);
-        }),
-        takeUntilDestroyed(this.#destroyRef)
-      )
-      .subscribe();
+        created_at: new Date().toISOString(),
+      },
+    };
+
+    if (this.#ws?.readyState === WebSocket.OPEN) {
+      this.#ws.send(JSON.stringify(payload));
+    }
   }
 }

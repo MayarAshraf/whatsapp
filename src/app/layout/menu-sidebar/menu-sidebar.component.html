@@ -1,0 +1,53 @@
+<p-drawer
+  [(visible)]="visible"
+  position="left"
+  closable="false"
+  appendTo="body"
+  [closeOnEscape]="false"
+  [modal]="false"
+  styleClass="layout-sidebar"
+>
+  <ng-template #header>
+    <img
+      src="assets/media/colored-portrait-logo.png"
+      style="width: 3.7rem"
+      alt="8X CRM Logo"
+    />
+  </ng-template>
+  <ng-template #content>
+    <div class="flex flex-column h-full">
+      <ul
+        class="list-none p-0 m-0 text-center flex flex-column gap-4 mb-2"
+      >
+        @for (link of topMenuItems(); track $index) {
+        <li>
+          <a
+            [routerLink]="link.routerLink"
+            routerLinkActive="text-primary"
+            [routerLinkActiveOptions]="{ exact: true }"
+            [pTooltip]="link.label"
+          >
+            <i class="{{ link.icon }} text-xl font-meduim"></i>
+          </a>
+        </li>
+        }
+      </ul>
+      <ul
+        class="list-none p-0 m-0 text-center flex flex-column gap-4 mt-auto mb-2"
+      >
+        @for (link of bottomMenuItems(); track $index) {
+        <li>
+          <a
+            [routerLink]="link.routerLink"
+            routerLinkActive="text-primary"
+            [routerLinkActiveOptions]="{ exact: true }"
+            [pTooltip]="link.label"
+          >
+            <i class="{{ link.icon }} text-xl font-meduim"></i>
+          </a>
+        </li>
+        }
+      </ul>
+    </div>
+  </ng-template>
+</p-drawer>

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 enum WS_COMMANDS {
   CACHE_INVALIDATION = 'cache-invalidation',
@@ -36,7 +36,18 @@ interface WSParsedData {
   host: string;
   subdomain: string;
 }
-
+interface Message {
+  id?: number;
+  message_id: number;
+  sender_id?: number;
+  receiver_id: number;
+  message: string;
+  created_at: string;
+  read_at?: string;
+  isOptimistic?: boolean;
+  direction?: string;
+  conversation_id: number;
+}
 export interface WSMessageEnvelope {
   channel: string;
   event: string;
@@ -45,28 +56,17 @@ export interface WSMessageEnvelope {
 
 @Injectable({ providedIn: 'root' })
 export class HandleSocketActionsService {
+  message = signal<Message | any>(null);
+
   dispatch(envelope: WSMessageEnvelope) {
     if (typeof envelope.data !== 'string') return;
 
     try {
       const parsed: WSParsedData = JSON.parse(envelope.data);
-      const message = parsed?.message;
-
-      if (!message || !message.command) return;
-
-      // switch (message.command) {
-      //   case WS_COMMANDS.CACHE_INVALIDATION:
-      //     this.#handleCacheInvalidation(message.data);
-      //     break;
-
-      //   case WS_COMMANDS.BANNER_MESSAGE:
-      //     this.#handleBannerMessage(message.data);
-      //     break;
-
-      //   case WS_COMMANDS.NEW_DUPLICATE:
-      //     this.#handleNewDuplicate();
-      //     break;
-      // }
+      const message = parsed;
+      this.message.set(message);
+      console.log(message);
+      if (!message) return;
     } catch (err) {
       console.error('WebSocket: failed to parse data', envelope.data, err);
     }

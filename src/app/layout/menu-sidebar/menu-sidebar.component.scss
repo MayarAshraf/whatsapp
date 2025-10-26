@@ -1,0 +1,12 @@
+::ng-deep {
+  .p-drawer.layout-sidebar {
+    width: var(--sidebar-width);
+    .p-drawer-header {
+      padding-inline: 0;
+    }
+
+    .p-drawer-content {
+      padding: 0;
+    }
+  }
+}

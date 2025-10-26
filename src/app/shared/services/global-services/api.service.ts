@@ -26,7 +26,7 @@ export type RequestParams =
 export class ApiService {
   #http = inject(HttpClient);
   #apiUrl = environment.API_URL;
-  #token = '1|XFFBaLy77QoQOLlCNpSpFivsmxebmYG2vwtOK5ea8d6dc7ea';
+  #token = '3|8VnXkje3ZXcTSBz1LErCi9dn92iAYEgU5O7JCvmq7af666ee';
 
   request<T, R = GlobalApiResponse>(
     method: HttpMethod,

@@ -3,83 +3,90 @@
 @import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap");
 
 :root {
-  --title-font: "Poppins", sans-serif;
-  --body-font: "Roboto", sans-serif;
-  --body-bg: #ecece5;
-  --primary-color: #7492ea;
-  --primary-dark-color: #3576d4;
-  --accent-color: #2f54a3;
-  --secondary-color: #2e437e;
+  // color: oklch(<lightness> <chroma> <hue>);
+  --lighter: oklch(
+    from var(--p-primary-color) clamp(0, l + 0.085, 1) calc(c * 0.9) h
+  );
+  --darker: oklch(
+    from var(--p-primary-color) clamp(0, l - 0.085, 1) calc(c * 0.9) h
+  );
+
+  --high-index: 9999;
+  --sidebar-width: 4rem;
+  --sidebar-width-lg: 285px;
+  --scrollbar-width: 7px;
+  --layout-inline-padding: 1rem;
+  --font-family: "Poppins", sans-serif;
+  --poppins-font: "Poppins", sans-serif;
+  --border-radius: 6px;
+  --green-color: #44ab4b;
+  --pink-color: #d53677;
+  --red-color: #f14726;
+  --yellow-color: #f2a510;
+  --purple-color: #960fac;
+  --dark-purple-color: #652ab8;
 
   &[dir="rtl"] {
-    --title-font: "Cairo", sans-serif;
-    --body-font: "Cairo", sans-serif;
+    --font-family: "DroidArabicKufiRegular", serif;
   }
+}
+
+::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--surface-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--surface-400);
+  border-radius: 8px;
 }
 
 body {
   text-align: start;
-  color: #222;
-  background-color: var(--body-bg);
-  font-family: var(--body-font);
+  font-family: var(--font-family);
+  background-color: var(--surface-200);
+  color: var(--p-text-color);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;
+  // Prevent adjustments of font size after orientation changes in iOS.
+  -webkit-text-size-adjust: 100%;
+  // Change the default tap highlight to be completely transparent in iOS.
+  -webkit-tap-highlight-color: rgba(#000, 0);
   margin: 0;
+  overflow-x: hidden;
 }
 
-::-webkit-scrollbar {
-  width: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background-color: #eeeeee;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #cecece;
-  border-radius: 8px;
-}
-
-button,
 a {
+  text-decoration: none;
   color: inherit;
-  cursor: pointer;
+}
+
+button {
   font-family: inherit;
 }
 
-[dir="rtl"] {
-  * {
-    letter-spacing: normal !important;
-  }
+a,
+button {
+  cursor: pointer;
 }
 
-iframe {
-  border: none;
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-img {
-  max-width: 100%;
-  height: auto;
+// prevent background-color and font color changes due to autofill.
+input:-webkit-autofill {
+  transition: background-color 50000s ease-in-out, color 50000s ease-in-out;
 }
 
-textarea {
-  resize: none;
-}
-
-input,
-textarea {
-  font-family: var(--body-font);
-  font-size: 1rem;
-}
-
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  overflow-wrap: break-word;
-  hyphens: auto;
+input::placeholder {
+  color: var(--surface-400) !important;
+  line-height: 1.5 !important; /* ✅ important fix */
 }
