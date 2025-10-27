@@ -58,8 +58,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   #destroyRef = inject(DestroyRef);
   #ws = new WebSocket('wss://8xrespond.com:8443/app/8xmeb');
 
-  // currentUser = this.#authService.currentUser;
-  currentUserId = 1;
+  currentUser = this.#authService.currentUser;
 
   messageInput = viewChild<ElementRef>('messageInput');
 
@@ -110,7 +109,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       authEndpoint: 'https://8x-test.8xrespond.com/api/v1/broadcasting/auth',
       auth: {
         headers: {
-          Authorization: `Bearer 1|7Db4hKovsNdgzh5RpdXzvEGvuJkYkQpilvu7Uigt8d900808`,
+          Authorization: `Bearer ${this.#authService.accessToken()}`,
           Accept: 'application/json',
         },
       },
@@ -377,7 +376,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       subdomain: '8x-test.8xrespond.com',
       data: {
         conversation_id: selectedUser.id,
-        user_id: this.currentUserId,
+        user_id: this.currentUser()?.id,
         message: content,
         type: 'text',
         created_at: new Date().toISOString(),

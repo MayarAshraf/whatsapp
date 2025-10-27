@@ -69,18 +69,18 @@ export class AuthService {
 
   /*****************************************/
   #ROLE = 'role-user';
-  #roleUser = localStorageSignal<string | null>(null, this.#ROLE);
-  roleUser = this.#roleUser.asReadonly(); // exposed publicly.
+  // #roleUser = localStorageSignal<string | null>(null, this.#ROLE);
+  // roleUser = this.#roleUser.asReadonly(); // exposed publicly.
 
-  updateRole(role: string | null) {
-    this.#roleUser.set(role);
-  }
+  // updateRole(role: string | null) {
+  //   this.#roleUser.set(role);
+  // }
 
-  userRole = computed<string | null>(() => this.roleUser());
+  // userRole = computed<string | null>(() => this.roleUser());
 
   login(credentials: LoginModel) {
     return this.#api
-      .request('post', 'auth/login', credentials)
+      .request('post', 'login', credentials)
       .pipe(tap(({ data }) => this.doLogin(data)));
   }
 
@@ -109,15 +109,16 @@ export class AuthService {
   }
 
   doLogin(data: UserData) {
+    console.log(data);
     this.updateCurrentUser(data.user);
     this.updateAccessToken(data.accessToken);
-    this.updateRole(data.user.role);
+    // this.updateRole(data.user.role);
   }
 
   doLogout() {
     this.updateCurrentUser(null);
     this.updateAccessToken(null);
-    this.updateRole(null);
+    // this.updateRole(null);
   }
 
   refreshAccessToken() {

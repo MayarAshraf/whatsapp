@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "extract-trans": "ngx-translate-extract -i ./src -o ./public/assets/i18n/en.json -o ./public/assets/i18n/ar.json -o -f namespaced-json -s -k --marker _"
   },
   "private": true,
   "dependencies": {
@@ -14,14 +15,21 @@
     "@angular/common": "^19.2.0",
     "@angular/compiler": "^19.2.0",
     "@angular/core": "^19.2.0",
-    "@angular/forms": "^19.2.0",
+    "@angular/forms": "^19.2.15",
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@fortawesome/fontawesome-free": "^7.0.1",
+    "@ngx-formly/core": "^7.0.0",
+    "@ngx-formly/primeng": "^7.0.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
     "@primeuix/themes": "^1.2.5",
     "crypto-js": "^4.2.0",
+    "moment-timezone": "^0.6.0",
+    "date-fns": "^4.1.0",
     "primeicons": "^7.0.0",
+    "primelocale": "^2.1.7",
     "primeng": "^20.2.0",
     "pusher-js": "^8.4.0",
     "rxjs": "~7.8.0",
@@ -32,6 +40,7 @@
     "@angular-devkit/build-angular": "^19.2.6",
     "@angular/cli": "^19.2.6",
     "@angular/compiler-cli": "^19.2.0",
+    "@biesbjerg/ngx-translate-extract-marker": "^1.0.0",
     "@types/crypto-js": "^4.2.2",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.6.0",
@@ -40,6 +49,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "ngx-translate-extract": "^1.0.0",
     "typescript": "~5.7.2"
   }
 }

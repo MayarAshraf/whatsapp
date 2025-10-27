@@ -1,0 +1,29 @@
+<div class="p-3">
+  <div class="text-center mb-3">
+    <h1 class="font-bold text-xl">{{ "Login" | translate }}</h1>
+  </div>
+
+  <form [formGroup]="loginForm" (ngSubmit)="login()">
+    <div>
+      <formly-form [model]="model" [fields]="fields" [form]="loginForm" />
+    </div>
+
+    <div class="pt-3 border-top-1 border-300">
+      <button
+        pButton
+        pRipple
+        class="p-button-sm p-button-success"
+        type="submit"
+        class="uppercase text-base w-full bg-primary-color border-none shadow-none"
+        [loading]="loading()"
+        [label]="'login'"
+      ></button>
+    </div>
+  </form>
+
+  <div class="py-3">
+    <a class="text-blue-500 capitalize" routerLink="/auth/forget-password">
+      {{ "forget password" | translate }}
+    </a>
+  </div>
+</div>

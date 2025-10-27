@@ -1,0 +1,94 @@
+<div class="p-field" attr.data-field-key="{{ field.key }}" [class.mb-0]="props.noMarginBottom">
+  <p-floatlabel variant="on">
+    @if (props.multiple) {
+      <ng-container *ngTemplateOutlet="multiSelect" />
+    } @else {
+      <ng-container *ngTemplateOutlet="select" />
+    }
+
+    @if (props.label) {
+      <label [class]="props.labelClass">
+        {{ props.label }}
+        @if (props.required && props.hideRequiredMarker !== true) {
+          <span class="text-red">*</span>
+        }
+      </label>
+    }
+  </p-floatlabel>
+
+  @if (props.description) {
+    <p class="mt-1 mb-0 font-medium text-xs text-primary capitalize">
+      {{ props.description }} <i class="fas fa-circle-info text-sm"></i>
+    </p>
+  }
+
+  @if (showError && formControl.errors) {
+    <small class="error-msg" role="alert">
+      <formly-validation-message [field]="field" />
+    </small>
+  }
+</div>
+
+<ng-template #select>
+  <p-select
+    [size]="props.size"
+    [options]="(options$ | async) ?? []"
+    [optionValue]="props.optionValue"
+    [optionLabel]="props.optionLabel"
+    [autoOptionFocus]="false"
+    [formControl]="formControl"
+    [loading]="props.loading ?? false"
+    [formlyAttributes]="field"
+    [filter]="props.filter"
+    [autofocusFilter]="props.filter"
+    [filterBy]="props.filterBy ?? 'label'"
+    [class]="props.styleClass + ' w-full'"
+    [appendTo]="props.appendTo ?? 'body'"
+    [dropdownIcon]="props.dropdownIcon"
+    [placeholder]="props.placeholder ?? ''"
+    [tooltip]="props.tooltip | translate"
+    [tooltipPosition]="props.tooltipPosition ?? 'top'"
+    [showClear]="props.showClear"
+    [required]="props.required ?? false"
+    [optionDisabled]="props.optionDisabled"
+    [scrollHeight]="props.scrollHeight ?? '150px'"
+    [class.ng-dirty]="showError"
+    [group]="props.group"
+    [lazy]="props.lazy"
+    (onChange)="props.change && props.change(field, $event)"
+  />
+</ng-template>
+
+<ng-template #multiSelect>
+  <p-multiselect
+    #multiSelect
+    [size]="props.size"
+    [options]="(options$ | async) ?? []"
+    [optionValue]="props.optionValue"
+    [optionLabel]="props.optionLabel"
+    [autoOptionFocus]="false"
+    [formControl]="formControl"
+    [loading]="props.loading ?? false"
+    [formlyAttributes]="field"
+    [filter]="props.filter"
+    [autofocusFilter]="props.filter"
+    [filterBy]="props.filterBy ?? 'label'"
+    [showHeader]="props.showHeader ?? true"
+    [showToggleAll]="props.showToggleAll ?? true"
+    [class]="props.styleClass + ' w-full'"
+    [appendTo]="props.appendTo ?? 'body'"
+    [dropdownIcon]="props.dropdownIcon"
+    [display]="props.display ?? 'chip'"
+    [placeholder]="props.placeholder ?? ''"
+    [tooltip]="props.tooltip | translate"
+    [tooltipPosition]="props.tooltipPosition ?? 'top'"
+    [showClear]="props.showClear"
+    [group]="props.group"
+    [required]="props.required ?? false"
+    [optionDisabled]="props.optionDisabled"
+    [scrollHeight]="props.scrollHeight ?? '150px'"
+    [class.ng-dirty]="showError"
+    [lazy]="props.lazy"
+    (onChange)="props.change && props.change(field, $event)"
+  />
+</ng-template>

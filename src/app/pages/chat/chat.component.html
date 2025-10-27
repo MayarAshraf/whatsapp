@@ -148,7 +148,7 @@
                 >
                   {{ msg.created_at | date : "shortTime" }}
                 </small>
-                @if (msg.sender_id === currentUserId) { @if (msg.isOptimistic) {
+                @if (msg.sender_id === currentUser()?.id) { @if (msg.isOptimistic) {
                 <small class="text-400"
                   ><i class="pi pi-spinner pi-spin text-xs"></i
                 ></small>

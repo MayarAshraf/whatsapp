@@ -1,0 +1,16 @@
+{
+  "GLOBAL": {
+    "FORM_VALIDATION": {
+      "COMPARE_PASSWORD_ERROR": "Password and Confirm Password does not match.",
+      "MAX": "This value should be less than {{max}}",
+      "MAX_LENGTH": "Should have at most {{maxLength}} characters",
+      "MIN": "This value should be more than {{min}}",
+      "MIN_LENGTH": "Should have at least {{minLength}} characters",
+      "REQUIRED": "This field is required",
+      "VALID_EMAIL": "Enter a valid email",
+      "VALID_MOBILE": "Enter a valid format mobile number",
+      "VALID_NUMBER": "This field should contain only numbers",
+      "invalid_url": ""
+    }
+  }
+}

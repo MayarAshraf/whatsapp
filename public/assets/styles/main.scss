@@ -1,4 +1,4 @@
-@import "./primeflex";
-@import "./utilities";
-@import "./th-party-overrides";
-@import "./global";
+@forward "./primeflex";
+@forward "./utilities";
+@forward "./th-party-overrides";
+@forward "./global";

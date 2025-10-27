@@ -1,4 +1,3 @@
-/* You can add global styles to this file, and also import other style files */
+@use "../public/assets/styles/main.scss"; // import sass module (entry point) 
 @import "@fortawesome/fontawesome-free/css/all.min.css";
 @import "primeicons/primeicons.css";
-@import "../public/assets/styles/main.scss";
