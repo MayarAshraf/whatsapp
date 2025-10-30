@@ -1,37 +1,42 @@
-<div class="grid grid-nogutter h-screen">
-  <div class="col-12 lg:col-6">
-    <div class="flex flex-column gap-3 justify-content-around h-full">
-      <div>
-        <img
-          class="w-12rem mx-auto block"
-          src="assets/media/colored-portrait-logo.png"
-          alt="logo"
-        />
-      </div>
-      <div class="md:w-25rem md:mx-auto">
-        <router-outlet></router-outlet>
-      </div>
-      <div class="text-center">
-        <p class="text-sm capitalize">
-          &copy; Copyright
-          {{ getDate }}
-          {{ "all rights reserved to" | translate }}
-          <a
-            href="https://www.8worx.com/"
-            target="_blank"
-            title="8WORX,8XEgypt,8XUAE"
-            class="text-blue-500 font-semibold"
-            >8WORX</a
-          >
-        </p>
-      </div>
+<div class="auth-holder surface-0">
+  <img class="login-shape" src="assets/media/login-shape-1.png" alt="" />
+  <img class="login-shape" src="assets/media/login-shape-2.png" alt="" />
+  <h2 class="welcome-text">Welcome back!</h2>
+
+  <div class="sm:w-25rem w-full">
+    <div class="border-1 border-400 border-round py-6 px-3 mb-3">
+      <router-outlet />
     </div>
-  </div>
-  <div class="lg:col-6 hidden lg:block">
-    <img
-      class="image h-full w-full block object-cover"
-      src="assets/media/login-bg.jpg"
-      alt="Login Image"
-    />
+
+    <ul class="list-none p-0 m-0 flex justify-content-center gap-5">
+      <li>
+        <a
+          class="letter-spacing-1 font-semibold text-xs text-400 hover:text-700 hover:underline"
+          href="#"
+          >Help Center</a
+        >
+      </li>
+      <li>
+        <a
+          class="letter-spacing-1 font-semibold text-xs text-400 hover:text-700 hover:underline"
+          href="#"
+          >Terms</a
+        >
+      </li>
+      <li>
+        <a
+          class="letter-spacing-1 font-semibold text-xs text-400 hover:text-700 hover:underline"
+          href="#"
+          >Privacy</a
+        >
+      </li>
+      <li>
+        <a
+          class="letter-spacing-1 font-semibold text-xs text-400 hover:text-700 hover:underline"
+          href="#"
+          >Support</a
+        >
+      </li>
+    </ul>
   </div>
 </div>

@@ -1,0 +1,53 @@
+.auth-holder {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  height: 100dvh;
+
+  @media (width<767px) {
+    flex-direction: column;
+  }
+
+  .login-shape {
+    position: absolute;
+    width: 300px;
+    object-fit: contain;
+
+    &:nth-child(1) {
+      top: 0;
+      inset-inline-end: 0;
+    }
+
+    &:nth-child(2) {
+      bottom: 0;
+      inset-inline-start: 0;
+    }
+
+    @media (width<767px) {
+      display: none;
+    }
+  }
+
+  .welcome-text {
+    font-size: 2.3rem;
+    margin: 0;
+    line-height: 1;
+    font-weight: 500;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--surface-400);
+    writing-mode: vertical-rl;
+    transform: scale(-1);
+    backface-visibility: visible;
+    cursor: default;
+
+    @media (width<767px) {
+      font-size: 1.5rem;
+      writing-mode: horizontal-tb;
+      transform: none;
+    }
+  }
+}

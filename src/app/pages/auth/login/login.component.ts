@@ -50,7 +50,7 @@ export default class LoginComponent {
   fields: FormlyFieldConfig[] = [
     {
       key: 'email',
-      type: 'input',
+      type: 'input-field',
       className: 'shadow-none',
       props: {
         required: true,

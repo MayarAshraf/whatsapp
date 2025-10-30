@@ -10,4 +10,6 @@ export interface User {
   name: string;
   email: string;
   photo: string;
+  whatsapp_number: string;
+  featured_image: string;
 }

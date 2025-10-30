@@ -34,6 +34,7 @@ interface Message {
   read_at?: string;
   isOptimistic?: boolean;
   direction?: string;
+  from?: string;
 }
 @Component({
   selector: 'app-chat',
@@ -72,7 +73,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
   usersLoading = signal(true);
   messagesLoading = model(false);
   typingUsers = signal<{ [userId: number]: boolean }>({});
-
   conversationId = signal(2);
 
   messagesContainer = viewChild<ElementRef>('messagesContainer');
@@ -130,7 +130,13 @@ export default class ChatComponent implements OnInit, OnDestroy {
         console.log('💬 New message from other client:', data.data);
       }
     };
+    // this.channelName.set(`private-conversation.${this.currentUser()?.id}`);
 
+    this.channelName.set(
+      `private-tenant.8x-test.phone.${this.currentUser()?.whatsapp_number}`
+    );
+    this.channel = this.pusher.subscribe(this.channelName());
+    this.bindChannelEvents();
     // this.#ws.connect();
   }
 
@@ -152,8 +158,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.messages.set([]);
     this.newMessage.set('');
     this.selectedUser.set(user);
-    this.channelName.set(`private-conversation.${user.id}`);
-    this.channel = this.pusher.subscribe(this.channelName());
     this.messagesLoading.set(true);
     this.getConversationHistory();
 
@@ -236,25 +240,13 @@ export default class ChatComponent implements OnInit, OnDestroy {
       this.getConversationHistory(false);
     }
   }
-  // markMessagesAsRead(senderId: number | undefined) {
-  //   this.#api
-  //     .request('post', 'mark-as-read', {
-  //       sender_id: senderId,
-  //     })
-  //     .pipe(
-  //       tap(() => {
-  //         this.allUsers.update((users) =>
-  //           users.map((user: any) =>
-  //             user.id === this.selectedUser().id
-  //               ? { ...user, unread_message_count: 0 }
-  //               : user
-  //           )
-  //         );
-  //       }),
-  //       takeUntilDestroyed(this.#destroyRef)
-  //     )
-  //     .subscribe();
-  // }
+  markMessagesAsRead(conversation: any) {
+    if (!conversation) return;
+    this.channel?.trigger('message-seen', {
+      conversation_id: conversation.id,
+      user_id: this.currentUser()?.id,
+    });
+  }
 
   sendTypingEvent() {
     // this.#api
@@ -272,7 +264,8 @@ export default class ChatComponent implements OnInit, OnDestroy {
   bindChannelEvents() {
     if (!this.channel) return;
 
-    this.channel.bind('ConversationUpdated', (event: any) => {
+    this.channel.bind('conversation-updated', (event: any) => {
+      console.log(event);
       const conversationId = event.id;
       const usersCopy = [...this.allUsers()];
       const existingIndex = usersCopy.findIndex((u) => u.id === conversationId);
@@ -286,25 +279,26 @@ export default class ChatComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.channel.bind('MessageEvent', (data: any) => {
-      console.log('Incoming message:', data);
+    // this.channel.bind('MessageEvent', (data: any) => {
+    //   console.log('Incoming message:', data);
 
-      const selected = this.selectedUser();
-      if (!selected) return;
+    //   const selected = this.selectedUser();
+    //   if (!selected) return;
 
-      if (data.conversation_id !== selected.id) return;
+    //   if (data.conversation_id !== selected.id) return;
 
-      this.messages.update((messages) =>
-        messages.filter(
-          (msg) => !msg.isOptimistic || msg.message !== data.message
-        )
-      );
+    //   this.messages.update((messages) =>
+    //     messages.filter(
+    //       (msg) => !msg.isOptimistic || msg.message !== data.message
+    //     )
+    //   );
 
-      this.messages.update((messages) => [...messages, data]);
-      this.scrollToBottom();
-    });
+    //   this.messages.update((messages) => [...messages, data]);
+    //   this.scrollToBottom();
+    // });
 
-    this.channel.bind('message-read', (event: any) => {
+    this.channel.bind('message-seen', (event: any) => {
+      console.log(event);
       const readerId = event.reader_id;
       const readMessageIds = event.read_message_ids;
 
@@ -363,6 +357,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       message: content,
       created_at: new Date().toISOString(),
       isOptimistic: true,
+      from: this.currentUser()?.whatsapp_number,
       direction: 'outbound',
     };
 
@@ -370,21 +365,31 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
     this.newMessage.set('');
 
-    const payload = {
-      event: 'client-message',
-      channel: 'private-conversation.4',
+    // const payload = {
+    //   event: 'client-message',
+    //   channel: this.channelName(),
+    //   subdomain: '8x-test.8xrespond.com',
+    //   data: {
+    //     conversation_id: selectedUser.id,
+    //     user_id: this.currentUser()?.id,
+    //     message: content,
+    //     type: 'text',
+    //     created_at: new Date().toISOString(),
+    //   },
+    // };
+    console.log(this.#ws?.readyState);
+    console.log(WebSocket.OPEN);
+    // if (this.#ws?.readyState === WebSocket.OPEN) {
+    //   console.log('Sent message:', payload);
+    //   this.#ws.send(JSON.stringify(payload));
+    // }
+    this.channel?.trigger('client-message', {
+      conversation_id: selectedUser.id,
+      user_id: this.currentUser()?.id,
+      message: content,
+      type: 'text',
+      created_at: new Date().toISOString(),
       subdomain: '8x-test.8xrespond.com',
-      data: {
-        conversation_id: selectedUser.id,
-        user_id: this.currentUser()?.id,
-        message: content,
-        type: 'text',
-        created_at: new Date().toISOString(),
-      },
-    };
-
-    if (this.#ws?.readyState === WebSocket.OPEN) {
-      this.#ws.send(JSON.stringify(payload));
-    }
+    });
   }
 }

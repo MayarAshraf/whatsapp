@@ -148,62 +148,14 @@
                 >
                   {{ msg.created_at | date : "shortTime" }}
                 </small>
-                @if (msg.sender_id === currentUser()?.id) { @if (msg.isOptimistic) {
-                <small class="text-400"
-                  ><i class="pi pi-spinner pi-spin text-xs"></i
-                ></small>
-                } @else if (!msg.read_at && selectedUser().user_status ===
-                "Offline") {
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 512 512"
-                  class="message-status"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M200.359 382.269L61.057 251.673l21.886-23.346l116.698 109.404l229.045-229.044l22.628 22.626z"
-                  />
-                </svg>
+
+                @if (msg.from === currentUser()?.whatsapp_number) { @if
+                (!msg.read_at && selectedUser().user_status === "Offline") {
+                <i class="fa-solid fa-check"></i>
                 } @else if (msg.read_at) {
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  class="message-status read"
-                >
-                  <g fill="#60a5fa" fill-rule="evenodd" clip-rule="evenodd">
-                    <path
-                      d="M15.62 3.596L7.815 12.81l-.728-.033L4 8.382l.754-.53l2.744 3.907L14.917 3z"
-                    />
-                    <path
-                      d="m7.234 8.774l4.386-5.178L10.917 3l-4.23 4.994zm-1.55.403l.548.78l-.547-.78zm-1.617 1.91l.547.78l-.799.943l-.728-.033L0 8.382l.754-.53l2.744 3.907l.57-.672z"
-                    />
-                  </g>
-                </svg>
+                <i class="fa-solid fa-check-double text-green-500"></i>
                 } @else {
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  class="message-status"
-                >
-                  <g
-                    fill="currentColor"
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                  >
-                    <path
-                      d="M15.62 3.596L7.815 12.81l-.728-.033L4 8.382l.754-.53l2.744 3.907L14.917 3z"
-                    />
-                    <path
-                      d="m7.234 8.774l4.386-5.178L10.917 3l-4.23 4.994zm-1.55.403l.548.78l-.547-.78zm-1.617 1.91l.547.78l-.799.943l-.728-.033L0 8.382l.754-.53l2.744 3.907l.57-.672z"
-                    />
-                  </g>
-                </svg>
+                <i class="fa-solid fa-check-double"></i>
                 } }
               </div>
             </div>
