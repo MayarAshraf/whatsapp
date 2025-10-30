@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,13 +12,12 @@ import { TranslateService, _ } from '@ngx-translate/core';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
+import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { PopoverModule } from 'primeng/popover';
 import { Tooltip } from 'primeng/tooltip';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
-import { MenuModule } from 'primeng/menu';
-import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-menu-sidebar',
