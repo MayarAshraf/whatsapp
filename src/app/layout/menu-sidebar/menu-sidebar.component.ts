@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslateService, _ } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
@@ -33,6 +33,7 @@ import { ConfirmService } from 'src/app/shared/services/global-services/confirm.
     ButtonModule,
     MenuModule,
     NgTemplateOutlet,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -69,16 +70,6 @@ export class MenuSidebarComponent {
       visible: true,
     },
   ]);
-
-  Menuitems: MenuItem[] = [
-    {
-      label: 'Logout',
-      icon: 'fa-solid fa-arrow-right-from-bracket',
-      command: () => {
-        this.logout();
-      },
-    },
-  ];
 
   logout() {
     this.#confirmService.confirmDelete({
