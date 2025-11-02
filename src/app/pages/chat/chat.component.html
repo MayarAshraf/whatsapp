@@ -184,7 +184,7 @@
             #messageInput
             pTextarea
             [(ngModel)]="newMessage"
-            (keydown.enter)="sendMessage()"
+            (keydown)="onEnterPress($event)"
             (input)="sendTypingEvent()"
             placeholder="Type a message"
             [autoResize]="false"

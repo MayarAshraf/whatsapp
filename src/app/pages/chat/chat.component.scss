@@ -109,6 +109,7 @@
 
 .chat-window .messages .message-wrapper .message .message-content {
   word-break: break-word;
+  white-space: pre-line;
   line-height: 1.5;
   font-size: 14px;
 }
@@ -192,7 +193,6 @@
   border: 2px solid white;
   border-radius: 50%;
 }
-
 
 @keyframes wave {
   0%,

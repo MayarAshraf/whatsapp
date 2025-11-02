@@ -248,6 +248,13 @@ export default class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  onEnterPress(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+    }
+  }
+
   sendTypingEvent() {
     // this.#api
     //   .request('post', 'chat/typing', {
