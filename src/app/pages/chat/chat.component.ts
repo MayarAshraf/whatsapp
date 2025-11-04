@@ -110,7 +110,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       forceTLS: true,
       enabledTransports: ['ws', 'wss'],
       disableStats: true,
-      authEndpoint: `https://${this.subdomain}.8xrespond.com/api/v1/broadcasting/auth`,
+      authEndpoint: `https://${this.subdomain}.8xrespond.com/respond-websocket-backend/public/api/v1/broadcasting/auth`,
       auth: {
         headers: {
           Authorization: `Bearer ${this.#authService.accessToken()}`,
