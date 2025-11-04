@@ -37,7 +37,7 @@ export default class ForgetPasswordComponent {
   fields: FormlyFieldConfig[] = [
     {
       key: 'email',
-      type: 'input',
+      type: 'input-field',
       props: {
         required: true,
         placeholder: this.#translate.instant(_('example@gmail.com')),

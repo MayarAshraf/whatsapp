@@ -8,12 +8,12 @@
   eyeslashicon.p-icon-wrapper {
     cursor: pointer;
     inset-inline: auto;
-    inset-inline-end: .75rem;
+    inset-inline-end: 0.75rem;
   }
 
   .bg-login {
     position: relative;
-    background-color: #EEEEEE;
+    background-color: #eeeeee;
     isolation: isolate;
     overflow: hidden;
 
@@ -26,6 +26,151 @@
       height: 100%;
       object-fit: cover;
       pointer-events: none;
+    }
+  }
+}
+
+.envelope-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    var(--p-surface-100) 0%,
+    var(--p-surface-300) 80%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  animation: fadeInOverlay 0.6s ease-out;
+
+  @keyframes fadeInOverlay {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .success-scene {
+    position: relative;
+    width: 260px;
+    height: 200px;
+    perspective: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .envelope-wrapper {
+      position: relative;
+
+      .envelope {
+        position: relative;
+        width: 220px;
+        height: 140px;
+        background: linear-gradient(var(--p-surface-800), var(--p-surface-700));
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        transform: rotateX(10deg);
+        animation: popIn 1s ease-out;
+
+        @keyframes popIn {
+          from {
+            transform: scale(0.5) rotateX(-30deg);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1) rotateX(10deg);
+            opacity: 1;
+          }
+        }
+
+        .flap {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 220px;
+          height: 70px;
+          background: linear-gradient(145deg, #10b981, #059669);
+          transform-origin: top;
+          animation: openFlap 1.2s ease-out 1.2s forwards;
+          border-top-left-radius: 8px;
+          border-top-right-radius: 8px;
+
+          @keyframes openFlap {
+            0% {
+              transform: rotateX(0);
+            }
+            100% {
+              transform: rotateX(-150deg);
+            }
+          }
+        }
+
+        .letter {
+          position: absolute;
+          width: 200px;
+          height: 100px;
+          background: #fff;
+          top: 20px;
+          left: 10px;
+          border-radius: 6px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          transform: translateY(80px);
+          opacity: 0;
+          animation: slideUpLetter 1s ease-out 1.8s forwards;
+
+          @keyframes slideUpLetter {
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+
+          .success-icon {
+            color: #10b981;
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: iconPulse 0.8s ease 2.4s forwards;
+
+            @keyframes iconPulse {
+              0% {
+                opacity: 0;
+                transform: scale(0.5);
+              }
+              50% {
+                opacity: 1;
+                transform: scale(1.2);
+              }
+              100% {
+                transform: scale(1);
+              }
+            }
+          }
+
+          p {
+            color: var(--p-primary-color);
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            opacity: 0;
+            animation: textFade 0.8s ease 2.6s forwards;
+
+            @keyframes textFade {
+              to {
+                opacity: 1;
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

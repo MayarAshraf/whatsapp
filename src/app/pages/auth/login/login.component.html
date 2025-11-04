@@ -1,11 +1,7 @@
 <div class="p-3">
   <div class="flex align-items-center justify-content-between gap-2 mb-3">
     <h2 class="m-0 font-semibold">Login</h2>
-    <img
-      width="100"
-      src="assets/media/colored-portrait-logo.png"
-      alt="8X Logo"
-    />
+    <img width="150" src="assets/media/logo.png" alt="8X Logo" />
   </div>
 
   <form [formGroup]="loginForm" (ngSubmit)="login()">
@@ -17,10 +13,10 @@
       <button
         pButton
         pRipple
-        class="p-button-sm p-button-success"
         type="submit"
         class="uppercase text-base w-full bg-primary-color border-none shadow-none"
         [loading]="loading()"
+        [disabled]="loading()"
         [label]="'login'"
       ></button>
     </div>
@@ -32,3 +28,19 @@
     </a>
   </div>
 </div>
+
+@if(showEnvelopeAnimation()){
+<div class="envelope-overlay">
+  <div class="success-scene">
+    <div class="envelope-wrapper">
+      <div class="envelope">
+        <div class="flap"></div>
+        <div class="letter">
+          <i class="pi pi-check-circle success-icon"></i>
+          <p>Welcome Back!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+}

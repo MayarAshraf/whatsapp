@@ -40,10 +40,11 @@ export default class LoginComponent {
   #alert = inject(AlertService);
   #router = inject(Router);
   #translate = inject(TranslateService);
-  #destroyRef = inject(DestroyRef); // Current "context" (this component)
+  #destroyRef = inject(DestroyRef);
 
   returnUrl!: string;
   loading = signal(false);
+  showEnvelopeAnimation = signal(false);
   model: LoginModel = {} as LoginModel;
   loginForm = new FormGroup({});
 
@@ -74,7 +75,6 @@ export default class LoginComponent {
   ];
 
   ngOnInit(): void {
-    // the queryParams observable is used to get the value of the returnUrl and state parameters from the AuthGuard.
     this.#activatedRoute.queryParams
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((params) => {
@@ -88,7 +88,7 @@ export default class LoginComponent {
   }
 
   login(): void {
-    if (this.loginForm.invalid) return; // return early
+    if (this.loginForm.invalid) return;
     this.loading.set(true);
     this.#authService
       .login(this.model)
@@ -98,7 +98,10 @@ export default class LoginComponent {
       )
       .subscribe({
         next: () => {
-          this.#router.navigateByUrl(this.returnUrl);
+          this.showEnvelopeAnimation.set(true);
+          setTimeout(() => {
+            this.#router.navigateByUrl(this.returnUrl);
+          }, 4000);
         },
       });
   }
