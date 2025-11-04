@@ -23,6 +23,7 @@ import Pusher from 'pusher-js';
 import { finalize, map, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
+import { SoundsService } from 'src/app/shared/services/sounds.service';
 
 interface Message {
   id?: number;
@@ -57,6 +58,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   #api = inject(ApiService);
   #authService = inject(AuthService);
   #destroyRef = inject(DestroyRef);
+  #sounds = inject(SoundsService);
   #ws = new WebSocket('wss://8xrespond.com:8443/app/8xmeb');
 
   currentUser = this.#authService.currentUser;
@@ -224,6 +226,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
         usersCopy.splice(existingIndex, 1);
         this.allUsers.set([updatedUser, ...usersCopy]);
       }
+      this.#sounds.playSound('messageReceived');
     });
 
     this.channel.bind('message-seen', (event: any) => {
@@ -264,7 +267,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
           (msg) => !msg.isOptimistic || msg.message !== event.message
         )
       );
-
       this.messages.update((messages) => [...messages, event]);
       this.scrollToBottom();
     });
@@ -292,6 +294,9 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
     this.newMessage.set('');
 
+    this.#sounds.playSound('messageSent');
+    this.updateConversation();
+
     this.channel?.trigger('client-message', {
       conversation_id: selectedUser.id,
       user_id: this.currentUser()?.id,
@@ -299,5 +304,30 @@ export default class ChatComponent implements OnInit, OnDestroy {
       type: 'text',
       created_at: new Date().toISOString(),
     });
+  }
+  updateConversation() {
+    const usersCopy = [...this.allUsers()];
+    const selectedUser = this.selectedUser();
+    const lastMessage = this.messages().at(-1);
+
+    if (!selectedUser || !lastMessage) return;
+
+    const index = usersCopy.findIndex((u) => u.id === selectedUser.id);
+    if (index > -1) {
+      const [user] = usersCopy.splice(index, 1);
+
+      const updatedUser = {
+        ...user,
+        last_message: {
+          message: lastMessage.message,
+          created_at: lastMessage.created_at,
+        },
+        last_message_at: lastMessage.created_at, // ✅ important for your template
+      };
+
+      usersCopy.unshift(updatedUser);
+      this.allUsers.set(usersCopy);
+      this.selectedUser.set(updatedUser);
+    }
   }
 }

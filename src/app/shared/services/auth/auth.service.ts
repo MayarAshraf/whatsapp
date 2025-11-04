@@ -109,7 +109,6 @@ export class AuthService {
   }
 
   doLogin(data: UserData) {
-    console.log(data);
     this.updateCurrentUser(data.user);
     this.updateAccessToken(data.accessToken);
     // this.updateRole(data.user.role);

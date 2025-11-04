@@ -65,7 +65,6 @@ export class HandleSocketActionsService {
       const parsed: WSParsedData = JSON.parse(envelope.data);
       const message = parsed;
       this.message.set(message);
-      console.log(message);
       if (!message) return;
     } catch (err) {
       console.error('WebSocket: failed to parse data', envelope.data, err);
