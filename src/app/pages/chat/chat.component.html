@@ -149,14 +149,14 @@
                   {{ msg.created_at | date : "shortTime" }}
                 </small>
 
-                @if (msg.from === currentUser()?.whatsapp_number) { @if
+                <!-- @if (msg.from === currentUser()?.whatsapp_number) { @if
                 (!msg.read_at && selectedUser().user_status === "Offline") {
                 <i class="fa-solid fa-check"></i>
                 } @else if (msg.read_at) {
                 <i class="fa-solid fa-check-double text-green-500"></i>
                 } @else {
                 <i class="fa-solid fa-check-double"></i>
-                } }
+                } } -->
               </div>
             </div>
           </div>

@@ -77,6 +77,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
 
   messagesContainer = viewChild<ElementRef>('messagesContainer');
 
+  hostname = window.location.hostname;
+  #rawSubdomain = this.hostname.split('.8xrespond.com')[0];
+  subdomain = this.hostname === 'localhost' ? '8x-test' : this.#rawSubdomain;
+
   pusher: any;
   channel: any;
 
@@ -96,7 +100,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    Pusher.logToConsole = true;
+    // Pusher.logToConsole = true;
 
     this.pusher = new Pusher('8xmeb', {
       cluster: 'mt1',
@@ -106,7 +110,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       forceTLS: true,
       enabledTransports: ['ws', 'wss'],
       disableStats: true,
-      authEndpoint: 'https://8x-test.8xrespond.com/api/v1/broadcasting/auth',
+      authEndpoint: `https://${this.subdomain}.8xrespond.com/api/v1/broadcasting/auth`,
       auth: {
         headers: {
           Authorization: `Bearer ${this.#authService.accessToken()}`,
@@ -114,30 +118,14 @@ export default class ChatComponent implements OnInit, OnDestroy {
         },
       },
     });
-    this.#ws.onopen = () => {
-      console.log('🔌 WebSocket connected');
-    };
-
-    this.#ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log('📩 Incoming WebSocket message:', data);
-
-      if (data.event === 'server-confirm') {
-        console.log('✅ Server confirmed message delivery', data.data);
-      }
-
-      if (data.event === 'new-message') {
-        console.log('💬 New message from other client:', data.data);
-      }
-    };
-    // this.channelName.set(`private-conversation.${this.currentUser()?.id}`);
 
     this.channelName.set(
-      `private-tenant.8x-test.phone.${this.currentUser()?.whatsapp_number}`
+      `private-tenant.${this.subdomain}.phone.${
+        this.currentUser()?.whatsapp_number
+      }`
     );
     this.channel = this.pusher.subscribe(this.channelName());
     this.bindChannelEvents();
-    // this.#ws.connect();
   }
 
   ngOnDestroy() {
@@ -175,69 +163,28 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.bindChannelEvents();
   }
 
-  // getConversationHistory() {
-  //   this.#api
-  //     .request('post', 'conversations/conversation-history', {
-  //       id: this.selectedUser().id,
-  //     })
-  //     .pipe(
-  //       finalize(() => this.messagesLoading.set(false)),
-  //       map(({ data }) => data.data.map((data: any) => ({ ...data.record }))),
-  //       tap((data) => {
-  //         this.messages.set(data);
-  //         this.selectedUser().unread_count = 0;
-  //         this.scrollToBottom();
-  //       })
-  //     )
-  //     .pipe(takeUntilDestroyed(this.#destroyRef))
-  //     .subscribe();
-  // }
-  pageSize = 20; // Number of messages per request
-  currentStart = 0; // Offset for pagination
-  hasMoreMessages = true; // Track if more messages are available
-
-  getConversationHistory(reset: boolean = true) {
-    if (reset) {
-      this.currentStart = 0;
-      this.hasMoreMessages = true;
-      this.messages.set([]);
-    }
-    if (!this.hasMoreMessages) return;
-
-    this.messagesLoading.set(true);
+  getConversationHistory() {
     this.#api
       .request('post', 'conversations/conversation-history', {
         id: this.selectedUser().id,
-        // start: this.currentStart,
-        // length: this.pageSize,
       })
       .pipe(
         finalize(() => this.messagesLoading.set(false)),
         map(({ data }) => data.data.map((data: any) => ({ ...data.record }))),
         tap((data) => {
-          if (data.length < this.pageSize) this.hasMoreMessages = false;
-          if (reset) {
-            this.messages.set(data);
-            this.scrollToBottom();
-          } else {
-            this.messages.set([...data, ...this.messages()]);
-          }
+          this.messages.set(data);
           this.selectedUser().unread_count = 0;
-          this.currentStart += data.length;
+          this.scrollToBottom();
         })
       )
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe();
   }
+
   onScroll() {
     const container = this.messagesContainer()?.nativeElement;
-    if (
-      container &&
-      container.scrollTop === 0 &&
-      this.hasMoreMessages &&
-      !this.messagesLoading()
-    ) {
-      this.getConversationHistory(false);
+    if (container && container.scrollTop === 0 && !this.messagesLoading()) {
+      this.getConversationHistory();
     }
   }
   markMessagesAsRead(conversation: any) {
@@ -256,12 +203,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   sendTypingEvent() {
-    // this.#api
-    //   .request('post', 'chat/typing', {
-    //     receiver_id: this.selectedUser()?.id,
-    //   })
-    //   .pipe(takeUntilDestroyed(this.#destroyRef))
-    //   .subscribe();
     const el = this.messageInput()?.nativeElement;
     if (!el) return;
     el.style.height = 'auto';
@@ -272,7 +213,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
     if (!this.channel) return;
 
     this.channel.bind('conversation-updated', (event: any) => {
-      console.log(event);
       const conversationId = event.id;
       const usersCopy = [...this.allUsers()];
       const existingIndex = usersCopy.findIndex((u) => u.id === conversationId);
@@ -286,26 +226,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       }
     });
 
-    // this.channel.bind('MessageEvent', (data: any) => {
-    //   console.log('Incoming message:', data);
-
-    //   const selected = this.selectedUser();
-    //   if (!selected) return;
-
-    //   if (data.conversation_id !== selected.id) return;
-
-    //   this.messages.update((messages) =>
-    //     messages.filter(
-    //       (msg) => !msg.isOptimistic || msg.message !== data.message
-    //     )
-    //   );
-
-    //   this.messages.update((messages) => [...messages, data]);
-    //   this.scrollToBottom();
-    // });
-
     this.channel.bind('message-seen', (event: any) => {
-      console.log(event);
       const readerId = event.reader_id;
       const readMessageIds = event.read_message_ids;
 
@@ -333,7 +254,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
     });
 
     this.channel.bind('client-message', (event: any) => {
-      console.log('Server broadcasted message', event);
       const selected = this.selectedUser();
       if (!selected) return;
 
@@ -372,31 +292,12 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
     this.newMessage.set('');
 
-    // const payload = {
-    //   event: 'client-message',
-    //   channel: this.channelName(),
-    //   subdomain: '8x-test.8xrespond.com',
-    //   data: {
-    //     conversation_id: selectedUser.id,
-    //     user_id: this.currentUser()?.id,
-    //     message: content,
-    //     type: 'text',
-    //     created_at: new Date().toISOString(),
-    //   },
-    // };
-    console.log(this.#ws?.readyState);
-    console.log(WebSocket.OPEN);
-    // if (this.#ws?.readyState === WebSocket.OPEN) {
-    //   console.log('Sent message:', payload);
-    //   this.#ws.send(JSON.stringify(payload));
-    // }
     this.channel?.trigger('client-message', {
       conversation_id: selectedUser.id,
       user_id: this.currentUser()?.id,
       message: content,
       type: 'text',
       created_at: new Date().toISOString(),
-      subdomain: '8x-test.8xrespond.com',
     });
   }
 }

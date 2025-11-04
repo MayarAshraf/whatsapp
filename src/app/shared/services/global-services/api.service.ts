@@ -1,15 +1,28 @@
-import { HttpClient, HttpContext, HttpHeaders, HttpParams } from "@angular/common/http";
-import { Injectable, inject } from "@angular/core";
-import { environment } from "@env";
-import { GlobalApiResponse } from "./global";
+import {
+  HttpClient,
+  HttpContext,
+  HttpHeaders,
+  HttpParams,
+} from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { environment } from 'src/environments/environment.development';
+import { GlobalApiResponse } from './global';
 
-type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
-export type RequestHeaders = HttpHeaders | { [header: string]: string | string[] };
+type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+export type RequestHeaders =
+  | HttpHeaders
+  | { [header: string]: string | string[] };
 export type RequestParams =
   | HttpParams
-  | { [param: string]: string | number | boolean | ReadonlyArray<string | number | boolean> };
+  | {
+      [param: string]:
+        | string
+        | number
+        | boolean
+        | ReadonlyArray<string | number | boolean>;
+    };
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class ApiService {
   #http = inject(HttpClient);
   #apiUrl = environment.API_URL;
@@ -20,10 +33,14 @@ export class ApiService {
     body?: T,
     headers?: RequestHeaders,
     params?: RequestParams,
-    context?: HttpContext,
+    context?: HttpContext
   ) {
     const options = { body, headers, params, context };
 
-    return this.#http.request<R>(method, `${this.#apiUrl}/${endpoint}`, options);
+    return this.#http.request<R>(
+      method,
+      `${this.#apiUrl}/${endpoint}`,
+      options
+    );
   }
 }

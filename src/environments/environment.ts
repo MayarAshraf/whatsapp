@@ -1,6 +1,9 @@
+const hostname = window.location.hostname;
+const subdomain = hostname.split('.8xrespond.com')[0];
+
 export const environment = {
   production: true,
-  baseUrl: 'https://8x-test.8xrespond.com/api/v1',
-  API_URL: 'https://8x-test.8xrespond.com/api/v1',
+  DOMAIN_URL: `https://${subdomain}.8xrespond.com`,
+  API_URL: `https://${subdomain}.8xrespond.com/api/v1`,
   socketUrl: 'wss://8xrespond.com:8443/app/8xmeb',
 };
