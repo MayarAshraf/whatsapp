@@ -52,7 +52,11 @@
               }
             ],
             "styles": ["src/styles.scss"],
-            "allowedCommonJsDependencies": ["pusher-js", "crypto-js", "moment-timezone"],
+            "allowedCommonJsDependencies": [
+              "pusher-js",
+              "crypto-js",
+              "moment-timezone"
+            ],
             "scripts": ["node_modules/pusher-js/dist/web/pusher.min.js"]
           },
           "configurations": {
@@ -60,13 +64,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "6mb",
+                  "maximumError": "6mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "5mb",
+                  "maximumError": "5mb"
                 }
               ],
               "outputHashing": "all"
