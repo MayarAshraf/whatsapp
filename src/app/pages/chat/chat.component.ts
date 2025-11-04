@@ -220,12 +220,13 @@ export default class ChatComponent implements OnInit, OnDestroy {
       const existingIndex = usersCopy.findIndex((u) => u.id === conversationId);
 
       if (existingIndex !== -1) {
-        const updatedUser = {
-          ...event,
-        };
+        const updatedUser = { ...usersCopy[existingIndex], ...event };
         usersCopy.splice(existingIndex, 1);
         this.allUsers.set([updatedUser, ...usersCopy]);
+      } else {
+        this.allUsers.set([event, ...usersCopy]);
       }
+
       this.#sounds.playSound('messageReceived');
     });
 
