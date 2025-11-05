@@ -32,6 +32,9 @@ importers:
       '@angular/router':
         specifier: ^19.2.0
         version: 19.2.15(@angular/common@19.2.15(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@19.2.15(@angular/animations@19.2.15(@angular/common@19.2.15(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@19.2.15(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@ctrl/ngx-emoji-mart':
+        specifier: ^9.3.0
+        version: 9.3.0(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))
       '@fortawesome/fontawesome-free':
         specifier: ^7.0.1
         version: 7.0.1
@@ -844,6 +847,11 @@ packages:
   '@colors/colors@1.5.0':
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
+
+  '@ctrl/ngx-emoji-mart@9.3.0':
+    resolution: {integrity: sha512-9uFzAvlFT21OLsTfhL3ZEO5mp51qvL1F4ErIZVBIsvAlji46u6p2KGgVA60oIheFBX4JoZI7HBDGOkGnm9dTUQ==}
+    peerDependencies:
+      '@angular/core': '>=15.0.0-0'
 
   '@discoveryjs/json-ext@0.6.3':
     resolution: {integrity: sha512-4B4OijXeVNOPZlYA2oEwWOTkzyltLao+xbotHQeqN++Rv27Y6s818+n2Qkp8q+Fxhn0t/5lA5X1Mxktud8eayQ==}
@@ -5808,6 +5816,11 @@ snapshots:
       tslib: 1.14.1
 
   '@colors/colors@1.5.0': {}
+
+  '@ctrl/ngx-emoji-mart@9.3.0(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))':
+    dependencies:
+      '@angular/core': 19.2.15(rxjs@7.8.2)(zone.js@0.15.1)
+      tslib: 2.8.1
 
   '@discoveryjs/json-ext@0.6.3': {}
 

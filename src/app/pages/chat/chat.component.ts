@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -36,6 +37,7 @@ interface Message {
   isOptimistic?: boolean;
   direction?: string;
   from?: string;
+  type?: string;
 }
 @Component({
   selector: 'app-chat',
@@ -49,6 +51,7 @@ interface Message {
     SkeletonModule,
     ButtonModule,
     TextareaModule,
+    PickerComponent,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -76,6 +79,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   messagesLoading = model(false);
   typingUsers = signal<{ [userId: number]: boolean }>({});
   conversationId = signal(2);
+  showEmojiPicker = signal(false);
 
   messagesContainer = viewChild<ElementRef>('messagesContainer');
 
@@ -289,6 +293,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       isOptimistic: true,
       from: this.currentUser()?.whatsapp_number,
       direction: 'outbound',
+      type: 'text',
     };
 
     this.messages.update((messages) => [...messages, optimisticMessage]);
@@ -323,12 +328,22 @@ export default class ChatComponent implements OnInit, OnDestroy {
           message: lastMessage.message,
           created_at: lastMessage.created_at,
         },
-        last_message_at: lastMessage.created_at, // ✅ important for your template
+        last_message_at: lastMessage.created_at,
       };
 
       usersCopy.unshift(updatedUser);
       this.allUsers.set(usersCopy);
       this.selectedUser.set(updatedUser);
     }
+  }
+
+  toggleEmojiPicker() {
+    this.showEmojiPicker.set(!this.showEmojiPicker());
+  }
+
+  addEmoji(event: any) {
+    const emoji = event.emoji.native;
+    this.newMessage.set(this.newMessage() + emoji);
+    this.showEmojiPicker.set(false);
   }
 }
