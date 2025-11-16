@@ -1,4 +1,4 @@
-@use "../public/assets/styles/main.scss"; // import sass module (entry point) 
+@use "../public/assets/styles/main.scss"; // import sass module (entry point)
+@use "@ctrl/ngx-emoji-mart/picker";
 @import "@fortawesome/fontawesome-free/css/all.min.css";
 @import "primeicons/primeicons.css";
-@import '@ctrl/ngx-emoji-mart/picker';

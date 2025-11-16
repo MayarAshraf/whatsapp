@@ -1,4 +1,4 @@
-import { DatePipe, NgStyle } from '@angular/common';
+import { DatePipe, NgStyle, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -14,10 +14,16 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
+import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { ImageModule } from 'primeng/image';
 import { InputTextModule } from 'primeng/inputtext';
+import { MenuModule } from 'primeng/menu';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 import Pusher from 'pusher-js';
@@ -25,19 +31,24 @@ import { finalize, map, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
-
 interface Message {
   id?: number;
-  message_id: number;
+  message_id?: number;
   sender_id?: number;
-  receiver_id: number;
-  message: string;
-  created_at: string;
+  receiver_id?: number;
+  message?: any;
+  created_at?: string;
   read_at?: string;
-  isOptimistic?: boolean;
+  is_optimistic?: boolean;
   direction?: string;
   from?: string;
   type?: string;
+  media_data?: {
+    url: string;
+    caption: string | undefined;
+    fileName?: string;
+    fileSize?: string;
+  };
 }
 @Component({
   selector: 'app-chat',
@@ -52,6 +63,11 @@ interface Message {
     ButtonModule,
     TextareaModule,
     PickerComponent,
+    MenuModule,
+    FileUploadModule,
+    DialogModule,
+    NgTemplateOutlet,
+    ImageModule,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -62,13 +78,16 @@ export default class ChatComponent implements OnInit, OnDestroy {
   #authService = inject(AuthService);
   #destroyRef = inject(DestroyRef);
   #sounds = inject(SoundsService);
-  #ws = new WebSocket('wss://8xrespond.com:8443/app/8xmeb');
+  #sanitizer = inject(DomSanitizer);
 
   currentUser = this.#authService.currentUser;
 
   messageInput = viewChild<ElementRef>('messageInput');
+  messagesContainer = viewChild<ElementRef>('messagesContainer');
+  fileUploader = viewChild<FileUpload>('fileUploader');
 
   selectedUser = model<any>(null);
+  messagesLoading = model(false);
   combinedMessages = computed(() => this.messages());
   allUsers = signal<any>([]);
   messages = signal<Message[]>([]);
@@ -76,12 +95,17 @@ export default class ChatComponent implements OnInit, OnDestroy {
   channelName = signal('');
   searchTerm = signal('');
   usersLoading = signal(true);
-  messagesLoading = model(false);
   typingUsers = signal<{ [userId: number]: boolean }>({});
-  conversationId = signal(2);
   showEmojiPicker = signal(false);
-
-  messagesContainer = viewChild<ElementRef>('messagesContainer');
+  mediaType = signal('image/*,video/*');
+  fileUploaderVisible = signal(false);
+  previewFiles = signal<{ file: File; url: string; caption?: string }[]>([]);
+  showPreviewModal = signal(false);
+  selectedPreviewIndex = signal(0);
+  showPdfViewer = signal(false);
+  currentPdfUrl = signal<SafeResourceUrl | null>(null);
+  currentPdfFileName = signal<string>('');
+  currentPdfData = signal<string>('');
 
   hostname = window.location.hostname;
   #rawSubdomain = this.hostname.split('.8xrespond.com')[0];
@@ -160,7 +184,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
     }, 200);
 
     if (this.channel) {
-      this.channel.unbind('MessageEvent');
+      // this.channel.unbind('MessageEvent');
       this.pusher.unsubscribe(this.channelName());
     }
 
@@ -188,10 +212,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   onScroll() {
-    const container = this.messagesContainer()?.nativeElement;
-    if (container && container.scrollTop === 0 && !this.messagesLoading()) {
-      this.getConversationHistory();
-    }
+    // const container = this.messagesContainer()?.nativeElement;
+    // if (container && container.scrollTop === 0 && !this.messagesLoading()) {
+    //   this.getConversationHistory();
+    // }
   }
   markMessagesAsRead(conversation: any) {
     if (!conversation) return;
@@ -269,7 +293,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
 
       this.messages.update((messages) =>
         messages.filter(
-          (msg) => !msg.isOptimistic || msg.message !== event.message
+          (msg) => !msg.is_optimistic || msg.message !== event.message
         )
       );
       this.messages.update((messages) => [...messages, event]);
@@ -286,15 +310,18 @@ export default class ChatComponent implements OnInit, OnDestroy {
 
     const optimisticMessage: Message = {
       message_id: Date.now(),
-      sender_id: this.conversationId(),
+      sender_id: this.currentUser()?.id,
       receiver_id: selectedUser.id,
       message: content,
       created_at: new Date().toISOString(),
-      isOptimistic: true,
+      is_optimistic: true,
       from: this.currentUser()?.whatsapp_number,
       direction: 'outbound',
       type: 'text',
     };
+
+    const el = this.messageInput()?.nativeElement;
+    if (el) el.style.height = 'auto';
 
     this.messages.update((messages) => [...messages, optimisticMessage]);
     this.scrollToBottom();
@@ -308,7 +335,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
       user_id: this.currentUser()?.id,
       message: content,
       type: 'text',
-      created_at: new Date().toISOString(),
     });
   }
   updateConversation() {
@@ -345,5 +371,204 @@ export default class ChatComponent implements OnInit, OnDestroy {
     const emoji = event.emoji.native;
     this.newMessage.set(this.newMessage() + emoji);
     this.showEmojiPicker.set(false);
+  }
+
+  attachmentItems = signal<MenuItem[]>([
+    {
+      label: 'documents',
+      icon: 'fa-solid fa-file-invoice text-xl text-blue-700	',
+      command: () => this.triggerFileUpload('.pdf,.doc,.docx,.txt'),
+    },
+    {
+      label: 'images and videos',
+      icon: 'fa-solid fa-images text-xl text-blue-500',
+      command: () => this.triggerFileUpload('image/*,video/*'),
+    },
+  ]);
+
+  triggerFileUpload(mediaType: string) {
+    this.fileUploaderVisible.set(true);
+    this.mediaType.set(mediaType);
+
+    setTimeout(() => {
+      const uploader = this.fileUploader?.();
+      if (uploader) {
+        uploader.choose();
+      }
+    }, 0);
+  }
+
+  setActivePreview(index: number): void {
+    this.selectedPreviewIndex.set(index);
+  }
+  onUploadFiles(event: any): void {
+    const files: File[] = event.files;
+    if (!files?.length) return;
+
+    const previews = files.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+      caption: '',
+    }));
+
+    this.previewFiles.set(previews);
+    this.selectedPreviewIndex.set(0);
+    this.showPreviewModal.set(true);
+  }
+
+  sendPreviewFiles() {
+    this.previewFiles().forEach((item) => {
+      const isDocument =
+        !item.file.type.startsWith('image/') &&
+        !item.file.type.startsWith('video/');
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        const createdAt = new Date().toISOString();
+        const fileSizeFormatted = this.formatFileSize(item.file.size);
+
+        const optimisticMessage: Message = {
+          message_id: Date.now(),
+          sender_id: this.currentUser()?.id,
+          receiver_id: this.selectedUser()?.id,
+          media_data: {
+            url: base64,
+            caption: item.caption,
+            fileName: item.file.name,
+            fileSize: fileSizeFormatted,
+          },
+          created_at: createdAt,
+          is_optimistic: true,
+          from: this.currentUser()?.whatsapp_number,
+          direction: 'outbound',
+          type: isDocument
+            ? 'document'
+            : item.file.type.startsWith('video/')
+            ? 'video'
+            : 'image',
+          message: item.caption || '',
+        };
+
+        this.messages.update((msgs) => [...msgs, optimisticMessage]);
+        this.scrollToBottom();
+
+        this.channel?.trigger('client-message', {
+          user_id: this.currentUser()?.id,
+          conversation_id: this.selectedUser()?.id,
+          file: base64,
+          type: optimisticMessage.type,
+          media_caption: item.caption || '',
+          file_name: item.file.name,
+          file_size: fileSizeFormatted,
+        });
+      };
+
+      reader.readAsDataURL(item.file);
+    });
+
+    this.previewFiles.set([]);
+    this.showPreviewModal.set(false);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  }
+  getFileNameFromUrl(url: string, fallback: string = 'Document.pdf'): string {
+    if (!url) return fallback;
+
+    try {
+      const urlParts = url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      return decodeURIComponent(fileName) || fallback;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  openPdfViewer(message: Message): void {
+    if (message.media_data?.url) {
+      const url = message.media_data.url;
+      this.currentPdfData.set(url);
+
+      let fileName = message.media_data.fileName || 'Document.pdf';
+
+      if (!message.media_data.fileName && url.startsWith('http')) {
+        const urlParts = url.split('/');
+        fileName = urlParts[urlParts.length - 1] || 'Document.pdf';
+      }
+
+      this.currentPdfFileName.set(fileName);
+
+      const safeUrl = this.#sanitizer.bypassSecurityTrustResourceUrl(url);
+      this.currentPdfUrl.set(safeUrl);
+      this.showPdfViewer.set(true);
+      this.downloadPdf();
+    }
+  }
+
+  downloadPdf(): void {
+    const pdfUrl = this.currentPdfData();
+    const fileName = this.currentPdfFileName();
+
+    if (!pdfUrl) return;
+
+    if (pdfUrl.startsWith('data:')) {
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
+    try {
+      fetch(pdfUrl, { mode: 'cors' })
+        .then((response) => {
+          if (!response.ok) throw new Error('Network response not ok');
+          return response.blob();
+        })
+        .then((blob) => {
+          const blobUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        })
+        .catch(() => {
+          window.open(pdfUrl, '_blank');
+        });
+    } catch (err) {
+      console.error('Download failed:', err);
+      window.open(pdfUrl, '_blank');
+    }
+  }
+
+  toBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  removePreviewFile(event: Event, index: number): void {
+    event.stopPropagation();
+    const updated = [...this.previewFiles()];
+    updated.splice(index, 1);
+    this.previewFiles.set(updated);
+
+    if (this.selectedPreviewIndex() >= updated.length) {
+      this.selectedPreviewIndex.set(Math.max(updated.length - 1, 0));
+    }
   }
 }
