@@ -1,4 +1,9 @@
-import { DatePipe, NgStyle, NgTemplateOutlet } from '@angular/common';
+import {
+  DatePipe,
+  NgStyle,
+  NgTemplateOutlet,
+  SlicePipe,
+} from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,7 +11,6 @@ import {
   DestroyRef,
   ElementRef,
   inject,
-  model,
   OnDestroy,
   OnInit,
   signal,
@@ -31,6 +35,7 @@ import { finalize, map, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
+
 interface Message {
   id?: number;
   message_id?: number;
@@ -49,6 +54,7 @@ interface Message {
     fileName?: string;
     fileSize?: string;
   };
+  expanded?: boolean;
 }
 @Component({
   selector: 'app-chat',
@@ -68,6 +74,7 @@ interface Message {
     DialogModule,
     NgTemplateOutlet,
     ImageModule,
+    SlicePipe,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -86,9 +93,9 @@ export default class ChatComponent implements OnInit, OnDestroy {
   messagesContainer = viewChild<ElementRef>('messagesContainer');
   fileUploader = viewChild<FileUpload>('fileUploader');
 
-  selectedUser = model<any>(null);
-  messagesLoading = model(false);
   combinedMessages = computed(() => this.messages());
+  selectedUser = signal<any>(null);
+  messagesLoading = signal(false);
   allUsers = signal<any>([]);
   messages = signal<Message[]>([]);
   newMessage = signal('');
@@ -106,6 +113,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
   currentPdfUrl = signal<SafeResourceUrl | null>(null);
   currentPdfFileName = signal<string>('');
   currentPdfData = signal<string>('');
+  messagesPage = signal(0);
+  messagesLength = signal(30);
+  hasMoreMessages = signal(true);
+  isLoadingMore = signal(false);
 
   hostname = window.location.hostname;
   #rawSubdomain = this.hostname.split('.8xrespond.com')[0];
@@ -126,7 +137,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       if (container) {
         container.scrollTop = container.scrollHeight;
       }
-    }, 100);
+    }, 20);
   }
 
   ngOnInit() {
@@ -177,14 +188,23 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.newMessage.set('');
     this.selectedUser.set(user);
     this.messagesLoading.set(true);
-    this.getConversationHistory();
+
+    this.messagesPage.set(0);
+    this.hasMoreMessages.set(true);
+    this.isLoadingMore.set(false);
+
+    const container = this.messagesContainer()?.nativeElement;
+    if (container) {
+      container.scrollTop = 0;
+    }
+
+    this.getConversationHistory(true);
 
     setTimeout(() => {
       this.messageInput()?.nativeElement?.focus();
     }, 200);
 
     if (this.channel) {
-      // this.channel.unbind('MessageEvent');
       this.pusher.unsubscribe(this.channelName());
     }
 
@@ -193,30 +213,79 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.bindChannelEvents();
   }
 
-  getConversationHistory() {
+  getConversationHistory(initial = true) {
+    if (initial) {
+      this.messagesPage.set(0);
+      this.hasMoreMessages.set(true);
+    }
+
+    if (!this.hasMoreMessages()) return;
+
+    const start = this.messagesPage() * this.messagesLength();
+
     this.#api
       .request('post', 'conversations/conversation-history', {
         id: this.selectedUser().id,
+        length: this.messagesLength(),
+        start: start,
       })
       .pipe(
-        finalize(() => this.messagesLoading.set(false)),
-        map(({ data }) => data.data.map((data: any) => ({ ...data.record }))),
-        tap((data) => {
-          this.messages.set(data);
-          this.selectedUser().unread_count = 0;
-          this.scrollToBottom();
+        finalize(() => {
+          this.messagesLoading.set(false);
+          this.isLoadingMore.set(false);
+        }),
+        map(({ data }) =>
+          data.data.map((data: any) => ({
+            ...data.record,
+            expanded: false,
+          }))
+        ),
+        tap((newMessages) => {
+          if (newMessages.length < this.messagesLength()) {
+            this.hasMoreMessages.set(false);
+          }
+
+          if (initial) {
+            this.scrollToBottom();
+            this.messages.set(newMessages);
+          } else {
+            this.messages.update((old) => [...newMessages, ...old]);
+          }
+
+          this.messagesPage.update((p) => p + 1);
+
+          if (!initial) {
+            setTimeout(() => {
+              const container = this.messagesContainer()?.nativeElement;
+              container.scrollTop = 50;
+            }, 50);
+          }
         })
       )
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe();
   }
 
-  onScroll() {
-    // const container = this.messagesContainer()?.nativeElement;
-    // if (container && container.scrollTop === 0 && !this.messagesLoading()) {
-    //   this.getConversationHistory();
-    // }
+  toggleExpand(msg: any) {
+    msg.expanded = !msg.expanded;
   }
+
+  onScroll() {
+    const container = this.messagesContainer()?.nativeElement;
+
+    if (!container) return;
+
+    if (
+      container.scrollTop < 50 &&
+      !this.isLoadingMore() &&
+      this.hasMoreMessages() &&
+      !this.messagesLoading()
+    ) {
+      this.isLoadingMore.set(true);
+      this.getConversationHistory(false);
+    }
+  }
+
   markMessagesAsRead(conversation: any) {
     if (!conversation) return;
     this.channel?.trigger('message-seen', {
@@ -452,6 +521,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
 
         this.messages.update((msgs) => [...msgs, optimisticMessage]);
         this.scrollToBottom();
+        this.updateConversation();
 
         this.channel?.trigger('client-message', {
           user_id: this.currentUser()?.id,
