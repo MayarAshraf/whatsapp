@@ -33,6 +33,7 @@ import { TextareaModule } from 'primeng/textarea';
 import Pusher from 'pusher-js';
 import { finalize, map, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
+import { AlertService } from 'src/app/shared/services/global-services/alert.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
 
@@ -86,6 +87,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   #destroyRef = inject(DestroyRef);
   #sounds = inject(SoundsService);
   #sanitizer = inject(DomSanitizer);
+  #alertService = inject(AlertService);
 
   currentUser = this.#authService.currentUser;
 
@@ -464,7 +466,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
     {
       label: 'documents',
       icon: 'fa-solid fa-file-invoice text-xl text-blue-700	',
-      command: () => this.triggerFileUpload('.pdf,.doc,.docx,.txt'),
+      command: () => this.triggerFileUpload('.pdf,.doc,.docx'),
     },
     {
       label: 'images and videos',
@@ -488,11 +490,42 @@ export default class ChatComponent implements OnInit, OnDestroy {
   setActivePreview(index: number): void {
     this.selectedPreviewIndex.set(index);
   }
+
   onUploadFiles(event: any): void {
     const files: File[] = event.files;
     if (!files?.length) return;
 
-    const previews = files.map((file) => ({
+    const validFiles: File[] = [];
+
+    files.forEach((file) => {
+      let maxSize = 5 * 1024 * 1024;
+
+      if (file.type.startsWith('image/')) {
+        maxSize = 5 * 1024 * 1024;
+      } else if (file.type.startsWith('video/')) {
+        maxSize = 16 * 1024 * 1024;
+      } else if (
+        file.type.includes('pdf') ||
+        file.type.includes('doc') ||
+        file.type.includes('.doc') ||
+        file.type.includes('.pdf')
+      ) {
+        maxSize = 100 * 1024 * 1024;
+      }
+      if (file.size <= maxSize) {
+        validFiles.push(file);
+      } else {
+        this.#alertService.setMessage({
+          severity: 'warn',
+          summary: 'File too large',
+          detail: `${file.name} exceeds max size of ${maxSize / 1024 / 1024}MB`,
+        });
+      }
+    });
+
+    if (!validFiles.length) return;
+
+    const previews = validFiles.map((file) => ({
       file,
       url: URL.createObjectURL(file),
       caption: '',
