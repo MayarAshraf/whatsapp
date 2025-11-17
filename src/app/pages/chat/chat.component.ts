@@ -141,7 +141,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Pusher.logToConsole = true;
+    Pusher.logToConsole = true;
 
     this.pusher = new Pusher('8xmeb', {
       cluster: 'mt1',
@@ -235,10 +235,12 @@ export default class ChatComponent implements OnInit, OnDestroy {
           this.isLoadingMore.set(false);
         }),
         map(({ data }) =>
-          data.data.map((data: any) => ({
-            ...data.record,
-            expanded: false,
-          }))
+          data.data
+            .map((data: any) => ({
+              ...data.record,
+              expanded: false,
+            }))
+            .reverse()
         ),
         tap((newMessages) => {
           if (newMessages.length < this.messagesLength()) {
@@ -406,6 +408,20 @@ export default class ChatComponent implements OnInit, OnDestroy {
       type: 'text',
     });
   }
+
+  getLastMessage(msg: any): string {
+    switch (msg.type) {
+      case 'document':
+        return 'Document message';
+      case 'image':
+        return 'Image message';
+      case 'video':
+        return 'Video message';
+      default:
+        return msg.message ?? '';
+    }
+  }
+
   updateConversation() {
     const usersCopy = [...this.allUsers()];
     const selectedUser = this.selectedUser();
@@ -417,10 +433,12 @@ export default class ChatComponent implements OnInit, OnDestroy {
     if (index > -1) {
       const [user] = usersCopy.splice(index, 1);
 
+      const displayedMessage = this.getLastMessage(lastMessage);
+
       const updatedUser = {
         ...user,
         last_message: {
-          message: lastMessage.message,
+          message: displayedMessage,
           created_at: lastMessage.created_at,
         },
         last_message_at: lastMessage.created_at,
@@ -529,8 +547,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
           file: base64,
           type: optimisticMessage.type,
           media_caption: item.caption || '',
-          file_name: item.file.name,
-          file_size: fileSizeFormatted,
+          filename: item.file.name,
         });
       };
 
