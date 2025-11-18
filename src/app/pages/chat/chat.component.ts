@@ -56,6 +56,7 @@ interface Message {
     fileSize?: string;
   };
   expanded?: boolean;
+  status?: string;
 }
 @Component({
   selector: 'app-chat',
@@ -210,7 +211,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
       this.pusher.unsubscribe(this.channelName());
     }
 
-    // this.markMessagesAsRead(user.id);
     this.channel = this.pusher.subscribe(this.channelName());
     this.bindChannelEvents();
   }
@@ -252,6 +252,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
           if (initial) {
             this.scrollToBottom();
             this.messages.set(newMessages);
+            this.markMessagesAsRead();
           } else {
             this.messages.update((old) => [...newMessages, ...old]);
           }
@@ -290,11 +291,24 @@ export default class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  markMessagesAsRead(conversation: any) {
-    if (!conversation) return;
-    this.channel?.trigger('message-seen', {
-      conversation_id: conversation.id,
-      user_id: this.currentUser()?.id,
+  markMessagesAsRead() {
+    this.allUsers.update((users) =>
+      users.map((u: any) =>
+        u.id === this.selectedUser().id ? { ...u, unread_count: 0 } : u
+      )
+    );
+    const unreadMessages = this.messages().filter(
+      (msg) => msg.direction === 'inbound' && msg.status !== 'read'
+    );
+
+    if (!unreadMessages.length) return;
+    unreadMessages.forEach((msg) => {
+      this.channel?.trigger('client-message-status', {
+        user_id: this.currentUser()?.id,
+        conversation_id: this.selectedUser()?.id,
+        message_id: msg.message_id,
+        status: 'read',
+      });
     });
   }
 
@@ -331,19 +345,20 @@ export default class ChatComponent implements OnInit, OnDestroy {
       this.#sounds.playSound('messageReceived');
     });
 
-    this.channel.bind('message-seen', (event: any) => {
-      const readerId = event.reader_id;
-      const readMessageIds = event.read_message_ids;
+    this.channel.bind('client-message-status', (event: any) => {
+      const { temp_id, message_id, status } = event;
+      const messageId = temp_id ?? message_id;
+      const updatedMessages = this.messages().map((msg) => {
+        if (msg.message_id == messageId) {
+          return {
+            ...msg,
+            status,
+          };
+        }
+        return msg;
+      });
 
-      if (this.selectedUser()?.id === readerId) {
-        const updatedMessages = this.messages().map((message) => {
-          if (readMessageIds.includes(message.id)) {
-            return { ...message, read_at: new Date().toISOString() };
-          }
-          return message;
-        });
-        this.messages.set(updatedMessages);
-      }
+      this.messages.set(updatedMessages);
     });
 
     this.channel.bind('user-typing', (event: any) => {
@@ -371,6 +386,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
       );
       this.messages.update((messages) => [...messages, event]);
       this.scrollToBottom();
+
+      if (event.direction === 'inbound') {
+        this.markMessagesAsRead();
+      }
     });
   }
 
@@ -391,6 +410,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       from: this.currentUser()?.whatsapp_number,
       direction: 'outbound',
       type: 'text',
+      status: 'sent',
     };
 
     const el = this.messageInput()?.nativeElement;
@@ -407,6 +427,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       conversation_id: selectedUser.id,
       user_id: this.currentUser()?.id,
       message: content,
+      temp_id: optimisticMessage.message_id,
       type: 'text',
     });
   }
@@ -568,6 +589,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
             ? 'video'
             : 'image',
           message: item.caption || '',
+          status: 'sent',
         };
 
         this.messages.update((msgs) => [...msgs, optimisticMessage]);
@@ -581,6 +603,8 @@ export default class ChatComponent implements OnInit, OnDestroy {
           type: optimisticMessage.type,
           media_caption: item.caption || '',
           filename: item.file.name,
+          temp_id: optimisticMessage.message_id,
+          status: 'sent',
         });
       };
 

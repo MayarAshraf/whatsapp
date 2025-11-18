@@ -80,7 +80,8 @@
               </p>
               } @if (user?.unread_count > 0) {
               <p
-                class="message-count text-xs m-0 border-circle flex align-items-center justify-content-center font-semibold flex-shrink-0"
+                class="text-white bg-primary text-xs m-0 border-circle flex align-items-center justify-content-center font-semibold flex-shrink-0"
+                style="width: 1.3rem; height: 1.3rem"
               >
                 {{ user.unread_count }}
               </p>
@@ -193,7 +194,9 @@
                   ></video>
                   }
 
-                  <div class="absolute bottom-0 right-0 px-1 w-full grediant">
+                  <div
+                    class="absolute bottom-0 right-0 text-right px-1 w-full grediant"
+                  >
                     <ng-container
                       *ngTemplateOutlet="
                         messageMeta;
@@ -465,16 +468,13 @@
       {{ msg.created_at | date : "shortTime" }}
     </small>
 
-    <!--
-    @if (msg.from === currentUser()?.whatsapp_number) {
-      @if (!msg.read_at && selectedUser().user_status === 'Offline') {
-        <i class="fa-solid fa-check"></i>
-      } @else if (msg.read_at) {
-        <i class="fa-solid fa-check-double text-green-500"></i>
-      } @else {
-        <i class="fa-solid fa-check-double"></i>
-      }
-    }
-    -->
+    @if (msg.from === currentUser()?.whatsapp_number) { @if
+    (msg.status==="delivered") {
+    <i class="fa-solid fa-check-double text-xs"></i>
+    } @else if (msg.status==="read") {
+    <i class="fa-solid fa-check-double text-xs text-green-500"></i>
+    } @else {
+    <i class="pi pi-check text-xs"></i>
+    } }
   </div>
 </ng-template>
