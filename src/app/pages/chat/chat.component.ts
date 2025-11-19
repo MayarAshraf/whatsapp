@@ -153,7 +153,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       wssPort: 8443,
       forceTLS: true,
       enabledTransports: ['ws', 'wss'],
-      disableStats: true,
+      enableStats: false,
       authEndpoint: `https://${this.subdomain}.8xrespond.com/respond-websocket-backend/public/api/v1/broadcasting/auth`,
       auth: {
         headers: {
@@ -290,13 +290,15 @@ export default class ChatComponent implements OnInit, OnDestroy {
       this.getConversationHistory(false);
     }
   }
-
-  markMessagesAsRead() {
+  resetCount() {
     this.allUsers.update((users) =>
       users.map((u: any) =>
         u.id === this.selectedUser().id ? { ...u, unread_count: 0 } : u
       )
     );
+  }
+  markMessagesAsRead() {
+    this.resetCount();
     const unreadMessages = this.messages().filter(
       (msg) => msg.direction === 'inbound' && msg.status !== 'read'
     );
@@ -342,7 +344,11 @@ export default class ChatComponent implements OnInit, OnDestroy {
         this.allUsers.set([event, ...usersCopy]);
       }
 
-      this.#sounds.playSound('messageReceived');
+      if (this.selectedUser() && this.selectedUser().from === event.from) {
+        this.markMessagesAsRead();
+      } else {
+        this.#sounds.playSound('messageReceived');
+      }
     });
 
     this.channel.bind('client-message-status', (event: any) => {
@@ -378,18 +384,15 @@ export default class ChatComponent implements OnInit, OnDestroy {
       if (!selected) return;
 
       if (event.conversation_id !== selected.id) return;
+      const messageId = event.message_id;
+      const isDuplicate = this.messages().some((msg) => {
+        const existingMsgId = msg.message_id;
+        return existingMsgId === messageId;
+      });
+      if (isDuplicate) return;
 
-      this.messages.update((messages) =>
-        messages.filter(
-          (msg) => !msg.is_optimistic || msg.message !== event.message
-        )
-      );
       this.messages.update((messages) => [...messages, event]);
       this.scrollToBottom();
-
-      if (event.direction === 'inbound') {
-        this.markMessagesAsRead();
-      }
     });
   }
 
@@ -431,15 +434,16 @@ export default class ChatComponent implements OnInit, OnDestroy {
       type: 'text',
     });
   }
-
   getLastMessage(msg: any): string {
     switch (msg.type) {
       case 'document':
-        return 'Document message';
+        return '📄 Document message';
       case 'image':
-        return 'Image message';
+        return '🖼️ Image message';
       case 'video':
-        return 'Video message';
+        return '🎥 Video message';
+      case 'audio':
+        return '🎤 Voice message';
       default:
         return msg.message ?? '';
     }
@@ -513,6 +517,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   onUploadFiles(event: any): void {
+    this.fileUploader()?.clear();
     const files: File[] = event.files;
     if (!files?.length) return;
 
@@ -533,6 +538,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       ) {
         maxSize = 100 * 1024 * 1024;
       }
+
       if (file.size <= maxSize) {
         validFiles.push(file);
       } else {
@@ -546,14 +552,20 @@ export default class ChatComponent implements OnInit, OnDestroy {
 
     if (!validFiles.length) return;
 
-    const previews = validFiles.map((file) => ({
+    const newPreviews = validFiles.map((file) => ({
       file,
       url: URL.createObjectURL(file),
       caption: '',
     }));
 
-    this.previewFiles.set(previews);
-    this.selectedPreviewIndex.set(0);
+    this.previewFiles.update((currentPreviews) => [
+      ...currentPreviews,
+      ...newPreviews,
+    ]);
+
+    this.selectedPreviewIndex.set(
+      this.previewFiles().length - newPreviews.length
+    );
     this.showPreviewModal.set(true);
   }
 
