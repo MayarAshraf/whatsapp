@@ -28,8 +28,4 @@ export const routes: Routes = [
       authGuardRedirect: '/auth/login',
     },
   },
-  {
-    path: 'web-chat',
-    loadComponent: () => import('./pages/web-chat/web-chat.component'),
-  },
 ];
