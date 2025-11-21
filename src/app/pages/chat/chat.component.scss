@@ -88,7 +88,6 @@ $primary-text: #333333;
       border-radius: 6px 6px 6px 0px;
 
       .document-message {
-        // background-color: var(--p-primary-400);
         border-radius: 8px;
       }
 
@@ -110,6 +109,10 @@ $primary-text: #333333;
         color: $primary-text;
 
         .document-message {
+          background-color: $primary-light;
+        }
+
+        audio::-webkit-media-controls-panel {
           background-color: $primary-light;
         }
       }

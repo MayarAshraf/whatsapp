@@ -15,6 +15,7 @@ import {
   OnInit,
   signal,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -36,6 +37,7 @@ import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { AlertService } from 'src/app/shared/services/global-services/alert.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
+import { VoiceRecorderComponent } from './voice-recorder.component';
 
 interface Message {
   id?: number;
@@ -77,6 +79,7 @@ interface Message {
     NgTemplateOutlet,
     ImageModule,
     SlicePipe,
+    VoiceRecorderComponent,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -95,6 +98,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   messageInput = viewChild<ElementRef>('messageInput');
   messagesContainer = viewChild<ElementRef>('messagesContainer');
   fileUploader = viewChild<FileUpload>('fileUploader');
+  audioPlayers = viewChildren<ElementRef<HTMLAudioElement>>('audioPlayer');
 
   combinedMessages = computed(() => this.messages());
   selectedUser = signal<any>(null);
@@ -141,6 +145,16 @@ export default class ChatComponent implements OnInit, OnDestroy {
         container.scrollTop = container.scrollHeight;
       }
     }, 20);
+  }
+
+  onAudioPlay(currentAudio: HTMLAudioElement) {
+    this.audioPlayers().forEach((audioRef) => {
+      const audioEl = audioRef.nativeElement;
+
+      if (audioEl !== currentAudio) {
+        audioEl.pause();
+      }
+    });
   }
 
   ngOnInit() {
@@ -437,13 +451,13 @@ export default class ChatComponent implements OnInit, OnDestroy {
   getLastMessage(msg: any): string {
     switch (msg.type) {
       case 'document':
-        return '📄 Document message';
+        return 'Document message';
       case 'image':
-        return '🖼️ Image message';
+        return 'Image message';
       case 'video':
-        return '🎥 Video message';
+        return 'Video message';
       case 'audio':
-        return '🎤 Voice message';
+        return 'Audio message';
       default:
         return msg.message ?? '';
     }
@@ -726,5 +740,53 @@ export default class ChatComponent implements OnInit, OnDestroy {
     if (this.selectedPreviewIndex() >= updated.length) {
       this.selectedPreviewIndex.set(Math.max(updated.length - 1, 0));
     }
+  }
+  onVoiceRecordingComplete(audioBlob: Blob) {
+    const selectedUser = this.selectedUser();
+    if (!selectedUser) return;
+
+    const createdAt = new Date().toISOString();
+
+    const optimisticMessage: Message = {
+      message_id: Date.now(),
+      sender_id: this.currentUser()?.id,
+      receiver_id: selectedUser.id,
+      media_data: {
+        url: '',
+        caption: 'Voice message',
+        fileName: `voice_message_${Date.now()}.wav`,
+        fileSize: this.formatFileSize(audioBlob.size),
+      },
+      created_at: createdAt,
+      is_optimistic: true,
+      from: this.currentUser()?.whatsapp_number,
+      direction: 'outbound',
+      type: 'audio',
+      message: 'Voice message',
+      status: 'sent',
+    };
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      optimisticMessage.media_data!.url = reader.result as string;
+
+      this.messages.update((messages) => [...messages, optimisticMessage]);
+      this.scrollToBottom();
+      this.updateConversation();
+
+      this.channel?.trigger('client-message', {
+        user_id: this.currentUser()?.id,
+        conversation_id: selectedUser.id,
+        file: optimisticMessage.media_data!.url,
+        type: 'audio',
+        media_caption: 'Voice message',
+        filename: optimisticMessage.media_data!.fileName,
+        temp_id: optimisticMessage.message_id,
+        status: 'sent',
+      });
+
+      this.#sounds.playSound('messageSent');
+    };
+    reader.readAsDataURL(audioBlob);
   }
 }

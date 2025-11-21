@@ -53,6 +53,9 @@ importers:
       '@primeuix/themes':
         specifier: ^1.2.5
         version: 1.2.5
+      angular-voice:
+        specifier: ^1.1.2
+        version: 1.1.2(@angular/common@19.2.15(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))
       crypto-js:
         specifier: ^4.2.0
         version: 4.2.0
@@ -2014,6 +2017,12 @@ packages:
 
   ajv@8.17.1:
     resolution: {integrity: sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==}
+
+  angular-voice@1.1.2:
+    resolution: {integrity: sha512-w5CZ73O5jKMNWeCWE8UTAA0I3J/CaMCa2gXrIjuovfvivIVl5hkGMdXuVHoyfsJXfQURDciSDtBMgEWzIQ7eow==}
+    peerDependencies:
+      '@angular/common': ^20.2.0
+      '@angular/core': ^20.2.0
 
   ansi-colors@4.1.3:
     resolution: {integrity: sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw==}
@@ -6801,6 +6810,12 @@ snapshots:
       fast-uri: 3.1.0
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
+
+  angular-voice@1.1.2(@angular/common@19.2.15(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1)):
+    dependencies:
+      '@angular/common': 19.2.15(@angular/core@19.2.15(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.15(rxjs@7.8.2)(zone.js@0.15.1)
+      tslib: 2.8.1
 
   ansi-colors@4.1.3: {}
 

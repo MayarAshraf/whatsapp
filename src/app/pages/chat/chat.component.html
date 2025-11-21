@@ -250,13 +250,23 @@
                 </div>
               </div>
               }@else if(msg.type === 'audio'){
-              <div class="w-22rem h-3rem">
+              <div class="w-22rem px-2">
                 <audio
+                  #audioPlayer
+                  id="audio"
                   [src]="msg.media_data?.url"
                   controls
-                  class="w-full h-full"
-                  style="background-color: #f1f3f4"
+                  class="w-full"
+                  (play)="onAudioPlay(audioPlayer)"
                 ></audio>
+                <div class="flex justify-content-end -mt-3">
+                  <ng-container
+                    *ngTemplateOutlet="
+                      messageMeta;
+                      context: { $implicit: msg, color: '#737373' }
+                    "
+                  ></ng-container>
+                </div>
               </div>
               }
             </div>
@@ -342,11 +352,17 @@
                 icon="fa-solid fa-link"
               />
             </div>
+            @if(newMessage()){
             <p-button
               icon="fa-solid fa-paper-plane"
               aria-label="Send"
               (onClick)="sendMessage()"
             />
+            }@else {
+            <app-voice-recorder
+              (audioBlob)="onVoiceRecordingComplete($event)"
+            />
+            }
           </div>
         </div>
       </div>
