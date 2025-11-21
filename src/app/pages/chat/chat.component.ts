@@ -124,6 +124,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   messagesLength = signal(30);
   hasMoreMessages = signal(true);
   isLoadingMore = signal(false);
+  activeVoiceRecording = signal<number | null>(null);
 
   hostname = window.location.hostname;
   #rawSubdomain = this.hostname.split('.8xrespond.com')[0];
@@ -144,7 +145,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       if (container) {
         container.scrollTop = container.scrollHeight;
       }
-    }, 20);
+    }, 10);
   }
 
   onAudioPlay(currentAudio: HTMLAudioElement) {
@@ -205,7 +206,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.newMessage.set('');
     this.selectedUser.set(user);
     this.messagesLoading.set(true);
-
+    this.activeVoiceRecording.set(user.id);
     this.messagesPage.set(0);
     this.hasMoreMessages.set(true);
     this.isLoadingMore.set(false);
@@ -284,10 +285,21 @@ export default class ChatComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe();
   }
-
   toggleExpand(msg: any) {
     msg.expanded = !msg.expanded;
   }
+
+  isChatExpired = computed(() => {
+    if (!this.selectedUser()?.last_message_at) return false;
+
+    const lastMessageTime = new Date(
+      this.selectedUser().last_message_at
+    ).getTime();
+    const currentTime = new Date().getTime();
+    const hoursDiff = (currentTime - lastMessageTime) / (1000 * 60 * 60);
+
+    return hoursDiff > 24;
+  });
 
   onScroll() {
     const container = this.messagesContainer()?.nativeElement;

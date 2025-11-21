@@ -311,8 +311,13 @@
             [(ngModel)]="newMessage"
             (keydown)="onEnterPress($event)"
             (input)="sendTypingEvent()"
-            placeholder="Type a message"
+            [placeholder]="
+              isChatExpired()
+                ? 'This conversation has expired (24h limit reached)'
+                : 'Type a message'
+            "
             [autoResize]="false"
+            [disabled]="isChatExpired()"
             class="w-full border-0 shadow-none p-0 overflow-hidden max-h-15rem"
             rows="1"
           ></textarea>
@@ -361,6 +366,7 @@
             }@else {
             <app-voice-recorder
               (audioBlob)="onVoiceRecordingComplete($event)"
+              [recordingCancelled]="activeVoiceRecording()"
             />
             }
           </div>

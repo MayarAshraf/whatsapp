@@ -214,4 +214,8 @@ $primary-text: #333333;
     border-radius: 8px;
     padding-block: 8px;
   }
+  
+  .p-textarea:disabled {
+    background-color: white !important;
+  }
 }

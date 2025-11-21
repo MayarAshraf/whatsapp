@@ -1,4 +1,11 @@
-import { Component, inject, output, signal } from '@angular/core';
+import {
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { AudioRecorderService, RecordingResult } from 'angular-voice';
 import { ButtonModule } from 'primeng/button';
 
@@ -61,6 +68,7 @@ export class VoiceRecorderComponent {
   recorder = inject(AudioRecorderService);
 
   audioBlob = output<Blob>();
+  recordingCancelled = input<number | null>(null);
 
   isRecording = signal(false);
   isPaused = signal(false);
@@ -68,6 +76,12 @@ export class VoiceRecorderComponent {
   previewUrl = signal<string | null>(null);
 
   timer?: any;
+
+  cancelRecordingEffect = effect(() => {
+    if (this.recordingCancelled()) {
+      this.cancelRecording();
+    }
+  });
 
   async startRecording() {
     await this.recorder.prepare();
@@ -144,4 +158,6 @@ export class VoiceRecorderComponent {
       .toString()
       .padStart(2, '0')}`;
   }
+
+  ngOnDestroy() {}
 }
