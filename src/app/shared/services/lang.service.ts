@@ -13,7 +13,7 @@ export class LangService {
   #storage = inject(StorageService);
   #document = inject(DOCUMENT);
 
-  #LANG_KEY = 'LANGUAGE_APP';
+  #LANG_KEY = 'language-app';
   currentLanguage = signal<string>(this.#storage.getLocalData(this.#LANG_KEY));
 
   switchLanguage(lang: string) {
@@ -23,6 +23,7 @@ export class LangService {
     const locale = lang === 'ar' ? ar : en;
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     this.currentLanguage.set(lang);
+    this.#storage.storeLocalData(this.#LANG_KEY, lang);
     htmlTag.lang = lang;
     htmlTag.dir = dir;
     this.#primengConfig.setTranslation(locale);

@@ -114,6 +114,7 @@ $primary-text: #333333;
 
         audio::-webkit-media-controls-panel {
           background-color: $primary-light;
+          padding: 0;
         }
       }
     }

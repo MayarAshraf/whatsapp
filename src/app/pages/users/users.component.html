@@ -1,0 +1,21 @@
+<div class="table-card">
+  <app-table-wrapper
+    [headerTitle]="indexMeta.indexTitle"
+    [titleIcon]="indexMeta.indexIcon"
+    [headerBtnLabel]="indexMeta.createBtnLabel"
+    [columns]="indexMeta.columns"
+    [dataSource]="records()"
+    [loading]="isLoading()"
+    [totalRecords]="totalRecords()"
+    [recordsFiltered]="recordsFiltered()"
+    [indexPermissions]="true"
+    [updateBtnPermissions]="true"
+    [createBtnPermissions]="true"
+    [deleteBtnPermissions]="true"
+    [stateKey]="indexMeta.indexTableKey"
+    (createBtnClicked)="openCreateRecordDialog()"
+    (updateBtnClicked)="openUpdateRecordDialog($event)"
+    (deleteBtnClicked)="deleteRecord($event)"
+    (onLoadData)="loadRecords($event)"
+  />
+</div>

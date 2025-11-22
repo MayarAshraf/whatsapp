@@ -1,11 +1,9 @@
-import {
-  provideHttpClient,
-  withInterceptors,
-  withInterceptorsFromDi,
-} from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   ApplicationConfig,
   importProvidersFrom,
+  inject,
+  provideAppInitializer,
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -15,8 +13,8 @@ import {
   withInMemoryScrolling,
   withRouterConfig,
 } from '@angular/router';
-import { FormlyPrimeNGModule } from '@ngx-formly/primeng';
 import { FORMLY_CONFIG, provideFormlyCore } from '@ngx-formly/core';
+import { FormlyPrimeNGModule } from '@ngx-formly/primeng';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader'; // loads the json file for the chosen language
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -35,6 +33,8 @@ import { RefreshTokenInterceptor } from './shared/interceptors/token.interceptor
 import { CustomPageTitleProvider } from './shared/services/custom-page-title.service';
 
 import { environment } from 'src/environments/environment.development';
+import { constants } from './shared/config/constants';
+import { LangService } from './shared/services/lang.service';
 
 const suffix = environment.production ? `.json?v=${Date.now()}` : '.json';
 
@@ -67,7 +67,7 @@ export const appConfig: ApplicationConfig = {
         HttpResponseInterceptor,
         RefreshTokenInterceptor,
         HttpRequestInterceptor,
-      ]),
+      ])
     ),
     provideRouter(
       routes,
@@ -97,5 +97,10 @@ export const appConfig: ApplicationConfig = {
       deps: [TranslateService],
       multi: true,
     },
+    provideAppInitializer(() => {
+      const langService = inject(LangService);
+      const lang = langService.currentLanguage() || constants.DEFAULT_LANGUAGE;
+      return langService.switchLanguage(lang);
+    }),
   ],
 };

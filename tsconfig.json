@@ -10,6 +10,8 @@
       "@env": ["src/environments/environment"],
       "@shared": ["src/app/shared"]
     },
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
     "outDir": "./dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,

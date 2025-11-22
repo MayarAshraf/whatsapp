@@ -1,6 +1,6 @@
 <p-drawer
   [(visible)]="visible"
-  position="left"
+  [position]="currentLang() === 'en' ? 'left' : 'right'"
   closable="false"
   appendTo="body"
   [closeOnEscape]="false"
@@ -66,7 +66,7 @@
         [src]="currentUser()?.featured_image || 'assets/media/avatar.jpg'"
       />
     </button>
-    <p-popover #op styleClass="shadow-2">
+    <p-popover #op styleClass="shadow-2 w-16rem">
       <ng-container
         *ngTemplateOutlet="user; context: { $implicit: currentUser() }"
       ></ng-container>
@@ -75,23 +75,20 @@
 </ng-template>
 
 <ng-template #user let-currentUser>
-  <div>
-    <div class="flex align-items-center gap-3 mb-3">
-      <div>
-        <h3 class="m-0 text-base font-semibold">
-          {{ currentUser?.first_name }}
-        </h3>
-        <h4 class="m-0 text-500 text-sm font-light">
-          {{ currentUser?.email }}
-        </h4>
-      </div>
-    </div>
-    <button
-      pButton
-      icon="fa-solid fa-arrow-right-from-bracket text-white"
-      class="uppercase text-sm w-full bg-primary-color border-none shadow-none p-1"
-      (click)="logout()"
-      [label]="'logout' | translate"
-    ></button>
+  <div class="flex flex-column mb-2">
+    <span class="text-sm font-semibold">
+      {{ currentUser?.first_name }}
+    </span>
+    <span class="text-500 text-xs font-light">
+      {{ currentUser?.email }}
+    </span>
+    <app-lang-switcher />
   </div>
+  <button
+    pButton
+    icon="fa-solid fa-arrow-right-from-bracket text-white"
+    class="uppercase text-xs w-full bg-primary-color border-none shadow-none p-1"
+    (click)="logout()"
+    [label]="'logout' | translate"
+  ></button>
 </ng-template>

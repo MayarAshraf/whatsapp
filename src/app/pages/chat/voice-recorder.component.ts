@@ -11,7 +11,6 @@ import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-voice-recorder',
-  standalone: true,
   imports: [ButtonModule],
   template: `
     <div>

@@ -16,8 +16,10 @@ import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { PopoverModule } from 'primeng/popover';
 import { Tooltip } from 'primeng/tooltip';
+import { LangSwitcherComponent } from 'src/app/shared/components/lang-switcher.component';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
+import { LangService } from 'src/app/shared/services/lang.service';
 
 @Component({
   selector: 'app-menu-sidebar',
@@ -34,6 +36,7 @@ import { ConfirmService } from 'src/app/shared/services/global-services/confirm.
     MenuModule,
     NgTemplateOutlet,
     TranslatePipe,
+    LangSwitcherComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -43,6 +46,8 @@ export class MenuSidebarComponent {
   #authService = inject(AuthService);
   #router = inject(Router);
   #destroyRef = inject(DestroyRef);
+
+  currentLang = inject(LangService).currentLanguage;
   currentUser = this.#authService.currentUser;
 
   visible = true;
@@ -51,7 +56,7 @@ export class MenuSidebarComponent {
     {
       label: 'conversations',
       icon: 'fa-solid fa-comment-dots',
-      routerLink: '/conversations',
+      routerLink: '/chat',
       visible: true,
     },
   ]);

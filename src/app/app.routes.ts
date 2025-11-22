@@ -23,6 +23,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/chat/chat.component'),
         title: 'chat',
       },
+      {
+        path: 'users',
+        loadComponent: () => import('./pages/users/users.component'),
+        title: 'users',
+      },
     ],
     data: {
       authGuardRedirect: '/auth/login',

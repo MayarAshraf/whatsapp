@@ -62,7 +62,6 @@ interface Message {
 }
 @Component({
   selector: 'app-chat',
-  standalone: true,
   imports: [
     FormsModule,
     InputTextModule,
