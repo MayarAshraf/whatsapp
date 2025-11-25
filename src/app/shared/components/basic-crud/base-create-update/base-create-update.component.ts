@@ -75,9 +75,14 @@ export abstract class BaseCreateUpdateComponent<
       this.editData?.method !== 'create' && !!this.editData;
 
     const endpoint = isUpdateAction ? endpoints.update : endpoints.store;
-    const apiVersion = isUpdateAction ? updateApiVersion : createApiVersion;
 
-    const action = this.api.request('post', endpoint, model, headers, params);
+    const action = this.api.request(
+      isUpdateAction ? 'put' : 'post',
+      endpoint,
+      model,
+      headers,
+      params
+    );
 
     this.#manageRecord(action);
   }

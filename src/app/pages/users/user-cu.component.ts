@@ -24,8 +24,6 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
   #currentLang = inject(LangService).currentLanguage;
   #authService = inject(AuthService);
 
-  userList$ = this.#globalList.getGlobalList('users');
-
   ngOnInit() {
     this.dialogMeta = {
       ...this.dialogMeta,
@@ -38,15 +36,15 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
     if (this.editData) {
       this.dialogMeta = {
         ...this.dialogMeta,
-        dialogTitle: this.translate.instant(_('Update User')),
-        submitButtonLabel: this.translate.instant(_('Update User')),
+        dialogTitle: this.translate.instant(_('update_user')),
+        submitButtonLabel: this.translate.instant(_('update_user')),
       };
-      this.model = new UserModel(this.editData, this.#currentLang());
+      this.model = new UserModel(this.editData);
     } else {
       this.dialogMeta = {
         ...this.dialogMeta,
-        dialogTitle: this.translate.instant(_('Create User')),
-        submitButtonLabel: this.translate.instant(_('Create User')),
+        dialogTitle: this.translate.instant(_('create_user')),
+        submitButtonLabel: this.translate.instant(_('create_user')),
       };
       this.model = new UserModel();
     }
@@ -93,7 +91,6 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
           type: 'input-field',
           props: {
             label: _('username'),
-            required: true,
             maxLength: constants.MAX_LENGTH_TEXT_INPUT,
           },
         },
@@ -140,11 +137,9 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
         {
           key: 'phone',
           type: 'input-field',
-          className: 'col-12 md:col-6',
           props: {
             type: 'number',
             label: _('phone'),
-            required: true,
           },
         },
         {
@@ -160,19 +155,56 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
         {
           key: 'department_id',
           type: 'select-field',
-          className: 'col-12 md:col-6',
           props: {
             label: _('department'),
-            required: true,
             filter: true,
-            options: this.userList$.pipe(
-              map((data) =>
-                data.map((user: any) => ({
-                  label: user[`label_${this.#currentLang()}`],
-                  value: user.value,
+            options: this.#globalList.getGlobalList('users').pipe(
+              map(({ departments }) =>
+                departments.map((department: any) => ({
+                  label: department[`label_${this.#currentLang()}`],
+                  value: department.value,
                 }))
               )
             ),
+          },
+        },
+        {
+          key: 'subrole_id',
+          type: 'select-field',
+          props: {
+            label: _('subrole'),
+            filter: true,
+            options: [],
+            disabled: true,
+          },
+          expressions: {
+            'props.disabled': '!model.department_id',
+            'props.options': () => {
+              if (!this.model.department_id) {
+                return [];
+              }
+              return this.#globalList
+                .getGlobalList('users', {
+                  department_id: this.model.department_id,
+                })
+                .pipe(
+                  map((res: any) =>
+                    res['sub-roles'].map((sub: any) => ({
+                      label: sub[`label_${this.#currentLang()}`],
+                      value: sub.value,
+                    }))
+                  )
+                );
+            },
+          },
+          hooks: {
+            onInit: (field) => {
+              field.formControl?.valueChanges.subscribe(() => {
+                if (!this.model?.department_id) {
+                  field.formControl?.reset();
+                }
+              });
+            },
           },
         },
       ]),

@@ -289,10 +289,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   isChatExpired = computed(() => {
-    if (!this.selectedUser()?.last_message_at) return false;
+    if (!this.selectedUser()?.last_client_message_at) return false;
 
     const lastMessageTime = new Date(
-      this.selectedUser().last_message_at
+      this.selectedUser().last_client_message_at
     ).getTime();
     const currentTime = new Date().getTime();
     const hoursDiff = (currentTime - lastMessageTime) / (1000 * 60 * 60);
@@ -361,12 +361,19 @@ export default class ChatComponent implements OnInit, OnDestroy {
       const usersCopy = [...this.allUsers()];
       const existingIndex = usersCopy.findIndex((u) => u.id === conversationId);
 
+      let updatedUser;
+
       if (existingIndex !== -1) {
-        const updatedUser = { ...usersCopy[existingIndex], ...event };
+        updatedUser = { ...usersCopy[existingIndex], ...event };
         usersCopy.splice(existingIndex, 1);
-        this.allUsers.set([updatedUser, ...usersCopy]);
       } else {
-        this.allUsers.set([event, ...usersCopy]);
+        updatedUser = event;
+      }
+
+      this.allUsers.set([updatedUser, ...usersCopy]);
+
+      if (this.selectedUser()?.id === updatedUser.id) {
+        this.selectedUser.set(updatedUser);
       }
 
       if (this.selectedUser() && this.selectedUser().from === event.from) {
@@ -438,7 +445,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       from: this.currentUser()?.whatsapp_number,
       direction: 'outbound',
       type: 'text',
-      status: 'sent',
+      status: 'pending',
     };
 
     const el = this.messageInput()?.nativeElement;
@@ -626,7 +633,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
             ? 'video'
             : 'image',
           message: item.caption || '',
-          status: 'sent',
+          status: 'pending',
         };
 
         this.messages.update((msgs) => [...msgs, optimisticMessage]);
@@ -641,7 +648,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
           media_caption: item.caption || '',
           filename: item.file.name,
           temp_id: optimisticMessage.message_id,
-          status: 'sent',
         });
       };
 
@@ -774,7 +780,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       direction: 'outbound',
       type: 'audio',
       message: 'Voice message',
-      status: 'sent',
+      status: 'pending',
     };
 
     const reader = new FileReader();
@@ -793,7 +799,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
         media_caption: 'Voice message',
         filename: optimisticMessage.media_data!.fileName,
         temp_id: optimisticMessage.message_id,
-        status: 'sent',
       });
 
       this.#sounds.playSound('messageSent');

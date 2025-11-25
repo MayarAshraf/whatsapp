@@ -14,8 +14,8 @@ import { Checkbox } from "primeng/checkbox";
           [formlyAttributes]="field"
           [binary]="true"
           [required]="props.required ?? false"
-          [trueValue]="props.trueValue ?? 1"
-          [falseValue]="props.falseValue ?? 0"
+          [trueValue]="props.trueValue ?? true"
+          [falseValue]="props.falseValue ?? false"
           (onChange)="props.change && props.change(field, $event)"
         />
         <label [for]="'checkbox-field-' + id" class="cursor-pointer text-sm">

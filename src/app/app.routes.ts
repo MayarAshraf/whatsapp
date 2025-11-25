@@ -28,6 +28,17 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/users/users.component'),
         title: 'users',
       },
+      {
+        path: 'template',
+        loadComponent: () => import('./pages/template/template.component'),
+        title: 'template',
+      },
+      {
+        path: 'department',
+        loadComponent: () =>
+          import('./pages/departments/departments.component'),
+        title: 'department',
+      },
     ],
     data: {
       authGuardRedirect: '/auth/login',

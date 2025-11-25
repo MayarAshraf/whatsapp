@@ -10,46 +10,42 @@ import { TooltipModule } from 'primeng/tooltip';
 import { BaseIndexComponent } from 'src/app/shared/components/basic-crud/base-index.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { LangService } from 'src/app/shared/services/lang.service';
-import { User } from './services/service-type';
-import { UserCuComponent } from './user-cu.component';
+import { DepartmentCuComponent } from './department-cu.component';
+import { Department } from './services/service-type';
 
 @Component({
-  selector: 'app-users',
+  selector: 'app-departments',
   imports: [TableWrapperComponent, TooltipModule, ButtonModule],
-  templateUrl: './users.component.html',
+  templateUrl: './departments.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class UsersComponent extends BaseIndexComponent<
-  User,
-  Type<UserCuComponent>
+export default class DepartmentsComponent extends BaseIndexComponent<
+  Department,
+  Type<DepartmentCuComponent>
 > {
   currentLang = inject(LangService).currentLanguage;
 
   ngOnInit() {
-    this.dialogComponent = UserCuComponent;
+    this.dialogComponent = DepartmentCuComponent;
 
     this.indexMeta = {
       ...this.indexMeta,
-      indexTitle: 'users',
-      indexIcon: 'fa-solid fa-user',
-      createBtnLabel: 'create user',
+      indexTitle: 'departments',
+      indexIcon: 'fa-solid fa-building-user',
+      createBtnLabel: 'create department',
       endpoints: {
-        index: 'auth/users/user',
-        delete: 'auth/users/user/delete',
+        index: 'departments/department',
+        delete: 'departments/department/delete',
       },
-      indexTableKey: 'USERS_KEY',
+      indexTableKey: 'DEPARTMENT_KEY',
       columns: [
         {
           title: 'id',
           name: 'id',
         },
         {
-          title: 'email',
-          name: 'email',
-        },
-        {
           title: 'department',
-          name: `department.name_${this.currentLang()}`,
+          name: `name_${this.currentLang()}`,
         },
       ],
     };

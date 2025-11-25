@@ -59,6 +59,18 @@ export class MenuSidebarComponent {
       routerLink: '/chat',
       visible: true,
     },
+    {
+      label: 'template',
+      icon: 'fa-solid fa-robot',
+      routerLink: '/template',
+      visible: true,
+    },
+    {
+      label: 'department',
+      icon: 'fa-solid fa-building-user',
+      routerLink: '/department',
+      visible: true,
+    },
   ]);
 
   bottomMenuItems = signal<MenuItem[]>([

@@ -14,6 +14,7 @@ import { FormlyInputNumberType } from '../components/fields/input-number.compone
 import { InputSelectGroupType } from '../components/fields/input-select-group.component';
 import { InputComponent } from '../components/fields/input.component';
 import { MultiCheckboxComponent } from '../components/fields/multi-checkbox.component';
+import { FormlyOrderListComponent } from '../components/fields/order-list.component';
 import { PasswordComponent } from '../components/fields/password.component';
 import { RadioComponent } from '../components/fields/radio.component';
 import { RatingComponent } from '../components/fields/rating.component';
@@ -21,6 +22,7 @@ import { RepeatTypeComponent } from '../components/fields/repeat.component';
 import { SelectComponent } from '../components/fields/select/select.component';
 import { SeparatorComponent } from '../components/fields/separator.component';
 import { SwitchComponent } from '../components/fields/switch.component';
+import { TabsFormComponent } from '../components/fields/tabs-form.component';
 import { FormlyTagsType } from '../components/fields/tags-field.component';
 import { TextareaComponent } from '../components/fields/textarea.component';
 import { TreeComponent } from '../components/fields/tree.component';
@@ -173,6 +175,14 @@ export function customFormlyConfig(translate: TranslateService) {
       { name: 'color-field', component: ColorComponent },
       { name: 'date-field', component: DatePickerComponent },
       { name: 'tags-field', component: FormlyTagsType },
+      {
+        name: 'order-list-field',
+        component: FormlyOrderListComponent,
+      },
+      {
+        name: 'tabs-field',
+        component: TabsFormComponent,
+      },
     ],
   };
 }

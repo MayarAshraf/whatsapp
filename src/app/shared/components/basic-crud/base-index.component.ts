@@ -23,6 +23,7 @@ import { catchError, filter, map, of, switchMap, tap } from 'rxjs';
 import { constants } from '../../config/constants';
 import { CachedListService } from '../../services/cached-lists.service';
 import { ApiService } from '../../services/global-services/api.service';
+import { ConfirmService } from '../../services/global-services/confirm.service';
 import {
   BaseCrudIndexMeta,
   FiltersData,
@@ -55,7 +56,8 @@ export abstract class BaseIndexComponent<
   public dialogRef: DynamicDialogRef | null = null;
   public actionCrement = signal<number>(0);
   public cacheList = inject(CachedListService);
-
+  public confirmService = inject(ConfirmService);
+  
   // Common properties used by all specific components
   records = model<R[]>([]);
   totalRecords = model<number>(0);
@@ -219,6 +221,12 @@ export abstract class BaseIndexComponent<
           )}`
         );
       });
+  }
+
+  confirmDelete(record: R) {
+    this.confirmService.confirmDelete({
+      acceptCallback: () => this.deleteRecord(record),
+    });
   }
 
   deleteCacheKey(cachKey: string) {

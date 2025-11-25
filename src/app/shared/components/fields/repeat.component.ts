@@ -1,62 +1,62 @@
-import { ChangeDetectionStrategy, Component } from "@angular/core";
-import { FieldArrayType, FormlyFieldConfig, FormlyModule } from "@ngx-formly/core";
-import { TranslatePipe } from "@ngx-translate/core";
-import { ButtonModule } from "primeng/button";
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  FieldArrayType,
+  FormlyFieldConfig,
+  FormlyModule,
+} from '@ngx-formly/core';
+import { TranslatePipe } from '@ngx-translate/core';
+import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
-  selector: "formly-repeat",
+  selector: 'formly-repeat',
   template: `
     <div attr.data-field-key="{{ field.key }}">
       @if (props.label) {
-        <label>{{ props.label }}</label>
-      }
-      @if (props.description) {
-        <p class="mb-3 text-xs">{{ props.description }}</p>
-      }
-      @for (
-        field of field.fieldGroup;
-        track field.id;
-        let i = $index;
-        let f = $first;
-        let l = $last
-      ) {
-        <div
-          class="pt-3 px-2 flex gap-2 align-items-start surface-50 border-round border-1 border-200"
-          [class.mb-3]="!l"
-        >
-          <formly-field [field]="field" class="flex-auto" />
-          @if (!f || !l) {
-            <div class="flex gap-1">
-              @if (!f) {
-                <button
-                  pButton
-                  type="button"
-                  class="w-2rem h-2rem text-xs p-2"
-                  severity="danger"
-                  icon="fas fa-trash text-xs"
-                  (click)="remove(i)"
-                  label="{{ props.removeBtnText | translate }}"
-                ></button>
-                <button
-                  pButton
-                  class="w-2rem h-2rem text-xs p-2"
-                  icon="pi pi-chevron-up"
-                  type="button"
-                  (click)="reorderUp(i)"
-                ></button>
-              }
-              @if (!l) {
-                <button
-                  pButton
-                  class="w-2rem h-2rem text-xs p-2"
-                  icon="pi pi-chevron-down"
-                  type="button"
-                  (click)="reorderDown(i)"
-                ></button>
-              }
-            </div>
+      <label>{{ props.label }}</label>
+      } @if (props.description) {
+      <p class="mb-3 text-xs">{{ props.description }}</p>
+      } @for ( field of field.fieldGroup; track field.id; let i = $index; let f
+      = $first; let l = $last ) {
+      <div
+        class="pt-3 px-2 flex gap-2 align-items-start surface-50 border-round border-1 border-200"
+        [class.mb-3]="!l"
+      >
+        <formly-field [field]="field" class="flex-auto" />
+        @if (!f || !l) {
+        <div class="flex gap-1">
+          @if (!f) {
+          <button
+            pButton
+            type="button"
+            class="p-button-text p-button-rounded p-button-danger w-2rem h-2rem text-xs p-1"
+            severity="danger"
+            icon="fas fa-trash"
+            (click)="remove(i)"
+            [pTooltip]="props.removeBtnText || 'Remove' | translate"
+            label="{{ props.removeBtnText | translate }}"
+          ></button>
+          <button
+            pButton
+            class="p-button-text p-button-rounded w-2rem h-2rem text-xs p-1"
+            icon="pi pi-chevron-up"
+            type="button"
+            [pTooltip]="'Move up' | translate"
+            (click)="reorderUp(i)"
+          ></button>
+          } @if (!l) {
+          <button
+            pButton
+            class="p-button-text p-button-rounded w-2rem h-2rem text-xs p-1"
+            icon="pi pi-chevron-down"
+            type="button"
+            [pTooltip]="'Move down' | translate"
+            (click)="reorderDown(i)"
+          ></button>
           }
         </div>
+        }
+      </div>
       }
 
       <div class="my-3 text-right">
@@ -72,7 +72,7 @@ import { ButtonModule } from "primeng/button";
       </div>
     </div>
   `,
-  imports: [FormlyModule, ButtonModule, TranslatePipe],
+  imports: [FormlyModule, ButtonModule, TranslatePipe, TooltipModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RepeatTypeComponent extends FieldArrayType {

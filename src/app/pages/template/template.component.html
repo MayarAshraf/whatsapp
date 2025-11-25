@@ -17,5 +17,20 @@
     (updateBtnClicked)="openUpdateRecordDialog($event)"
     (deleteBtnClicked)="confirmDelete($event)"
     (onLoadData)="loadRecords($event)"
-  />
+  >
+    <ng-template #extendDefaultActionsTemplate let-rowData>
+      <button
+        pButton
+        type="button"
+        [icon]="'fa-solid fa-eye text-xs'"
+        class="text-primary"
+        size="small"
+        [text]="true"
+        [rounded]="true"
+        [pTooltip]="'view' | translate"
+        tooltipPosition="top"
+        (click)="openTemplateView(rowData)"
+      ></button>
+    </ng-template>
+  </app-table-wrapper>
 </div>
