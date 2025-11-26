@@ -356,6 +356,13 @@
                 [text]="true"
                 icon="fa-solid fa-link"
               />
+              <p-button
+                (click)="closeChat()"
+                [text]="true"
+                [pTooltip]="'end_conversation' | translate"
+                tooltipPosition="top"
+                icon="fa-solid fa-lock"
+              />
             </div>
             @if(newMessage()){
             <p-button

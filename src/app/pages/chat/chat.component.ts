@@ -21,6 +21,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
@@ -31,6 +32,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
+import { Tooltip } from 'primeng/tooltip';
 import Pusher from 'pusher-js';
 import { finalize, map, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
@@ -79,6 +81,8 @@ interface Message {
     ImageModule,
     SlicePipe,
     VoiceRecorderComponent,
+    Tooltip,
+    TranslatePipe,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -804,5 +808,12 @@ export default class ChatComponent implements OnInit, OnDestroy {
       this.#sounds.playSound('messageSent');
     };
     reader.readAsDataURL(audioBlob);
+  }
+
+  closeChat() {
+    this.channel?.trigger('client-conversation-closed', {
+      user_id: this.currentUser()?.id,
+      conversation_id: this.selectedUser().id,
+    });
   }
 }
