@@ -78,7 +78,7 @@ import { TooltipModule } from 'primeng/tooltip';
             <div
               cdkDragHandle
               class="flex justify-content-center align-items-center cursor-move hover:text-primary-500"
-              [pTooltip]="'Drag to reorder' | translate"
+              [pTooltip]="'drag_to_reorder' | translate"
               tooltipPosition="right"
             >
               <i class="fa-solid fa-arrows-to-dot"></i>
@@ -94,7 +94,7 @@ import { TooltipModule } from 'primeng/tooltip';
                 type="button"
                 class="p-button-text p-button-rounded w-2rem h-2rem"
                 icon="pi pi-chevron-up text-sm"
-                [pTooltip]="'Move up' | translate"
+                [pTooltip]="'move_up' | translate"
                 (click)="reorderUp(i)"
               ></button>
               <button
@@ -102,7 +102,7 @@ import { TooltipModule } from 'primeng/tooltip';
                 type="button"
                 class="p-button-text p-button-rounded p-button-danger w-2rem h-2rem"
                 icon="pi pi-trash text-sm"
-                [pTooltip]="props.removeBtnText || 'Remove' | translate"
+                [pTooltip]="props.removeBtnText || 'remove' | translate"
                 (click)="remove(i)"
               ></button>
               } @if (!l) {
@@ -111,7 +111,7 @@ import { TooltipModule } from 'primeng/tooltip';
                 type="button"
                 class="p-button-text p-button-rounded w-2rem h-2rem"
                 icon="pi pi-chevron-down text-sm"
-                [pTooltip]="'Move down' | translate"
+                [pTooltip]="'move_down' | translate"
                 (click)="reorderDown(i)"
               ></button>
               }
@@ -125,7 +125,7 @@ import { TooltipModule } from 'primeng/tooltip';
           >
             <i class="pi pi-bars text-primary"></i>
             <span class="font-semibold text-sm"
-              >{{ props.itemLabel || 'Option' | translate }} {{ i + 1 }}</span
+              >{{ props.itemLabel || 'option' | translate }} {{ i + 1 }}</span
             >
           </div>
         </div>

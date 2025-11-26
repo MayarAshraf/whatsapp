@@ -125,7 +125,6 @@ export class TemplateCuComponent extends BaseCreateUpdateComponent<any> {
             description: _('drag_to_reorder_configure_buttons'),
             itemLabel: _('option'),
             addBtnText: _('add_option'),
-            emptyMessage: _('no_options_added_yet'),
             maxItems: 3,
           },
           fieldArray: {
