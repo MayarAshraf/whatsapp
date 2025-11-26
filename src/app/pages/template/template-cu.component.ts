@@ -106,7 +106,7 @@ export class TemplateCuComponent extends BaseCreateUpdateComponent<any> {
           type: 'switch-field',
           className: 'col-12 md:col-6',
           props: {
-            label: 'is_active',
+            label: _('is_active'),
           },
         },
         {

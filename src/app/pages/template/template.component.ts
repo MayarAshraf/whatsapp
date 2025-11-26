@@ -35,7 +35,7 @@ export default class TemplateComponent extends BaseIndexComponent<
       ...this.indexMeta,
       indexTitle: 'template',
       indexIcon: 'fa-solid fa-robot',
-      createBtnLabel: 'create template',
+      createBtnLabel: 'create_template',
       endpoints: {
         index: 'routing-levels/routing-level',
         delete: 'routing-levels/routing-level/delete',

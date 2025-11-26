@@ -16,8 +16,8 @@ export class ConfirmService {
   #confirm = inject(ConfirmationService);
   #translate = inject(TranslateService);
 
-  header = this.#translate.instant(_('Are You Sure'));
-  message = this.#translate.instant(_('You Will Not Be Able To Revert'));
+  header = this.#translate.instant(_('are_you_sure'));
+  message = this.#translate.instant(_('you_will_not_be_able_to_revert'));
 
   confirmDelete(config: ConfirmConfig): void {
     this.#confirm.confirm({

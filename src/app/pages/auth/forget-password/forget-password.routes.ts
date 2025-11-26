@@ -5,6 +5,6 @@ export const forgetRoutes: Routes = [
   {
     path: 'forget-password',
     loadComponent: () => import('./forget-password.component'),
-    title: _('forget password'),
+    title: _('forget_password'),
   },
 ] as Route[];

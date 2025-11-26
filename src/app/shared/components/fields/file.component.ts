@@ -90,7 +90,7 @@ import { TruncateTextPipe } from "../../pipes/truncate-text.pipe";
           <div class="flex align-items-center justify-content-center flex-column">
             <i class="pi pi-cloud-upload text-2xl"></i>
             <p class="mt-3 mb-0">
-              {{ "Drag and drop files to here to upload" | translate }}
+              {{ "drag_and_drop_files_to_here_to_upload" | translate }}
             </p>
           </div>
         </ng-template>

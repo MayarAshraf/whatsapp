@@ -1,18 +1,19 @@
-import { DatePipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
+import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { FieldType, FieldTypeConfig, FormlyModule } from '@ngx-formly/core';
-import { _, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { addDays, addHours, addMinutes, addWeeks, format } from 'date-fns';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
 import { FloatLabel } from 'primeng/floatlabel';
+import { TabsModule } from 'primeng/tabs';
 import { TooltipModule } from 'primeng/tooltip';
 import { distinctUntilChanged, filter, tap } from 'rxjs';
 import { RoundMinuteDirective } from '../../directives/round-minute.directive';
-import { TabsModule } from 'primeng/tabs';
 
 @Component({
   selector: 'formly-data-picker-field',

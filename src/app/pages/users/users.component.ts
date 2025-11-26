@@ -32,7 +32,7 @@ export default class UsersComponent extends BaseIndexComponent<
       ...this.indexMeta,
       indexTitle: 'users',
       indexIcon: 'fa-solid fa-user',
-      createBtnLabel: 'create user',
+      createBtnLabel: 'create_user',
       endpoints: {
         index: 'auth/users/user',
         delete: 'auth/users/user/delete',

@@ -59,7 +59,7 @@ export default class ForgetPasswordComponent {
           this.message.set(
             this.#translate.instant(
               _(
-                'your requerst is successfully please verify your Account to Reset Password'
+                'your_request_is_successfully_please_verify_your_account_to_reset_password'
               )
             )
           ),

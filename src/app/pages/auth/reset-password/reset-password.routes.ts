@@ -5,6 +5,6 @@ export const resetPasswordRoutes: Routes = [
   {
     path: 'reset-password/:token',
     loadComponent: () => import('./reset-password.component'),
-    title: _('reset password'),
+    title: _('reset_password'),
   },
 ] as Route[];

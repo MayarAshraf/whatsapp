@@ -83,7 +83,7 @@ export function customFormlyConfig(translate: TranslateService) {
       {
         name: 'required',
         message(error: any, field: FormlyFieldConfig) {
-          return translate.stream(_('this field is required'));
+          return translate.stream(_('this_field_is_required'));
         },
       },
       {
@@ -133,7 +133,7 @@ export function customFormlyConfig(translate: TranslateService) {
       {
         name: 'url',
         message() {
-          return translate.stream(_('GLOBAL.FORM_VALIDATION.invalid_url'));
+          return translate.stream(_('GLOBAL.FORM_VALIDATION.INVALID_URL'));
         },
       },
       {

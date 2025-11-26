@@ -32,7 +32,7 @@ export default class DepartmentsComponent extends BaseIndexComponent<
       ...this.indexMeta,
       indexTitle: 'departments',
       indexIcon: 'fa-solid fa-building-user',
-      createBtnLabel: 'create department',
+      createBtnLabel: 'create_department',
       endpoints: {
         index: 'departments/department',
         delete: 'departments/department/delete',

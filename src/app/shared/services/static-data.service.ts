@@ -11,11 +11,11 @@ export class StaticDataService {
   public languages = [
     {
       value: 'en',
-      label: this.#translate.instant(_('English')),
+      label: this.#translate.instant(_('english')),
     },
     {
       value: 'ar',
-      label: this.#translate.instant(_('Arabic')),
+      label: this.#translate.instant(_('arabic')),
     },
   ];
 }

@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslatePipe, TranslateService, _ } from '@ngx-translate/core';
+import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SettingCuComponent } from '@pages/settings/setting-cu.component';
 import { MenuItem, MenuItemCommandEvent } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -64,7 +65,7 @@ export class MenuSidebarComponent {
     {
       label: 'conversations',
       icon: 'fa-solid fa-comment-dots',
-      routerLink: '/chat',
+      routerLink: '/conversations',
       visible: true,
     },
     {
@@ -108,7 +109,7 @@ export class MenuSidebarComponent {
   }
   logout() {
     this.#confirmService.confirmDelete({
-      message: this.#translate.instant(_('Please confirm to proceed')),
+      message: this.#translate.instant(_('please_confirm_to_proceed')),
       acceptCallback: () =>
         this.#authService
           .logout()

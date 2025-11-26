@@ -23,7 +23,7 @@ export default class ContentLayoutComponent {
 
   showRetryBanner = signal(false);
 
-  isHomeRoute$ = this.#router.events.pipe(map(() => this.#router.url === "/chat"));
+  isHomeRoute$ = this.#router.events.pipe(map(() => this.#router.url === "/conversations"));
   isNavigationError$ = this.#router.events.pipe(
     tap(event => {
       if (event instanceof NavigationError) {
