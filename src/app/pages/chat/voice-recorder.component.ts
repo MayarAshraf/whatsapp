@@ -6,18 +6,22 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AudioRecorderService, RecordingResult } from 'angular-voice';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-voice-recorder',
-  imports: [ButtonModule],
+  imports: [ButtonModule, TooltipModule, TranslatePipe],
   template: `
     <div>
       @if(!isRecording()){
       <button
         pButton
         type="button"
+        [pTooltip]="'recording' | translate"
+        tooltipPosition="top"
         icon="fa-solid fa-microphone"
         class="p-button-text"
         (click)="startRecording()"

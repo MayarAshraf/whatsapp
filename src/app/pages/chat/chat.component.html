@@ -3,38 +3,16 @@
     <div class="col-3 h-full">
       <div class="user-list overflow-y-auto border-right-1 border-300">
         <div
-          class="flex align-items-center justify-content-between gap-2 my-3 mx-2"
+          class="search-container flex align-items-center justify-content-between m-2 mt-3 px-3 bg-white border-1 border-300 border-round-3xl"
         >
-          <div
-            class="search-container flex align-items-center justify-content-between px-3 bg-white border-1 border-300 border-round-3xl"
-          >
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              pInputText
-              [placeholder]="'Search'"
-              class="search-input w-full h-full border-0 shadow-none pl-2"
-              [(ngModel)]="searchTerm"
-            />
-          </div>
-          <i class="fa-solid fa-user-plus"></i>
-        </div>
-        <div class="mx-2">
-          <ul
-            class="list-none p-0 m-0 flex align-items-center justify-content-between"
-          >
-            <li class="text-sm font-semibold">
-              <span>All Status</span>
-              <i class="fa-solid fa-chevron-down text-xs ml-2"></i>
-            </li>
-            <li class="text-sm font-semibold">
-              <span>Newest</span>
-              <i class="fa-solid fa-chevron-down text-xs ml-2"></i>
-            </li>
-            <li class="text-sm font-semibold">
-              <i class="fa-solid fa-filter"></i>
-            </li>
-          </ul>
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            type="text"
+            pInputText
+            [placeholder]="'search' | translate"
+            class="search-input w-full h-full border-0 shadow-none pl-2"
+            [(ngModel)]="searchTerm"
+          />
         </div>
         <ul class="list-none p-0 m-0 mt-2 flex flex-column">
           @if (!usersLoading()) { @for (user of filteredUsers(); track $index) {
@@ -153,7 +131,7 @@
                   <a
                     class="text-sm text-primary hover:text-primary-400"
                     (click)="toggleExpand(msg)"
-                    >Read more</a
+                    >{{ "read_more" | translate }}</a
                   >
                   } @else {
                   <bdi>{{ msg.message }}</bdi>
@@ -162,7 +140,7 @@
                     class="text-sm text-primary hover:text-primary-400"
                     (click)="toggleExpand(msg)"
                   >
-                    Read less</a
+                    {{ "read_less" | translate }}</a
                   >
                   } }
                 </div>
@@ -312,9 +290,8 @@
             (keydown)="onEnterPress($event)"
             (input)="sendTypingEvent()"
             [placeholder]="
-              isChatExpired()
-                ? 'This conversation has expired (24h limit reached)'
-                : 'Type a message'
+              (isChatExpired() ? 'conversation_expired_24h' : 'type_a_message')
+                | translate
             "
             [autoResize]="false"
             [disabled]="isChatExpired()"
@@ -329,6 +306,8 @@
                 <p-button
                   (click)="toggleEmojiPicker()"
                   [text]="true"
+                  [pTooltip]="'emoji' | translate"
+                  tooltipPosition="top"
                   icon="fa-solid fa-face-smile"
                 />
                 @if (showEmojiPicker()) {
@@ -354,6 +333,8 @@
               <p-button
                 (click)="attachmenMenu.toggle($event)"
                 [text]="true"
+                [pTooltip]="'attachments' | translate"
+                tooltipPosition="top"
                 icon="fa-solid fa-link"
               />
               <p-button
@@ -387,8 +368,12 @@
           src="https://lottie.host/embed/ea3a541c-f8c3-482c-8be4-ec92a2b84b0f/4Fk6wpCisr.lottie"
           style="border: 0"
         ></iframe>
-        <h4 class="text-600 text-xl font-medium m-0">Start a Conversation</h4>
-        <p class="text-700 text-sm m-0">Select a contact to start messaging</p>
+        <h4 class="text-600 text-xl font-medium m-0">
+          {{ "start_a_conversation" | translate }}
+        </h4>
+        <p class="text-700 text-sm m-0">
+          {{ "select_a_contact_to_start_messaging" | translate }}
+        </p>
       </div>
       }
     </div>
@@ -396,7 +381,7 @@
 </div>
 
 <p-dialog
-  header="Preview Files"
+  [header]="'preview_files' | translate"
   [(visible)]="showPreviewModal"
   [modal]="true"
   [closable]="true"
