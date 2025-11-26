@@ -16,6 +16,9 @@ export const routes: Routes = [
   {
     path: '',
     canMatch: [AuthGuard],
+    data: {
+      authGuardRedirect: '/auth/login',
+    },
     loadComponent: () =>
       import('@layout/content-layout/content-layout.component'),
     children: [
@@ -41,8 +44,9 @@ export const routes: Routes = [
         title: _('department'),
       },
     ],
-    data: {
-      authGuardRedirect: '/auth/login',
-    },
+  },
+  {
+    path: '**',
+    loadComponent: () => import('@pages/errors/404/404.component'),
   },
 ];
