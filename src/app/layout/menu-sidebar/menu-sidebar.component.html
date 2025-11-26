@@ -40,6 +40,7 @@
             routerLinkActive="text-primary"
             [routerLinkActiveOptions]="{ exact: true }"
             [pTooltip]="link.label"
+            (click)="handleMenuClick($event, link)"
           >
             <i class="{{ link.icon }} text-xl font-meduim"></i>
           </a>
