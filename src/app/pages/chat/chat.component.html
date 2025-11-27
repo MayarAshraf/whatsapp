@@ -85,7 +85,7 @@
 
     <div class="col-9 h-full">
       @if (selectedUser()) {
-      <div class="chat-window flex flex-column">
+      <div class="chat-window flex flex-column relative">
         <div class="chat-header flex align-items-center p-2">
           <img
             [src]="selectedUser().featured_image || 'assets/media/profile.png'"
@@ -114,7 +114,7 @@
             <i class="pi pi-spinner pi-spin text-2xl text-primary"></i>
           </div>
           } @if (!messagesLoading()) { @for (msg of combinedMessages(); track
-          msg.id|| $index) {
+          msg.message_id || $index) {
           <div
             class="message-wrapper"
             [class.self]="msg.direction === 'outbound'"
@@ -337,13 +337,14 @@
                 tooltipPosition="top"
                 icon="fa-solid fa-link"
               />
+              @if(!isChatExpired()){
               <p-button
                 (click)="closeChat()"
                 [text]="true"
                 [pTooltip]="'end_conversation' | translate"
                 tooltipPosition="top"
                 icon="fa-solid fa-lock"
-              />
+              />}
             </div>
             @if(newMessage()){
             <p-button
@@ -359,6 +360,14 @@
             }
           </div>
         </div>
+        @if (showScrollButton()) {
+        <button
+          pButton
+          icon="fa-solid fa-angles-down"
+          (click)="scrollToBottom()"
+          class="scroll-bottom-btn p-button-rounded"
+        ></button>
+        }
       </div>
       } @else {
       <div

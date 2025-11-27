@@ -124,10 +124,11 @@ export default class ChatComponent implements OnInit, OnDestroy {
   currentPdfFileName = signal<string>('');
   currentPdfData = signal<string>('');
   messagesPage = signal(0);
-  messagesLength = signal(30);
+  messagesLength = signal(20);
   hasMoreMessages = signal(true);
   isLoadingMore = signal(false);
   activeVoiceRecording = signal<number | null>(null);
+  showScrollButton = signal(false);
 
   hostname = window.location.hostname;
   #rawSubdomain = this.hostname.split('.8xrespond.com')[0];
@@ -148,7 +149,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       if (container) {
         container.scrollTop = container.scrollHeight;
       }
-    }, 10);
+    }, 1);
   }
 
   onAudioPlay(currentAudio: HTMLAudioElement) {
@@ -309,6 +310,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
 
     if (!container) return;
 
+    const scrolledFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    this.showScrollButton.set(scrolledFromBottom > 200);
+
     if (
       container.scrollTop < 50 &&
       !this.isLoadingMore() &&
@@ -319,6 +324,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       this.getConversationHistory(false);
     }
   }
+
   resetCount() {
     this.allUsers.update((users) =>
       users.map((u: any) =>
@@ -326,6 +332,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       )
     );
   }
+
   markMessagesAsRead() {
     this.resetCount();
     const unreadMessages = this.messages().filter(
@@ -361,6 +368,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
     if (!this.channel) return;
 
     this.channel.bind('conversation-updated', (event: any) => {
+      if (event.user_id && event.user_id !== this.currentUser()?.id) {
+        return;
+      }
+
       const conversationId = event.id;
       const usersCopy = [...this.allUsers()];
       const existingIndex = usersCopy.findIndex((u) => u.id === conversationId);
@@ -811,9 +822,20 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   closeChat() {
+    const endMessage =
+      'It was a pleasure assisting you today 😊\n\nYour feedback matters to us ⭐ Please feel free to share your experience.\n\nWe wish you a great day 🌸✨';
+
+    this.newMessage.set(endMessage);
+    this.sendMessage();
     this.channel?.trigger('client-conversation-closed', {
       user_id: this.currentUser()?.id,
       conversation_id: this.selectedUser().id,
     });
+
+    this.allUsers.update((users) =>
+      users.filter((user: any) => user.id !== this.selectedUser().id)
+    );
+
+    this.selectedUser.set(null);
   }
 }

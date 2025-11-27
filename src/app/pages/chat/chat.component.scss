@@ -119,6 +119,22 @@ $primary-text: #333333;
       }
     }
   }
+
+  .scroll-bottom-btn {
+    position: absolute;
+    bottom: 7rem;
+    right: 1rem;
+    z-index: 100;
+    animation: fadeInUp 0.3s ease-in-out;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
 }
 .preview-file {
   &:hover {
@@ -215,8 +231,19 @@ $primary-text: #333333;
     border-radius: 8px;
     padding-block: 8px;
   }
-  
+
   .p-textarea:disabled {
     background-color: white !important;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
