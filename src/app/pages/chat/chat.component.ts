@@ -20,8 +20,9 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
@@ -38,6 +39,7 @@ import { finalize, map, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { AlertService } from 'src/app/shared/services/global-services/alert.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
+import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
 import { VoiceRecorderComponent } from './voice-recorder.component';
 
@@ -95,6 +97,8 @@ export default class ChatComponent implements OnInit, OnDestroy {
   #sounds = inject(SoundsService);
   #sanitizer = inject(DomSanitizer);
   #alertService = inject(AlertService);
+  #confirmService = inject(ConfirmService);
+  #translate = inject(TranslateService);
 
   currentUser = this.#authService.currentUser;
 
@@ -822,20 +826,16 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   closeChat() {
-    const endMessage =
-      'It was a pleasure assisting you today 😊\n\nYour feedback matters to us ⭐ Please feel free to share your experience.\n\nWe wish you a great day 🌸✨';
+    this.#confirmService.confirmDelete({
+      message: this.#translate.instant(_('please_confirm_to_end_conversation')),
+      acceptCallback: () => {
+        this.channel?.trigger('client-conversation-closed', {
+          user_id: this.currentUser()?.id,
+          conversation_id: this.selectedUser()?.id,
+        });
 
-    this.newMessage.set(endMessage);
-    this.sendMessage();
-    this.channel?.trigger('client-conversation-closed', {
-      user_id: this.currentUser()?.id,
-      conversation_id: this.selectedUser().id,
+        this.selectedUser.set(null);
+      },
     });
-
-    this.allUsers.update((users) =>
-      users.filter((user: any) => user.id !== this.selectedUser().id)
-    );
-
-    this.selectedUser.set(null);
   }
 }
