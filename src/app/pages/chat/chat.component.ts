@@ -17,7 +17,11 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import {
+  takeUntilDestroyed,
+  toObservable,
+  toSignal,
+} from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
@@ -35,14 +39,14 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 import { Tooltip } from 'primeng/tooltip';
 import Pusher from 'pusher-js';
-import { finalize, map, tap } from 'rxjs';
+import { finalize, map, switchMap, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { AlertService } from 'src/app/shared/services/global-services/alert.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
+import { BreakpointService } from 'src/app/shared/services/global-services/breakpoint.service';
 import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
 import { VoiceRecorderComponent } from './voice-recorder.component';
-import { BreakpointService } from 'src/app/shared/services/global-services/breakpoint.service';
 
 interface Message {
   id?: number;
@@ -135,6 +139,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   isLoadingMore = signal(false);
   activeVoiceRecording = signal<number | null>(null);
   showScrollButton = signal(false);
+  conversationsStatue = signal('all');
 
   hostname = window.location.hostname;
   #rawSubdomain = this.hostname.split('.8xrespond.com')[0];
@@ -203,10 +208,24 @@ export default class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  users$ = this.#api.request('post', 'conversations/conversations').pipe(
-    finalize(() => this.usersLoading.set(false)),
-    map(({ data }) => data),
-    tap((data) => this.allUsers.set(data))
+  getConversationsStatue(statue: string) {
+    this.conversationsStatue.set(statue);
+  }
+
+  users$ = toObservable(this.conversationsStatue).pipe(
+    switchMap((statue) =>
+      this.#api
+        .request('post', 'conversations/conversations', {
+          filters: statue,
+        })
+        .pipe(
+          finalize(() => this.usersLoading.set(false)),
+          map(({ data }) => data),
+          tap((data) => {
+            this.allUsers.set(data);
+          })
+        )
+    )
   );
 
   users = toSignal(this.users$, { initialValue: [] });

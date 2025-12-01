@@ -17,7 +17,27 @@
             [(ngModel)]="searchTerm"
           />
         </div>
-        <ul class="list-none p-0 m-0 mt-2 flex flex-column">
+        <div class="m-2">
+          <p-button
+            [label]="'all' | translate"
+            (click)="getConversationsStatue('all')"
+            styleClass="p-2 py-0 text-xs border-round-3xl mr-2"
+            [outlined]="conversationsStatue() === 'all'"
+          ></p-button>
+          <p-button
+            [label]="'active' | translate"
+            (click)="getConversationsStatue('active')"
+            styleClass="p-2 py-0 text-xs border-round-3xl mr-2"
+            [outlined]="conversationsStatue() === 'active'"
+          ></p-button>
+          <p-button
+            [label]="'history' | translate"
+            (click)="getConversationsStatue('historical')"
+            styleClass="p-1 py-0 text-xs border-round-3xl"
+            [outlined]="conversationsStatue() === 'historical'"
+          ></p-button>
+        </div>
+        <ul class="list-none p-0 m-0 flex flex-column">
           @if (!usersLoading()) { @for (user of filteredUsers(); track $index) {
           <li
             class="p-2 cursor-pointer user-item"
