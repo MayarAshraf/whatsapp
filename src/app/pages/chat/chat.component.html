@@ -1,7 +1,10 @@
 <div class="h-screen">
   <div class="grid grid-nogutter h-full overflow-hidden">
-    <div class="col-3 h-full">
-      <div class="user-list overflow-y-auto border-right-1 border-300">
+    <div
+      [class]="selectedUser() && isSmScreen() ? 'hidden md:flex' : ''"
+      class="col-12 md:col-3 h-full"
+    >
+      <div class="user-list overflow-y-auto border-right-1 border-300 h-full">
         <div
           class="search-container flex align-items-center justify-content-between m-2 mt-3 px-3 bg-white border-1 border-300 border-round-3xl"
         >
@@ -83,10 +86,19 @@
       </div>
     </div>
 
-    <div class="col-9 h-full">
+    <div
+      class="col-12 md:col-9 h-full"
+      [class]="!selectedUser() && isSmScreen() ? 'hidden md:flex' : ''"
+    >
       @if (selectedUser()) {
-      <div class="chat-window flex flex-column relative">
+      <div class="chat-window flex flex-column relative h-full">
         <div class="chat-header flex align-items-center p-2">
+          <button
+            pButton
+            icon="fa-solid fa-arrow-left"
+            class="p-button-text p-button-sm mr-2 flex md:hidden"
+            (click)="this.selectedUser.set(null)"
+          ></button>
           <img
             [src]="selectedUser().featured_image || 'assets/media/profile.png'"
             alt="Profile"
@@ -98,15 +110,16 @@
             <span
               class="text-sm"
               [ngStyle]="{
-                    color: selectedUser().user_status === 'Online' ? '#4ade80' : '#9ca3af',
-                  }"
+                color: selectedUser().user_status === 'Online' ? '#4ade80' : '#9ca3af',
+              }"
               >{{ selectedUser().user_status }}</span
             >
           </div>
         </div>
+
         <div
           #messagesContainer
-          class="messages overflow-y-auto p-3 h-full"
+          class="messages overflow-y-auto p-3 flex-1"
           (scroll)="onScroll()"
         >
           @if (isLoadingMore() && !messagesLoading()) {
@@ -152,7 +165,7 @@
                 ></ng-container>
               </div>
               } @else if (msg.type === 'image' || msg.type === 'video') {
-              <div class="w-22rem">
+              <div class="w-full md:w-22rem">
                 <div class="relative overflow-hidden h-11rem">
                   @if (msg.type === 'image') {
                   <p-image
@@ -191,7 +204,7 @@
                 }
               </div>
               } @else if(msg.type === 'document') {
-              <div class="document-message p-2 pb-0 w-22rem">
+              <div class="document-message p-2 pb-0 w-full md:w-22rem">
                 <div
                   class="flex align-items-center gap-2 cursor-pointer"
                   (click)="openPdfViewer(msg)"
@@ -228,7 +241,7 @@
                 </div>
               </div>
               }@else if(msg.type === 'audio'){
-              <div class="w-22rem px-2">
+              <div class="w-full md:w-22rem px-2">
                 <audio
                   #audioPlayer
                   id="audio"
@@ -374,7 +387,7 @@
         class="surface-50 flex flex-column align-items-center justify-content-center gap-2 h-full p-5"
       >
         <iframe
-          src="https://lottie.host/embed/ea3a541c-f8c3-482c-8be4-ec92a2b84b0f/4Fk6wpCisr.lottie"
+          src="https://lottie.host/embed/ea3a541c-f8c3-482c-8be4-ec92a2b84b0f/4Fk6wpCisr.lottie "
           style="border: 0"
         ></iframe>
         <h4 class="text-600 text-xl font-medium m-0">
@@ -394,7 +407,7 @@
   [(visible)]="showPreviewModal"
   [modal]="true"
   [closable]="true"
-  [style]="{ width: '40rem' }"
+  [style]="{ width: '40rem', 'max-width': '90vw' }"
   [draggable]="false"
   [resizable]="false"
   [closeOnEscape]="true"
