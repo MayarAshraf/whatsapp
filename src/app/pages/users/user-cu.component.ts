@@ -208,6 +208,13 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
           },
         },
       ]),
+      {
+        key: 'is_active',
+        type: 'switch-field',
+        props: {
+          label: 'is_active',
+        },
+      },
     ];
   }
 

@@ -13,6 +13,7 @@ import {
   withInMemoryScrolling,
   withRouterConfig,
 } from '@angular/router';
+import { provideNgIdle } from '@ng-idle/core';
 import { FORMLY_CONFIG, provideFormlyCore } from '@ngx-formly/core';
 import { FormlyPrimeNGModule } from '@ngx-formly/primeng';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
@@ -24,16 +25,15 @@ import {
   DynamicDialogConfig,
   DynamicDialogRef,
 } from 'primeng/dynamicdialog';
+import { environment } from 'src/environments/environment.development';
 import { Preset } from './app-theme';
 import { routes } from './app.routes';
+import { constants } from './shared/config/constants';
 import { customFormlyConfig } from './shared/config/formly-config';
 import { HttpRequestInterceptor } from './shared/interceptors/http-request.interceptor';
 import { HttpResponseInterceptor } from './shared/interceptors/http-response.interceptor';
 import { RefreshTokenInterceptor } from './shared/interceptors/token.interceptor';
 import { CustomPageTitleProvider } from './shared/services/custom-page-title.service';
-
-import { environment } from 'src/environments/environment.development';
-import { constants } from './shared/config/constants';
 import { LangService } from './shared/services/lang.service';
 
 const suffix = environment.production ? `.json?v=${Date.now()}` : '.json';
@@ -46,6 +46,7 @@ export const appConfig: ApplicationConfig = {
     DialogService,
     DynamicDialogRef,
     DynamicDialogConfig,
+    provideNgIdle(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideAnimations(),
     providePrimeNG({
@@ -104,4 +105,3 @@ export const appConfig: ApplicationConfig = {
     }),
   ],
 };
-

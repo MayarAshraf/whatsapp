@@ -38,6 +38,9 @@ importers:
       '@fortawesome/fontawesome-free':
         specifier: ^7.0.1
         version: 7.1.0
+      '@ng-idle/core':
+        specifier: ^16.0.0
+        version: 16.0.0(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))
       '@ngx-formly/core':
         specifier: ^7.0.0
         version: 7.0.1(@angular/forms@19.2.16(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@19.2.16(@angular/animations@19.2.16(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2))(rxjs@7.8.2)
@@ -876,6 +879,12 @@ packages:
   '@napi-rs/nice@1.1.1':
     resolution: {integrity: sha512-xJIPs+bYuc9ASBl+cvGsKbGrJmS6fAKaSZCnT0lhahT5rhA2VVy9/EcIgd2JhtEuFOJNx7UHNn/qiTPTY4nrQw==}
     engines: {node: '>= 10'}
+
+  '@ng-idle/core@16.0.0':
+    resolution: {integrity: sha512-R8DACP2+WIaipfaTXJVEMHpRqXxqCw4AkHQnfnUG60Fu8FWljiU+tqxlB2AR/Ji7CveBi642SNS9KROboQM/aw==}
+    peerDependencies:
+      '@angular/common': '>=17.3.10'
+      '@angular/core': '>=17.3.10'
 
   '@ngx-formly/core@7.0.1':
     resolution: {integrity: sha512-Ahx9STZ9tntaRikizsnApBPSCM1dGsS+G3MYN0JOZYn6sgb+dz8SczYNMFHokMW7f9o0lR0Za3Bd9nT9f85E6w==}
@@ -3733,6 +3742,12 @@ snapshots:
       '@napi-rs/nice-win32-ia32-msvc': 1.1.1
       '@napi-rs/nice-win32-x64-msvc': 1.1.1
     optional: true
+
+  '@ng-idle/core@16.0.0(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))':
+    dependencies:
+      '@angular/common': 19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.16(rxjs@7.8.2)(zone.js@0.15.1)
+      tslib: 2.8.1
 
   '@ngx-formly/core@7.0.1(@angular/forms@19.2.16(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@19.2.16(@angular/animations@19.2.16(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2))(rxjs@7.8.2)':
     dependencies:

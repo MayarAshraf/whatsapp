@@ -39,7 +39,7 @@
             [routerLink]="link.routerLink"
             routerLinkActive="text-primary"
             [routerLinkActiveOptions]="{ exact: true }"
-            [pTooltip]="link.label"
+            [pTooltip]="link.label | translate"
             (click)="handleMenuClick($event, link)"
           >
             <i class="{{ link.icon }} text-xl font-meduim"></i>

@@ -63,19 +63,19 @@ export class MenuSidebarComponent {
   settings = signal([]);
   topMenuItems = signal<MenuItem[]>([
     {
-      label: 'conversations',
+      label: _('conversations'),
       icon: 'fa-solid fa-comment-dots',
       routerLink: '/conversations',
       visible: true,
     },
     {
-      label: 'template',
+      label: _('template'),
       icon: 'fa-solid fa-robot',
       routerLink: '/template',
       visible: true,
     },
     {
-      label: 'department',
+      label: _('department'),
       icon: 'fa-solid fa-building-user',
       routerLink: '/department',
       visible: true,
@@ -84,14 +84,20 @@ export class MenuSidebarComponent {
 
   bottomMenuItems = signal<MenuItem[]>([
     {
-      label: 'users',
+      label: _('users'),
       icon: 'fa-users fas',
       routerLink: '/users',
       visible: true,
     },
     {
-      label: 'settings',
+      label: _('settings'),
       icon: 'fa-cogs fas',
+      routerLink: ['/conversations', 'settings'],
+      visible: true,
+    },
+    {
+      label: _('whatsapp_settings'),
+      icon: 'fa-brands fa-whatsapp',
       command: () => this.openSettings(),
       visible: true,
     },
@@ -133,14 +139,15 @@ export class MenuSidebarComponent {
     closeOnEscape: true,
     dismissableMask: false,
   };
+
   openSettings() {
     this.#api
       .request('get', 'whatsapp-account/whatsapp-account')
       .pipe(
         map(({ data }) => data),
-        tap((data) => this.settings.set(data))
+        tap((data) => this.settings.set(data)),
+        takeUntilDestroyed(this.#destroyRef)
       )
-      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe(() => {
         this.dialogRef = this.dialogService.open(SettingCuComponent, {
           ...this.dialogConfig,

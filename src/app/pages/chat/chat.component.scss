@@ -233,7 +233,7 @@ $primary-text: #333333;
   }
 }
 
-::ng-deep {
+:host ::ng-deep {
   .p-menu {
     border-radius: 8px;
     padding-block: 8px;
@@ -241,6 +241,14 @@ $primary-text: #333333;
 
   .p-textarea:disabled {
     background-color: white !important;
+  }
+
+  .status-dropdown {
+    .p-placeholder,
+    .p-select-label,
+    .p-select-dropdown-icon {
+      color: white;
+    }
   }
 
   @media (max-width: 768px) {

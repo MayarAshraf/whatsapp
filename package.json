@@ -21,6 +21,7 @@
     "@angular/router": "^19.2.0",
     "@ctrl/ngx-emoji-mart": "^9.3.0",
     "@fortawesome/fontawesome-free": "^7.0.1",
+    "@ng-idle/core": "^16.0.0",
     "@ngx-formly/core": "^7.0.0",
     "@ngx-formly/primeng": "^7.0.0",
     "@ngx-translate/core": "^17.0.0",

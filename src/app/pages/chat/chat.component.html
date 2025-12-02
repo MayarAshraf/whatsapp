@@ -5,6 +5,28 @@
       class="col-12 md:col-3 h-full"
     >
       <div class="user-list overflow-y-auto border-right-1 border-300 h-full">
+        @if(pageData()){
+        <div class="mx-2">
+          <div class="flex align-items-center gap-2">
+            <i class="fa-solid fa-gears"></i>
+            <h2 class="text-xl font-medium">
+              {{ "settings" | translate }}
+            </h2>
+          </div>
+          <label for="status" class="font-semibold text-600">{{
+            "status" | translate
+          }}</label>
+          <p-select
+            id="status"
+            [options]="status$ | async"
+            [(ngModel)]="userStatus().status"
+            [placeholder]="'select_status' | translate"
+            [style]="getStyle(userStatus().status)"
+            class="status-dropdown w-full border-none mt-2"
+            (onChange)="onStatusChange($event)"
+          />
+        </div>
+        }@else{
         <div
           class="search-container flex align-items-center justify-content-between m-2 mt-3 px-3 bg-white border-1 border-300 border-round-3xl"
         >
@@ -103,6 +125,7 @@
           </div>
           } }
         </ul>
+        }
       </div>
     </div>
 
@@ -401,6 +424,19 @@
           class="scroll-bottom-btn p-button-rounded"
         ></button>
         }
+      </div>
+      } @else if (this.pageData()) {
+      <div
+        class="surface-50 flex flex-column align-items-center justify-content-center gap-2 h-full p-5"
+      >
+        <iframe
+          src="https://lottie.host/embed/dd6c7204-9ace-4d18-83c5-3cb0faf99f1f/Gt1OfGk9xi.lottie"
+          style="border: 0"
+          height="130"
+        ></iframe>
+        <h4 class="text-600 text-xl font-medium m-0">
+          {{ "settings" | translate }}
+        </h4>
       </div>
       } @else {
       <div

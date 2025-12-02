@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
+import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { AuthGuard } from './shared/guards/auth.guard';
 import { LoginGuard } from './shared/guards/login.guard';
-import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
@@ -24,6 +24,11 @@ export const routes: Routes = [
     children: [
       {
         path: 'conversations',
+        loadComponent: () => import('./pages/chat/chat.component'),
+        title: _('conversations'),
+      },
+      {
+        path: 'conversations/:page',
         loadComponent: () => import('./pages/chat/chat.component'),
         title: _('conversations'),
       },

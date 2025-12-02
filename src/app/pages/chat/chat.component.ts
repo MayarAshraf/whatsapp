@@ -1,4 +1,5 @@
 import {
+  AsyncPipe,
   DatePipe,
   NgStyle,
   NgTemplateOutlet,
@@ -9,8 +10,10 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
+  input,
   OnDestroy,
   OnInit,
   signal,
@@ -35,16 +38,20 @@ import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ImageModule } from 'primeng/image';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 import { Tooltip } from 'primeng/tooltip';
 import Pusher from 'pusher-js';
 import { finalize, map, switchMap, tap } from 'rxjs';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
+import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { AlertService } from 'src/app/shared/services/global-services/alert.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { BreakpointService } from 'src/app/shared/services/global-services/breakpoint.service';
 import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
+import { IdleService } from 'src/app/shared/services/idle.service';
+import { LangService } from 'src/app/shared/services/lang.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
 import { VoiceRecorderComponent } from './voice-recorder.component';
 
@@ -90,6 +97,8 @@ interface Message {
     VoiceRecorderComponent,
     Tooltip,
     TranslatePipe,
+    SelectModule,
+    AsyncPipe,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -104,8 +113,12 @@ export default class ChatComponent implements OnInit, OnDestroy {
   #alertService = inject(AlertService);
   #confirmService = inject(ConfirmService);
   #translate = inject(TranslateService);
+  #currentLang = inject(LangService).currentLanguage;
+  #globalList = inject(GlobalListService);
   isSmScreen = inject(BreakpointService).isSmScreen;
+  idleService = inject(IdleService);
 
+  settingsList$ = this.#globalList.getGlobalList('user-settings');
   currentUser = this.#authService.currentUser;
 
   messageInput = viewChild<ElementRef>('messageInput');
@@ -148,6 +161,55 @@ export default class ChatComponent implements OnInit, OnDestroy {
   pusher: any;
   channel: any;
 
+  page = input('');
+
+  pageData = computed(() => {
+    return this.page();
+  });
+
+  userStatusEffect = effect(() => {
+    this.channel?.trigger('client-user-status', {
+      user_id: this.currentUser()?.id,
+      status: this.idleService.status(),
+    });
+  });
+
+  status$ = this.settingsList$.pipe(
+    map(({ status }) =>
+      status.map((status: any) => ({
+        label: status[`label_${this.#currentLang()}`],
+        value: status.value,
+      }))
+    )
+  );
+
+  userStatus$ = this.#api
+    .request('post', 'auth/users/settings')
+    .pipe(map(({ data }) => data));
+
+  userStatus = toSignal(this.userStatus$, { initialValue: [] });
+
+  onStatusChange(event: SelectChangeEvent | any) {
+    this.#api
+      .request('post', 'auth/users/change-status', {
+        status: event.value,
+      })
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe();
+  }
+
+  getStyle(status: string): { [klass: string]: any } {
+    const colorMap: Record<string, string> = {
+      online: '#22c55e',
+      offline: '#a1a1aa',
+      busy: '#fb923c',
+    };
+
+    return {
+      backgroundColor: colorMap[status] || 'white',
+    };
+  }
+
   filteredUsers = computed(() =>
     this.allUsers().filter((user: any) =>
       user.sender_name.toLowerCase().includes(this.searchTerm().toLowerCase())
@@ -174,7 +236,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    Pusher.logToConsole = true;
+    // Pusher.logToConsole = true;
 
     this.pusher = new Pusher('8xmeb', {
       cluster: 'mt1',

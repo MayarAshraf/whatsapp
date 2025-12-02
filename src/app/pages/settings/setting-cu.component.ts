@@ -85,6 +85,25 @@ export class SettingCuComponent extends BaseCreateUpdateComponent<SettingsModel>
       ]),
       this.#fieldBuilder.fieldBuilder([
         {
+          key: 'client_id',
+          type: 'input-field',
+          props: {
+            type: 'number',
+            label: _('client_id'),
+            required: true,
+          },
+        },
+        {
+          key: 'client_secret',
+          type: 'input-field',
+          props: {
+            label: _('client_secret'),
+            required: true,
+          },
+        },
+      ]),
+      this.#fieldBuilder.fieldBuilder([
+        {
           key: 'display_name',
           type: 'input-field',
           props: {
