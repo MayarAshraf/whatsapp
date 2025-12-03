@@ -54,6 +54,7 @@ import { IdleService } from 'src/app/shared/services/idle.service';
 import { LangService } from 'src/app/shared/services/lang.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
 import { VoiceRecorderComponent } from './voice-recorder.component';
+import { LinkifyPipe } from 'src/app/shared/pipes/linkify.pipe';
 
 interface Message {
   id?: number;
@@ -99,6 +100,7 @@ interface Message {
     TranslatePipe,
     SelectModule,
     AsyncPipe,
+    LinkifyPipe,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -274,6 +276,10 @@ export default class ChatComponent implements OnInit, OnDestroy {
     this.conversationsStatue.set(statue);
   }
 
+  addProtocol(url: string) {
+    return url.startsWith('http') ? url : 'https://' + url;
+  }
+
   users$ = toObservable(this.conversationsStatue).pipe(
     switchMap((statue) =>
       this.#api
@@ -376,6 +382,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe();
   }
+
   toggleExpand(msg: any) {
     msg.expanded = !msg.expanded;
   }

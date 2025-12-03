@@ -181,25 +181,41 @@
                 class="message-content text-sm font-medium px-2 py-1 flex justify-content-end gap-2"
               >
                 <div class="flex-1 mb-1">
-                  @if (msg.message && msg.message.length > 500 && !msg.expanded)
-                  {
-                  <bdi>{{ msg.message | slice : 0 : 500 }}... </bdi>
+                  @let isLong = msg.message?.length > 500; @let displayed =
+                  msg.expanded ? (msg.message | linkify) : ((msg.message |
+                  slice:0:500) | linkify); @for (part of displayed; track
+                  $index) {
+                  <span>
+                    @if (part.type === 'text') {
+                    <bdi>{{ part.value }}</bdi>
+                    } @else if (part.type === 'link') {
+                    <a
+                      [href]="
+                        part.value.includes('@')
+                          ? 'mailto:' + part.value
+                          : addProtocol(part.value)
+                      "
+                      [target]="part.value.includes('@') ? '_self' : '_blank'"
+                      class="text-primary underline"
+                    >
+                      {{ part.value }}
+                    </a>
+                    }
+                  </span>
+                  } @if (isLong) {
                   <a
                     class="text-sm text-primary hover:text-primary-400"
                     (click)="toggleExpand(msg)"
-                    >{{ "read_more" | translate }}</a
                   >
-                  } @else {
-                  <bdi>{{ msg.message }}</bdi>
-                  @if (msg.message.length > 500) {
-                  <a
-                    class="text-sm text-primary hover:text-primary-400"
-                    (click)="toggleExpand(msg)"
-                  >
-                    {{ "read_less" | translate }}</a
-                  >
-                  } }
+                    {{
+                      msg.expanded
+                        ? ("read_less" | translate)
+                        : ("read_more" | translate)
+                    }}
+                  </a>
+                  }
                 </div>
+
                 <ng-container
                   *ngTemplateOutlet="
                     messageMeta;
