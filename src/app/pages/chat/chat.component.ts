@@ -180,7 +180,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
     for (const m of msgs) {
       if (!m.created_at) return;
       const currDate = this.formatDateSeparator(m.created_at);
-      console.log(currDate, prevDate);
       if (currDate !== prevDate) {
         result.push({
           type: 'separator',
