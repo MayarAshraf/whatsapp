@@ -12,6 +12,7 @@
 		}
 	},
 	"access_token": "رمز الوصول",
+	"active": "نشط",
 	"add_option": "إضافة خيار",
 	"add_subroles": "إضافة أدوار فرعية",
 	"after_15_minutes": "بعد 15 دقيقة",
@@ -21,6 +22,7 @@
 	"after_2_weeks": "بعد أسبوعين",
 	"after_30_minutes": "بعد 30 دقيقة",
 	"after_3_hours": "بعد 3 ساعات",
+	"all": "الكل",
 	"arabic": "العربية",
 	"are_you_sure": "هل أنت متأكد؟",
 	"attachments": "مرفقات",
@@ -50,6 +52,7 @@
 	"forget password": "نسيت كلمة المرور",
 	"forget_password": "نسيت كلمة المرور",
 	"has_subroles": "لديه ادوار فرعية",
+	"history": "السجل",
 	"is_active": "نشط",
 	"job_title": "المسمى الوظيفي",
 	"last_name": "اسم العائلة",

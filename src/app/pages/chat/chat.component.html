@@ -169,8 +169,15 @@
           <div class="flex align-items-center justify-content-center">
             <i class="pi pi-spinner pi-spin text-2xl text-primary"></i>
           </div>
-          } @if (!messagesLoading()) { @for (msg of combinedMessages(); track
-          msg.message_id || $index) {
+          } @if (!messagesLoading()) { @for (item of combinedMessages(); track
+          $index) { @if (item.type === 'separator') {
+          <div class="text-center">
+            <span
+              class="surface-100 p-1 m-1 border-round border-1 border-200 text-sm font-medium text-500"
+              >{{ item.date }}</span
+            >
+          </div>
+          } @if (item.type === 'message') { @let msg = item.msg;
           <div
             class="message-wrapper"
             [class.self]="msg.direction === 'outbound'"
@@ -321,7 +328,7 @@
               }
             </div>
           </div>
-          } } @else {
+          } } } @else {
           <div class="flex align-items-center justify-content-center h-full">
             <i class="pi pi-spinner pi-spin text-2xl text-primary"></i>
           </div>

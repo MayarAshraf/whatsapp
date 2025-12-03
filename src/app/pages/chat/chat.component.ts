@@ -44,6 +44,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { Tooltip } from 'primeng/tooltip';
 import Pusher from 'pusher-js';
 import { finalize, map, switchMap, tap } from 'rxjs';
+import { LinkifyPipe } from 'src/app/shared/pipes/linkify.pipe';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
 import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { AlertService } from 'src/app/shared/services/global-services/alert.service';
@@ -54,7 +55,6 @@ import { IdleService } from 'src/app/shared/services/idle.service';
 import { LangService } from 'src/app/shared/services/lang.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
 import { VoiceRecorderComponent } from './voice-recorder.component';
-import { LinkifyPipe } from 'src/app/shared/pipes/linkify.pipe';
 
 interface Message {
   id?: number;
@@ -128,7 +128,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   fileUploader = viewChild<FileUpload>('fileUploader');
   audioPlayers = viewChildren<ElementRef<HTMLAudioElement>>('audioPlayer');
 
-  combinedMessages = computed(() => this.messages());
+  // combinedMessages = computed(() => this.messages());
   selectedUser = signal<any>(null);
   messagesLoading = signal(false);
   allUsers = signal<any>([]);
@@ -168,6 +168,55 @@ export default class ChatComponent implements OnInit, OnDestroy {
   pageData = computed(() => {
     return this.page();
   });
+
+  combinedMessages = computed(() => {
+    const msgs = this.messages();
+    if (!msgs.length) return [];
+
+    const result: any[] = [];
+
+    let prevDate = '';
+
+    for (const m of msgs) {
+      if (!m.created_at) return;
+      const currDate = this.formatDateSeparator(m.created_at);
+      console.log(currDate, prevDate);
+      if (currDate !== prevDate) {
+        result.push({
+          type: 'separator',
+          date: currDate,
+        });
+        prevDate = currDate;
+      }
+
+      result.push({
+        type: 'message',
+        msg: m,
+      });
+    }
+
+    return result;
+  });
+
+  formatDateSeparator(dateStr: string): string {
+    const date = new Date(dateStr);
+    const today = new Date();
+
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const isToday = date.toDateString() === today.toDateString();
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (isToday) return 'Today';
+    if (isYesterday) return 'Yesterday';
+
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
 
   userStatusEffect = effect(() => {
     this.channel?.trigger('client-user-status', {

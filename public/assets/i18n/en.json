@@ -12,6 +12,7 @@
 		}
 	},
 	"access_token": "Access Token",
+	"active": "Active",
 	"add_option": "Add Option",
 	"add_subroles": "Add Subroles",
 	"after_15_minutes": "After 15 Minutes",
@@ -21,6 +22,7 @@
 	"after_2_weeks": "After 2 Weeks",
 	"after_30_minutes": "After 30 Minutes",
 	"after_3_hours": "After 3 Hours",
+	"all": "All",
 	"arabic": "Arabic",
 	"are_you_sure": "Are You Sure?",
 	"attachments": "Attachments",
@@ -49,6 +51,7 @@
 	"first_name": "First Name",
 	"forget_password": "Forgot Password",
 	"has_subroles": "Has Subroles",
+	"history": "History",
 	"is_active": "Is Active",
 	"job_title": "Job Title",
 	"last_name": "Last Name",
