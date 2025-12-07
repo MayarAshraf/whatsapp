@@ -1,22 +1,26 @@
 import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ButtonModule } from 'primeng/button';
+import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { LangService } from '../services/lang.service';
 
 @Component({
   selector: 'app-lang-switcher',
   template: `
     @if (currentLang()) {
-    <button
-      pButton
-      [text]="true"
-      class="bg-transparent p-0 hover:underline text-sm"
-      [label]="currentLang() === 'en' ? 'AR' : 'EN'"
-      (click)="switchLang()"
-    ></button>
+    <p-select
+      size="small"
+      [options]="languages"
+      [(ngModel)]="currentLang"
+      appendTo="body"
+      [placeholder]="'select_language' | translate"
+      class="w-full text-xs border-200"
+      (onChange)="switchLang($event)"
+    />
     }
   `,
-  imports: [ButtonModule],
+  imports: [SelectModule, TranslatePipe, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LangSwitcherComponent {
@@ -26,9 +30,13 @@ export class LangSwitcherComponent {
   currentLang = this.#langService.currentLanguage;
   RELOAD_DELAY = 1000;
 
-  switchLang() {
-    const newLang = this.currentLang() === 'en' ? 'ar' : 'en';
-    this.#langService.switchLanguage(newLang);
+  languages = [
+    { label: 'English', value: 'en' },
+    { label: 'Arabic', value: 'ar' },
+  ];
+
+  switchLang(event: SelectChangeEvent) {
+    this.#langService.switchLanguage(event.value);
     this.#location.go(this.#location.path());
     setTimeout(() => location.reload(), this.RELOAD_DELAY);
   }

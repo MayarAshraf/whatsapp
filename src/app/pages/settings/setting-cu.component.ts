@@ -1,6 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  model,
+} from '@angular/core';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { FormlyFieldConfig } from '@ngx-formly/core';
+import { ButtonModule } from 'primeng/button';
 import { BaseCreateUpdateComponent } from 'src/app/shared/components/basic-crud/base-create-update/base-create-update.component';
 import { FormDialogComponent } from 'src/app/shared/components/basic-crud/base-create-update/form-dialog/form-dialog.component';
 import { FieldBuilderService } from 'src/app/shared/services/field-builder.service';
@@ -8,14 +14,17 @@ import { SettingsModel } from './services/service-type';
 
 @Component({
   selector: 'app-setting-cu',
-  templateUrl:
-    '../../shared/components/basic-crud/base-create-update/base-create-update.component.html',
-  imports: [FormDialogComponent],
+  templateUrl: './setting-cu.component.html',
+  imports: [FormDialogComponent, ButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingCuComponent extends BaseCreateUpdateComponent<SettingsModel> {
   #fieldBuilder = inject(FieldBuilderService);
+
+  settings = model<SettingsModel>();
+
   ngOnInit() {
+    this.editData = this.settings();
     this.dialogMeta = {
       ...this.dialogMeta,
       endpoints: {
@@ -27,15 +36,19 @@ export class SettingCuComponent extends BaseCreateUpdateComponent<SettingsModel>
     if (this.editData) {
       this.dialogMeta = {
         ...this.dialogMeta,
-        dialogTitle: this.translate.instant(_('update_setting')),
-        submitButtonLabel: this.translate.instant(_('update_setting')),
+        dialogTitle: this.translate.instant(_('update_whatsapp_credentials')),
+        submitButtonLabel: this.translate.instant(
+          _('update_whatsapp_credentials')
+        ),
       };
       this.model = new SettingsModel(this.editData);
     } else {
       this.dialogMeta = {
         ...this.dialogMeta,
-        dialogTitle: this.translate.instant(_('create_setting')),
-        submitButtonLabel: this.translate.instant(_('create_setting')),
+        dialogTitle: this.translate.instant(_('create_whatsapp_credentials')),
+        submitButtonLabel: this.translate.instant(
+          _('create_whatsapp_credentials')
+        ),
       };
       this.model = new SettingsModel();
     }

@@ -32,22 +32,6 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/chat/chat.component'),
         title: _('conversations'),
       },
-      {
-        path: 'users',
-        loadComponent: () => import('./pages/users/users.component'),
-        title: _('users'),
-      },
-      {
-        path: 'template',
-        loadComponent: () => import('./pages/template/template.component'),
-        title: _('template'),
-      },
-      {
-        path: 'department',
-        loadComponent: () =>
-          import('./pages/departments/departments.component'),
-        title: _('department'),
-      },
     ],
   },
   {

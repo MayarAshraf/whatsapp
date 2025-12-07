@@ -1,5 +1,4 @@
 import {
-  AsyncPipe,
   DatePipe,
   NgStyle,
   NgTemplateOutlet,
@@ -27,9 +26,14 @@ import {
 } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { RouterLink } from '@angular/router';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import GroupsComponent from '@pages/groups/groups.component';
+import { SettingsModel } from '@pages/settings/services/service-type';
+import { SettingCuComponent } from '@pages/settings/setting-cu.component';
+import UsersComponent from '@pages/users/users.component';
 import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
@@ -38,7 +42,6 @@ import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ImageModule } from 'primeng/image';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
-import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TextareaModule } from 'primeng/textarea';
 import { Tooltip } from 'primeng/tooltip';
@@ -98,9 +101,11 @@ interface Message {
     VoiceRecorderComponent,
     Tooltip,
     TranslatePipe,
-    SelectModule,
-    AsyncPipe,
     LinkifyPipe,
+    UsersComponent,
+    GroupsComponent,
+    SettingCuComponent,
+    RouterLink,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -127,8 +132,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
   messagesContainer = viewChild<ElementRef>('messagesContainer');
   fileUploader = viewChild<FileUpload>('fileUploader');
   audioPlayers = viewChildren<ElementRef<HTMLAudioElement>>('audioPlayer');
-
-  // combinedMessages = computed(() => this.messages());
   selectedUser = signal<any>(null);
   messagesLoading = signal(false);
   allUsers = signal<any>([]);
@@ -155,6 +158,8 @@ export default class ChatComponent implements OnInit, OnDestroy {
   activeVoiceRecording = signal<number | null>(null);
   showScrollButton = signal(false);
   conversationsStatue = signal('all');
+  activeIndex = signal<number | null>(null);
+  settings = signal<SettingsModel | undefined>(undefined);
 
   hostname = window.location.hostname;
   #rawSubdomain = this.hostname.split('.8xrespond.com')[0];
@@ -223,42 +228,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
       status: this.idleService.status(),
     });
   });
-
-  status$ = this.settingsList$.pipe(
-    map(({ status }) =>
-      status.map((status: any) => ({
-        label: status[`label_${this.#currentLang()}`],
-        value: status.value,
-      }))
-    )
-  );
-
-  userStatus$ = this.#api
-    .request('post', 'auth/users/settings')
-    .pipe(map(({ data }) => data));
-
-  userStatus = toSignal(this.userStatus$, { initialValue: [] });
-
-  onStatusChange(event: SelectChangeEvent | any) {
-    this.#api
-      .request('post', 'auth/users/change-status', {
-        status: event.value,
-      })
-      .pipe(takeUntilDestroyed(this.#destroyRef))
-      .subscribe();
-  }
-
-  getStyle(status: string): { [klass: string]: any } {
-    const colorMap: Record<string, string> = {
-      online: '#22c55e',
-      offline: '#a1a1aa',
-      busy: '#fb923c',
-    };
-
-    return {
-      backgroundColor: colorMap[status] || 'white',
-    };
-  }
 
   filteredUsers = computed(() =>
     this.allUsers().filter((user: any) =>
@@ -976,4 +945,15 @@ export default class ChatComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+  settings$ = this.#api
+    .request('get', 'whatsapp-account/whatsapp-account')
+    .pipe(
+      map(({ data }) => data),
+      tap((data) => {
+        this.settings.set(data);
+      }),
+      takeUntilDestroyed(this.#destroyRef)
+    )
+    .subscribe();
 }

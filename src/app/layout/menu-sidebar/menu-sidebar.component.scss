@@ -10,4 +10,12 @@
       padding: 0;
     }
   }
+
+  .status-dropdown {
+    .p-placeholder,
+    .p-select-label,
+    .p-select-dropdown-icon {
+      color: white;
+    }
+  }
 }

@@ -50,7 +50,7 @@ import { SpinnerComponent } from '../../../spinner.component';
           />
         </div>
         } @if (dialogData$() | async) {
-        <div class="flex-auto">
+        <div [class]="isFormActionsSticky() ? 'flex-auto' : ''">
           <ng-content select="[additionalContent]" />
           <div class=" p-3">
             <formly-form
@@ -63,7 +63,14 @@ import { SpinnerComponent } from '../../../spinner.component';
         </div>
 
         @if (showFormActions()) {
-        <div class="sticky bottom-0 z-10 p-3 border-top-1 border-300 surface-0">
+        <div
+          [class]="
+            'p-3 ' +
+            (isFormActionsSticky()
+              ? 'sticky bottom-0 z-10 border-top-1 border-300 surface-0'
+              : '')
+          "
+        >
           <div class="flex flex-wrap justify-content-end gap-2">
             @if (showResetButton()) {
             <button
@@ -115,5 +122,6 @@ export class FormDialogComponent<T> {
   showFormActions = input(true);
   showSubmitButton = input(true);
   showResetButton = input(false);
+  isFormActionsSticky = input(true);
   onSubmit = output<T>();
 }

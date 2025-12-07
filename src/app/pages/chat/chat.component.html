@@ -4,28 +4,72 @@
       [class]="selectedUser() && isSmScreen() ? 'hidden md:flex' : ''"
       class="col-12 md:col-3 h-full"
     >
-      <div class="user-list overflow-y-auto border-right-1 border-300 h-full">
+      <div
+        class="user-list surface-100 overflow-y-auto border-right-1 border-300 h-full"
+      >
         @if(pageData()){
-        <div class="mx-2">
-          <div class="flex align-items-center gap-2">
-            <i class="fa-solid fa-gears"></i>
-            <h2 class="text-xl font-medium">
-              {{ "settings" | translate }}
-            </h2>
+        <div class="m-2">
+          <div class="font font-medium text-lg my-3">
+            <a
+              routerLink="/conversations"
+              class="text-primary hover:text-primary-600"
+              ><i class="fa-solid fa-arrow-left"></i
+            ></a>
+            {{ "settings" | translate }}
           </div>
-          <label for="status" class="font-semibold text-600">{{
-            "status" | translate
-          }}</label>
-          <p-select
-            id="status"
-            [options]="status$ | async"
-            [(ngModel)]="userStatus().status"
-            [placeholder]="'select_status' | translate"
-            [style]="getStyle(userStatus().status)"
-            class="status-dropdown w-full border-none mt-2"
-            (onChange)="onStatusChange($event)"
-          />
+
+          <div class="text-700 font-medium my-2">
+            {{ "whatsapp_settings" | translate }}
+          </div>
+
+          <div class="flex flex-column gap-1">
+            <button
+              pButton
+              icon="fa-solid fa-robot"
+              [text]="true"
+              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              [class.surface-200]="activeIndex() === 0"
+              (click)="activeIndex.set(0)"
+              [label]="'whatsapp_template' | translate"
+            ></button>
+            <button
+              pButton
+              icon="fa-brands fa-whatsapp"
+              [text]="true"
+              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              [class.surface-200]="activeIndex() === 1"
+              (click)="activeIndex.set(1)"
+              [label]="'whatsapp_credentials' | translate"
+            ></button>
+          </div>
+
+          <div class="text-700 font-medium my-2">
+            {{ "users_settings" | translate }}
+          </div>
+
+          <div class="flex flex-column gap-1">
+            <button
+              pButton
+              icon="fa-users fas"
+              [text]="true"
+              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              [class.surface-200]="activeIndex() === 2"
+              (click)="activeIndex.set(2)"
+              [label]="'manage_users' | translate"
+            ></button>
+
+            <button
+              pButton
+              icon="fa-solid fa-building-user"
+              [text]="true"
+              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              [class.surface-200]="activeIndex() === 3"
+              (click)="activeIndex.set(3)"
+              [label]="'manage_groups' | translate"
+            ></button>
+          </div>
         </div>
+
         }@else{
         <div
           class="search-container flex align-items-center justify-content-between m-2 mt-3 px-3 bg-white border-1 border-300 border-round-3xl"
@@ -62,7 +106,7 @@
         <ul class="list-none p-0 m-0 flex flex-column">
           @if (!usersLoading()) { @for (user of filteredUsers(); track $index) {
           <li
-            class="p-2 cursor-pointer user-item"
+            class="p-2 cursor-pointer user-item hover:surface-200 active:surface-200"
             (click)="selectUser(user)"
             [class.active]="selectedUser()?.id === user.id"
           >
@@ -139,7 +183,7 @@
           <button
             pButton
             icon="fa-solid fa-arrow-left"
-            class="p-button-text p-button-sm mr-2 flex md:hidden"
+            class="p-button-text p-button-sm flex md:hidden"
             (click)="this.selectedUser.set(null)"
           ></button>
           <img
@@ -448,20 +492,31 @@
         ></button>
         }
       </div>
-      } @else if (this.pageData()) {
+      } @else if (this.pageData()) { @if(activeIndex()!==null){
+      <div class="h-full surface-100 p-2">
+        @if (activeIndex() === 0) { @defer (when activeIndex() === 0) {
+        <app-users />
+        } } @if (activeIndex() === 1) { @defer (when activeIndex() === 1) {
+        <app-setting-cu [(settings)]="settings" />
+        } } @if (activeIndex() === 2) { @defer (when activeIndex() === 2) {
+        <app-users />
+        } } @if (activeIndex() === 3) { @defer (when activeIndex() === 3) {
+        <app-groups />
+        } }
+      </div>
+      }@else{
       <div
         class="surface-50 flex flex-column align-items-center justify-content-center gap-2 h-full p-5"
       >
         <iframe
-          src="https://lottie.host/embed/dd6c7204-9ace-4d18-83c5-3cb0faf99f1f/Gt1OfGk9xi.lottie"
+          src="https://lottie.host/embed/085db403-ff48-4662-ae6c-75d48235af88/WgrDOFb4cY.lottie"
           style="border: 0"
-          height="130"
         ></iframe>
         <h4 class="text-600 text-xl font-medium m-0">
           {{ "settings" | translate }}
         </h4>
       </div>
-      } @else {
+      } } @else {
       <div
         class="surface-50 flex flex-column align-items-center justify-content-center gap-2 h-full p-5"
       >

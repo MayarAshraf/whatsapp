@@ -1,0 +1,29 @@
+<div class="table-card">
+  <h2 class="mx-3 font-medium text-lg">
+    <i class="fa-brands fa-whatsapp text-green-500"></i>
+    {{ dialogMeta.dialogTitle }}
+  </h2>
+  <app-form-dialog
+    [showDialogHeader]="false"
+    [dialogData$]="dialogMeta.dialogData$"
+    [isTitleRenderedAsBtn]="dialogMeta.isTitleRenderedAsBtn"
+    [dialogTitle]="dialogMeta.dialogTitle"
+    [dialogTitleClass]="dialogMeta.dialogTitleClass"
+    [dialogSubtitle]="dialogMeta.dialogSubtitle"
+    [titleIcon]="dialogMeta.titleIcon"
+    (onTitleBtnClicked)="onTitleBtnClicked()"
+    (closeDialog)="closeDialog()"
+    [form]="createUpdateForm"
+    [model]="model"
+    [fields]="fields"
+    [options]="options"
+    [showFormActions]="dialogMeta.showFormActions"
+    [showSubmitButton]="dialogMeta.showSubmitButton"
+    [showResetButton]="dialogMeta.showResetButton"
+    [submitBtnLabel]="dialogMeta.submitButtonLabel"
+    [isFormActionsSticky]="false"
+    [isLoading]="isLoading()"
+    [isDisabled]="isDisabled()"
+    (onSubmit)="createUpdateRecord(dialogMeta.endpoints, $event)"
+  />
+</div>

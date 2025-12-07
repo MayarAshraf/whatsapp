@@ -1,4 +1,4 @@
-export interface Department {
+export interface Group {
   id: number;
   name_en: string;
   name_ar: string;
@@ -6,7 +6,7 @@ export interface Department {
   sub_roles: [];
 }
 
-export class DepartmentModel {
+export class GroupModel {
   id?: number | null;
   name_en: string | null;
   name_ar: string | null;
@@ -14,7 +14,7 @@ export class DepartmentModel {
   sub_roles: SubRoleModel[] | null;
   has_subroles: boolean;
 
-  constructor(editData?: DepartmentModel) {
+  constructor(editData?: GroupModel) {
     this.id = editData?.id || null;
     this.name_en = editData?.name_en || null;
     this.name_ar = editData?.name_ar || null;

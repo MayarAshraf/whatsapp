@@ -30,7 +30,6 @@ $primary-text: #333333;
 
 .user-list {
   height: 100%;
-  background: #f6f6f6;
 
   .search-container {
     &:focus-within {
@@ -47,11 +46,6 @@ $primary-text: #333333;
   .user-item {
     transition: all 0.1s;
     border-bottom: 2px solid #e4e4e4;
-
-    &:hover,
-    &.active {
-      background: #dae1f1;
-    }
 
     .status-indicator {
       position: absolute;
@@ -241,14 +235,6 @@ $primary-text: #333333;
 
   .p-textarea:disabled {
     background-color: white !important;
-  }
-
-  .status-dropdown {
-    .p-placeholder,
-    .p-select-label,
-    .p-select-dropdown-icon {
-      color: white;
-    }
   }
 
   @media (max-width: 768px) {

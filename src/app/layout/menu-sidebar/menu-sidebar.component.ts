@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,22 +6,24 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { SettingCuComponent } from '@pages/settings/setting-cu.component';
-import { MenuItem, MenuItemCommandEvent } from 'primeng/api';
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
 import { PopoverModule } from 'primeng/popover';
+import { SelectChangeEvent, SelectModule } from 'primeng/select';
 import { Tooltip } from 'primeng/tooltip';
-import { map, tap } from 'rxjs';
+import { map } from 'rxjs';
 import { LangSwitcherComponent } from 'src/app/shared/components/lang-switcher.component';
 import { AuthService } from 'src/app/shared/services/auth/auth.service';
+import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
 import { LangService } from 'src/app/shared/services/lang.service';
@@ -42,6 +44,9 @@ import { LangService } from 'src/app/shared/services/lang.service';
     NgTemplateOutlet,
     TranslatePipe,
     LangSwitcherComponent,
+    SelectModule,
+    AsyncPipe,
+    FormsModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -52,15 +57,16 @@ export class MenuSidebarComponent {
   #router = inject(Router);
   #destroyRef = inject(DestroyRef);
   #api = inject(ApiService);
-  dialogService = inject(DialogService);
+  #globalList = inject(GlobalListService);
   currentLang = inject(LangService).currentLanguage;
+
+  settingsList$ = this.#globalList.getGlobalList('user-settings');
 
   dialogRef: DynamicDialogRef | null = null;
   currentUser = this.#authService.currentUser;
 
-  visible = true;
+  visible = signal(true);
 
-  settings = signal([]);
   topMenuItems = signal<MenuItem[]>([
     {
       label: _('conversations'),
@@ -68,51 +74,54 @@ export class MenuSidebarComponent {
       routerLink: '/conversations',
       visible: true,
     },
-    {
-      label: _('template'),
-      icon: 'fa-solid fa-robot',
-      routerLink: '/template',
-      visible: true,
-    },
-    {
-      label: _('department'),
-      icon: 'fa-solid fa-building-user',
-      routerLink: '/department',
-      visible: true,
-    },
   ]);
 
   bottomMenuItems = signal<MenuItem[]>([
-    {
-      label: _('users'),
-      icon: 'fa-users fas',
-      routerLink: '/users',
-      visible: true,
-    },
     {
       label: _('settings'),
       icon: 'fa-cogs fas',
       routerLink: ['/conversations', 'settings'],
       visible: true,
     },
-    {
-      label: _('whatsapp_settings'),
-      icon: 'fa-brands fa-whatsapp',
-      command: () => this.openSettings(),
-      visible: true,
-    },
   ]);
 
-  handleMenuClick(event: Event, link: MenuItem) {
-    if (link.command) {
-      event.preventDefault();
-      const menuEvent: MenuItemCommandEvent = {
-        originalEvent: event,
-        item: link,
-      };
-      link.command(menuEvent);
-    }
+  status$ = this.settingsList$.pipe(
+    map(({ status }) =>
+      status.map((status: any) => ({
+        label: status[`label_${this.currentLang()}`],
+        value: status.value,
+      }))
+    )
+  );
+
+  userStatus$ = this.#api
+    .request('post', 'auth/users/settings')
+    .pipe(map(({ data }) => data));
+
+  userStatus = toSignal(this.userStatus$, { initialValue: [] });
+
+  onStatusChange(event: SelectChangeEvent | any) {
+    this.#api
+      .request('post', 'auth/users/change-status', {
+        status: event.value,
+      })
+      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .subscribe();
   }
+
+  getStyle(status: string): { [klass: string]: any } {
+    const colorMap: Record<string, string> = {
+      online: '#22c55e',
+      offline: '#a1a1aa',
+      busy: '#fb923c',
+      away: '#eab308',
+    };
+
+    return {
+      backgroundColor: colorMap[status] || '#a1a1aa',
+    };
+  }
+
   logout() {
     this.#confirmService.confirmDelete({
       message: this.#translate.instant(_('please_confirm_to_proceed')),
@@ -124,35 +133,5 @@ export class MenuSidebarComponent {
             this.#router.navigateByUrl('auth/login');
           }),
     });
-  }
-
-  dialogConfig = {
-    showHeader: false,
-    width: '800px',
-    height: '100%',
-    modal: true,
-    focusOnShow: false,
-    styleClass: 'm-0 max-h-full transform-none',
-    position: this.currentLang() === 'en' ? 'right' : 'left',
-    rtl: this.currentLang() !== 'en',
-    closable: true,
-    closeOnEscape: true,
-    dismissableMask: false,
-  };
-
-  openSettings() {
-    this.#api
-      .request('get', 'whatsapp-account/whatsapp-account')
-      .pipe(
-        map(({ data }) => data),
-        tap((data) => this.settings.set(data)),
-        takeUntilDestroyed(this.#destroyRef)
-      )
-      .subscribe(() => {
-        this.dialogRef = this.dialogService.open(SettingCuComponent, {
-          ...this.dialogConfig,
-          data: this.settings(),
-        });
-      });
   }
 }

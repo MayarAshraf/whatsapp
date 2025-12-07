@@ -5,16 +5,16 @@ import { BaseCreateUpdateComponent } from 'src/app/shared/components/basic-crud/
 import { FormDialogComponent } from 'src/app/shared/components/basic-crud/base-create-update/form-dialog/form-dialog.component';
 import { FieldBuilderService } from 'src/app/shared/services/field-builder.service';
 import { StaticDataService } from 'src/app/shared/services/static-data.service';
-import { DepartmentModel } from './services/service-type';
+import { GroupModel } from './services/service-type';
 
 @Component({
-  selector: 'app-department-cu',
+  selector: 'app-group-cu',
   templateUrl:
     '../../shared/components/basic-crud/base-create-update/base-create-update.component.html',
   imports: [FormDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DepartmentCuComponent extends BaseCreateUpdateComponent<any> {
+export class GroupCuComponent extends BaseCreateUpdateComponent<any> {
   #fieldBuilder = inject(FieldBuilderService);
   #languages = inject(StaticDataService).languages;
   ngOnInit() {
@@ -29,17 +29,17 @@ export class DepartmentCuComponent extends BaseCreateUpdateComponent<any> {
     if (this.editData) {
       this.dialogMeta = {
         ...this.dialogMeta,
-        dialogTitle: this.translate.instant(_('update_department')),
-        submitButtonLabel: this.translate.instant(_('update_department')),
+        dialogTitle: this.translate.instant(_('update_group')),
+        submitButtonLabel: this.translate.instant(_('update_group')),
       };
-      this.model = new DepartmentModel(this.editData);
+      this.model = new GroupModel(this.editData);
     } else {
       this.dialogMeta = {
         ...this.dialogMeta,
-        dialogTitle: this.translate.instant(_('create_department')),
-        submitButtonLabel: this.translate.instant(_('create_department')),
+        dialogTitle: this.translate.instant(_('create_group')),
+        submitButtonLabel: this.translate.instant(_('create_group')),
       };
-      this.model = new DepartmentModel();
+      this.model = new GroupModel();
     }
     this.fields = this.configureFields();
   }
@@ -53,7 +53,7 @@ export class DepartmentCuComponent extends BaseCreateUpdateComponent<any> {
             props: {
               label: `${lang.label} (${lang.value.toUpperCase()})`,
             },
-            fieldGroup: [...this.buildDepartmentFields(lang.value)],
+            fieldGroup: [...this.buildGroupFields(lang.value)],
           })),
         },
       ]),
@@ -82,7 +82,7 @@ export class DepartmentCuComponent extends BaseCreateUpdateComponent<any> {
                 emptyMessage: _('no_subroles_added_yet'),
               },
               fieldArray: {
-                fieldGroup: [...this.buildDepartmentFields(lang.value)],
+                fieldGroup: [...this.buildGroupFields(lang.value)],
               },
             },
           ],
@@ -90,7 +90,7 @@ export class DepartmentCuComponent extends BaseCreateUpdateComponent<any> {
       },
     ];
   }
-  buildDepartmentFields(lang: string): FormlyFieldConfig[] {
+  buildGroupFields(lang: string): FormlyFieldConfig[] {
     return [
       this.#fieldBuilder.fieldBuilder([
         {

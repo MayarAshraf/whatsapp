@@ -10,41 +10,41 @@ import { TooltipModule } from 'primeng/tooltip';
 import { BaseIndexComponent } from 'src/app/shared/components/basic-crud/base-index.component';
 import { TableWrapperComponent } from 'src/app/shared/components/table-wrapper/table-wrapper.component';
 import { LangService } from 'src/app/shared/services/lang.service';
-import { DepartmentCuComponent } from './department-cu.component';
-import { Department } from './services/service-type';
+import { GroupCuComponent } from './group-cu.component';
+import { Group } from './services/service-type';
 
 @Component({
-  selector: 'app-departments',
+  selector: 'app-groups',
   imports: [TableWrapperComponent, TooltipModule, ButtonModule],
-  templateUrl: './departments.component.html',
+  templateUrl: './groups.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export default class DepartmentsComponent extends BaseIndexComponent<
-  Department,
-  Type<DepartmentCuComponent>
+export default class GroupsComponent extends BaseIndexComponent<
+  Group,
+  Type<GroupCuComponent>
 > {
   currentLang = inject(LangService).currentLanguage;
 
   ngOnInit() {
-    this.dialogComponent = DepartmentCuComponent;
+    this.dialogComponent = GroupCuComponent;
 
     this.indexMeta = {
       ...this.indexMeta,
-      indexTitle: 'departments',
+      indexTitle: 'groups',
       indexIcon: 'fa-solid fa-building-user',
-      createBtnLabel: 'create_department',
+      createBtnLabel: 'create_group',
       endpoints: {
         index: 'departments/department',
         delete: 'departments/department/delete',
       },
-      indexTableKey: 'DEPARTMENT_KEY',
+      indexTableKey: 'GROUP_KEY',
       columns: [
         {
           title: 'id',
           name: 'id',
         },
         {
-          title: 'department',
+          title: 'group',
           name: `name_${this.currentLang()}`,
         },
       ],

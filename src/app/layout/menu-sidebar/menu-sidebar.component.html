@@ -40,7 +40,6 @@
             routerLinkActive="text-primary"
             [routerLinkActiveOptions]="{ exact: true }"
             [pTooltip]="link.label | translate"
-            (click)="handleMenuClick($event, link)"
           >
             <i class="{{ link.icon }} text-xl font-meduim"></i>
           </a>
@@ -83,12 +82,24 @@
     <span class="text-500 text-xs font-light">
       {{ currentUser?.email }}
     </span>
-    <app-lang-switcher />
+    <div class="my-2">
+      <app-lang-switcher />
+    </div>
+    <p-select
+      size="small"
+      appendTo="body"
+      [options]="status$ | async"
+      [(ngModel)]="userStatus().status"
+      [placeholder]="'select_status' | translate"
+      [style]="getStyle(userStatus().status)"
+      class="status-dropdown w-full border-none"
+      (onChange)="onStatusChange($event)"
+    />
   </div>
   <button
     pButton
     icon="fa-solid fa-arrow-right-from-bracket text-white"
-    class="uppercase text-xs w-full bg-primary-color border-none shadow-none p-1"
+    class="uppercase text-xs w-full bg-primary-color border-none shadow-none p-2"
     (click)="logout()"
     [label]="'logout' | translate"
   ></button>
