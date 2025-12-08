@@ -35,6 +35,24 @@ importers:
       '@ctrl/ngx-emoji-mart':
         specifier: ^9.3.0
         version: 9.3.0(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))
+      '@foblex/2d':
+        specifier: ^1.2.1
+        version: 1.2.2(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@foblex/drag-toolkit':
+        specifier: ^1.1.1
+        version: 1.1.1
+      '@foblex/flow':
+        specifier: ^17.9.81
+        version: 17.9.81(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(@foblex/2d@1.2.2(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@foblex/mediator@1.1.3(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@foblex/platform@1.0.4(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1)))(@foblex/utils@1.1.1)
+      '@foblex/mediator':
+        specifier: ^1.1.3
+        version: 1.1.3(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@foblex/platform':
+        specifier: ^1.0.4
+        version: 1.0.4(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))
+      '@foblex/utils':
+        specifier: ^1.1.1
+        version: 1.1.1
       '@fortawesome/fontawesome-free':
         specifier: ^7.0.1
         version: 7.1.0
@@ -86,6 +104,9 @@ importers:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
       zone.js:
         specifier: ~0.15.0
         version: 0.15.1
@@ -528,6 +549,42 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@foblex/2d@1.2.2':
+    resolution: {integrity: sha512-nVl2iw6hF0RDE2+E4U1tSRX5lOI2toG9nY1VaMlQ0RdIB+0mEK1+lhjJDn/qDrBsMYpNCaTZ2CC3Jy54ItOnsQ==}
+    peerDependencies:
+      '@angular/common': '>=12.0.0'
+      '@angular/core': '>=12.0.0'
+      rxjs: '>=6.6.0'
+
+  '@foblex/drag-toolkit@1.1.1':
+    resolution: {integrity: sha512-9MspuSvjPp5satQw1AOXPPmu8G6cS3gycPQ9GL91m3k4Kw9z2nvWjJAJAa/OD41RBSJZWtykveZ7rafTgsx0gA==}
+
+  '@foblex/flow@17.9.81':
+    resolution: {integrity: sha512-dA8JYt1iiIGjnjgzOoHmDwfAHzgJ6ucMM1jeJxDZWsgZ7flQ1P4LXHF8YrwMvxRJXj2WdUmyO9hRSoQ0GKP+Kg==}
+    peerDependencies:
+      '@angular/common': '>=15.0.0'
+      '@angular/core': '>=15.0.0'
+      '@foblex/2d': 1.2.2
+      '@foblex/mediator': 1.1.3
+      '@foblex/platform': 1.0.4
+      '@foblex/utils': 1.1.1
+
+  '@foblex/mediator@1.1.3':
+    resolution: {integrity: sha512-Yuvu4lpefFo0N1oo1xDBL7UItUe5KuasPniurcQITY3wvBRITSHZCPIEpB/FEWuaoknyC8t1blxDyOh11U+daA==}
+    peerDependencies:
+      '@angular/common': '>=12.0.0'
+      '@angular/core': '>=12.0.0'
+      rxjs: '>=6.6.0'
+
+  '@foblex/platform@1.0.4':
+    resolution: {integrity: sha512-GLbqPX9xL/w2pRX51J8RSjMrZcTKb8rmi9+EcrPtpRXCa4KETY4mpIzfKlaOthZusFY++UUFecM07aXRnp+sMw==}
+    peerDependencies:
+      '@angular/common': '>=12.0.0'
+      '@angular/core': '>=12.0.0'
+
+  '@foblex/utils@1.1.1':
+    resolution: {integrity: sha512-w4g49vLAIogIXNYHWQzcv2p5jJKi/XAoTw7LvuEzKvEXDJ8ezL0BZJfbeg43q2+PyKvlUfu+6ySvNxnXYrb/Bg==}
 
   '@fortawesome/fontawesome-free@7.1.0':
     resolution: {integrity: sha512-+WxNld5ZCJHvPQCr/GnzCTVREyStrAJjisUPtUxG5ngDA8TMlPnKp6dddlTpai4+1GNmltAeuk1hJEkBohwZYA==}
@@ -2858,6 +2915,10 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
 
@@ -3457,6 +3518,44 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.4':
     optional: true
+
+  '@foblex/2d@1.2.2(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)':
+    dependencies:
+      '@angular/common': 19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.16(rxjs@7.8.2)(zone.js@0.15.1)
+      rxjs: 7.8.2
+      tslib: 2.8.1
+
+  '@foblex/drag-toolkit@1.1.1':
+    dependencies:
+      tslib: 2.8.1
+
+  '@foblex/flow@17.9.81(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(@foblex/2d@1.2.2(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@foblex/mediator@1.1.3(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@foblex/platform@1.0.4(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1)))(@foblex/utils@1.1.1)':
+    dependencies:
+      '@angular/common': 19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.16(rxjs@7.8.2)(zone.js@0.15.1)
+      '@foblex/2d': 1.2.2(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@foblex/mediator': 1.1.3(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@foblex/platform': 1.0.4(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))
+      '@foblex/utils': 1.1.1
+      tslib: 2.8.1
+
+  '@foblex/mediator@1.1.3(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)':
+    dependencies:
+      '@angular/common': 19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.16(rxjs@7.8.2)(zone.js@0.15.1)
+      rxjs: 7.8.2
+      tslib: 2.8.1
+
+  '@foblex/platform@1.0.4(@angular/common@19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))':
+    dependencies:
+      '@angular/common': 19.2.16(@angular/core@19.2.16(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
+      '@angular/core': 19.2.16(rxjs@7.8.2)(zone.js@0.15.1)
+      tslib: 2.8.1
+
+  '@foblex/utils@1.1.1':
+    dependencies:
+      tslib: 2.8.1
 
   '@fortawesome/fontawesome-free@7.1.0': {}
 
@@ -5823,6 +5922,8 @@ snapshots:
       inherits: 2.0.3
 
   utils-merge@1.0.1: {}
+
+  uuid@13.0.0: {}
 
   validate-npm-package-license@3.0.4:
     dependencies:

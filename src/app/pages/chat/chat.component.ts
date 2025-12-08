@@ -30,6 +30,7 @@ import { RouterLink } from '@angular/router';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ChatFlowComponent } from '@pages/chat-flow/chat-flow.component';
 import GroupsComponent from '@pages/groups/groups.component';
 import { SettingsModel } from '@pages/settings/services/service-type';
 import { SettingCuComponent } from '@pages/settings/setting-cu.component';
@@ -106,6 +107,7 @@ interface Message {
     GroupsComponent,
     SettingCuComponent,
     RouterLink,
+    ChatFlowComponent,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',

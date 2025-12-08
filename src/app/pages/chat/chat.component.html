@@ -9,7 +9,7 @@
       >
         @if(pageData()){
         <div class="m-2">
-          <div class="font font-medium text-lg my-3">
+          <div class="font-medium text-lg my-3">
             <a
               routerLink="/conversations"
               class="text-primary hover:text-primary-600"
@@ -495,7 +495,7 @@
       } @else if (this.pageData()) { @if(activeIndex()!==null){
       <div class="h-full surface-100 p-2">
         @if (activeIndex() === 0) { @defer (when activeIndex() === 0) {
-        <app-users />
+        <app-chat-flow />
         } } @if (activeIndex() === 1) { @defer (when activeIndex() === 1) {
         <app-setting-cu [(settings)]="settings" />
         } } @if (activeIndex() === 2) { @defer (when activeIndex() === 2) {

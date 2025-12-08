@@ -13,6 +13,7 @@ import {
   withInMemoryScrolling,
   withRouterConfig,
 } from '@angular/router';
+import { FFlowModule } from '@foblex/flow';
 import { provideNgIdle } from '@ng-idle/core';
 import { FORMLY_CONFIG, provideFormlyCore } from '@ngx-formly/core';
 import { FormlyPrimeNGModule } from '@ngx-formly/primeng';
@@ -90,7 +91,7 @@ export const appConfig: ApplicationConfig = {
     provideTranslateService({
       loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix }),
     }),
-    importProvidersFrom(FormlyPrimeNGModule),
+    importProvidersFrom(FormlyPrimeNGModule, FFlowModule),
     provideFormlyCore(),
     {
       provide: FORMLY_CONFIG,
