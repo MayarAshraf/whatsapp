@@ -19,20 +19,6 @@
     background: rgba(var(--p-primary-color), 0.3);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
-
-  .node-item-actions {
-    opacity: 0;
-    transition: opacity 0.2s ease;
-
-    button {
-      width: 30px;
-      height: 30px;
-    }
-  }
-
-  &:hover .node-item-actions {
-    opacity: 1;
-  }
 }
 
 .flow-node {

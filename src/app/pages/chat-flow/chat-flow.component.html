@@ -47,14 +47,14 @@
             pButton
             icon="pi pi-pencil"
             class="p-button-text p-button-sm p-button-rounded"
-            (click)="openEditor(node)"
+            (click)="openEditor(node); $event.stopPropagation()"
           ></button>
 
           <button
             pButton
             icon="pi pi-trash"
             class="p-button-text p-button-sm p-button-rounded p-button-danger"
-            (click)="deleteNode(node)"
+            (click)="deleteNode(node); $event.stopPropagation()"
           ></button>
         </div>
       </div>
@@ -92,7 +92,9 @@
         <f-connection
           [fOutputId]="c.source"
           [fInputId]="c.target"
-        ></f-connection>
+          fType="segment"
+        >
+        </f-connection>
         } @if (isDraggingConnection() && connectionSource()) {
         <svg class="preview-line">
           <defs>
@@ -134,6 +136,7 @@
           [class.active]="isNodeActive(node.id)"
           (click)="selectNodeForConnection(node, $event)"
           (dblclick)="openEditor(node)"
+          fOutputConnectableSide="right"
         >
           <div class="node-header p-2 bg-primary text-white border-round-top">
             <div class="flex flex-1 align-items-center gap-2 min-w-0">
