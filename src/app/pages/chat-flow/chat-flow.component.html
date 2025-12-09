@@ -92,8 +92,6 @@
         <f-connection
           [fOutputId]="c.source"
           [fInputId]="c.target"
-          [attr.data-option-index]="c.optionIndex"
-          [attr.data-label]="getConnectionLabel(c)"
         ></f-connection>
         } @if (isDraggingConnection() && connectionSource()) {
         <svg class="preview-line">

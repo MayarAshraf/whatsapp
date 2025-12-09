@@ -587,15 +587,6 @@ export class ChatFlowComponent {
     this.selectedNode.set(null);
   }
 
-  // ⭐ NEW: Get option title for a connection
-  getConnectionLabel(connection: FlowConnection): string {
-    const sourceNode = this.nodes().find((n) => n.id === connection.source);
-    if (!sourceNode || connection.optionIndex === undefined) return '';
-
-    const option = sourceNode.data.options?.[connection.optionIndex];
-    return option?.title || `Option ${connection.optionIndex + 1}`;
-  }
-
   saveFullFlow() {
     // ⭐ NEW: Build complete flow structure
     const flowData = {
@@ -610,7 +601,6 @@ export class ChatFlowComponent {
         source: conn.source,
         target: conn.target,
         optionIndex: conn.optionIndex,
-        label: this.getConnectionLabel(conn),
       })),
     };
 
