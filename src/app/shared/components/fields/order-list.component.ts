@@ -1,45 +1,3 @@
-// import { ChangeDetectionStrategy, Component } from '@angular/core';
-// import { ReactiveFormsModule } from '@angular/forms';
-// import { FieldType, FormlyModule } from '@ngx-formly/core';
-// import { ButtonModule } from 'primeng/button';
-// import { OrderListModule } from 'primeng/orderlist';
-
-// @Component({
-//   selector: 'formly-order-list',
-//   imports: [ReactiveFormsModule, FormlyModule, OrderListModule, ButtonModule],
-//   changeDetection: ChangeDetectionStrategy.OnPush,
-//   template: `
-//     <div class="formly-order-list">
-//       <p-orderList
-//         [value]="formControl.value"
-//         [dragdrop]="true"
-//         [listStyle]="{ height: props.height || '300px' }"
-//         [filterBy]="props.filterBy || 'title'"
-//         [metaKeySelection]="false"
-//         (onReorder)="onReorder($event)"
-//       >
-//         <ng-template pTemplate="item" let-item let-index="index">
-//           <div class="flex align-items-center justify-content-between w-full">
-//             <span>{{ item[props.labelKey || 'title'] }}</span>
-//             <small class="text-gray-400">#{{ index + 1 }}</small>
-//             <i class="pi pi-bars text-gray-500"></i>
-//           </div>
-//         </ng-template>
-//       </p-orderList>
-//     </div>
-//   `,
-// })
-// export class FormlyOrderListComponent extends FieldType {
-//   onReorder(event: any) {
-//     const reordered = event.value.map((item: any, index: number) => ({
-//       ...item,
-//       order: index + 1,
-//     }));
-
-//     this.formControl.setValue(reordered);
-//     this.formControl.markAsDirty();
-//   }
-// }
 import {
   CdkDragDrop,
   DragDropModule,
@@ -84,7 +42,7 @@ import { TooltipModule } from 'primeng/tooltip';
               <i class="fa-solid fa-arrows-to-dot"></i>
             </div>
 
-            <formly-field [field]="field" class="flex-auto" />
+            <formly-field [field]="field" class="flex-auto min-w-0 w-full" />
 
             @if (!f || !l) {
             <div class="flex flex-column gap-1">

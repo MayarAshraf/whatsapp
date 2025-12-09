@@ -293,7 +293,7 @@ export class ChatFlowComponent {
   addNode() {
     const newNode: FlowNode = {
       id: 'n-' + uuid().slice(0, 6),
-      name: `Node ${this.nodes().length + 1}`,
+      name: `Template ${this.nodes().length + 1}`,
       x: 150 + Math.random() * 200,
       y: 150 + Math.random() * 200,
       data: new TemplateModel({
