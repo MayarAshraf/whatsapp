@@ -14,7 +14,7 @@ import { v4 as uuid } from 'uuid';
 import { TemplateModel } from './services/service-type';
 
 interface FlowNode {
-  id: string;
+  step_key: string;
   name: string;
   x: number;
   y: number;
@@ -51,7 +51,7 @@ export class ChatFlowComponent {
 
   templateList$ = this.#globalList.getGlobalList('routing');
 
-  activeNodeId = signal<string | null>(null);
+  activeNodeStepKey = signal<string | null>(null);
   connections = signal<FlowConnection[]>([]);
   selectedNode = signal<FlowNode | null>(null);
   connectionSource = signal<FlowNode | null>(null);
@@ -62,12 +62,12 @@ export class ChatFlowComponent {
   model: any;
   templateForm = new FormGroup({});
 
-  // ⭐ NEW: Track which option is being connected
+  // ⭐ Track which option is being connected
   selectedOptionIndex = signal<number | null>(null);
 
   nodes = signal<FlowNode[]>([
     {
-      id: 'n1',
+      step_key: 'n1',
       name: 'Department Selection',
       x: 40,
       y: 40,
@@ -260,10 +260,10 @@ export class ChatFlowComponent {
             expressions: {
               'props.options': () => {
                 return this.nodes()
-                  .filter((n) => n.id !== this.selectedNode()?.id)
+                  .filter((n) => n.step_key !== this.selectedNode()?.step_key)
                   .map((node) => ({
                     label: node.data.name || node.name,
-                    value: node.id,
+                    value: node.step_key,
                   }));
               },
             },
@@ -286,13 +286,13 @@ export class ChatFlowComponent {
     console.log(this.model);
   }
 
-  isNodeActive(nodeId: string): boolean {
-    return this.activeNodeId() === nodeId;
+  isNodeActive(stepKey: string): boolean {
+    return this.activeNodeStepKey() === stepKey;
   }
 
   addNode() {
     const newNode: FlowNode = {
-      id: 'n-' + uuid().slice(0, 6),
+      step_key: 'n-' + uuid().slice(0, 6),
       name: `Template ${this.nodes().length + 1}`,
       x: 150 + Math.random() * 200,
       y: 150 + Math.random() * 200,
@@ -310,7 +310,7 @@ export class ChatFlowComponent {
     this.nodes.set([...this.nodes(), newNode]);
   }
 
-  // ⭐ NEW: Start connection from specific option
+  // ⭐ Start connection from specific option
   startConnectionFromOption(
     node: FlowNode,
     optionIndex: number,
@@ -318,7 +318,7 @@ export class ChatFlowComponent {
   ) {
     event.stopPropagation();
 
-    this.activeNodeId.set(node.id);
+    this.activeNodeStepKey.set(node.step_key);
     this.connectionSource.set(node);
     this.selectedOptionIndex.set(optionIndex);
     this.isDraggingConnection.set(true);
@@ -328,24 +328,28 @@ export class ChatFlowComponent {
   selectNodeForConnection(node: FlowNode, event: MouseEvent) {
     event.stopPropagation();
 
-    this.activeNodeId.set(node.id);
+    this.activeNodeStepKey.set(node.step_key);
 
     const source = this.connectionSource();
 
     // Ensure source still exists in nodes
-    if (source && !this.nodes().some((n) => n.id === source.id)) {
+    if (source && !this.nodes().some((n) => n.step_key === source.step_key)) {
       this.cancelConnection();
       return;
     }
 
     // If we're in connection mode and this is a different node, complete connection
-    if (this.isDraggingConnection() && source && source.id !== node.id) {
+    if (
+      this.isDraggingConnection() &&
+      source &&
+      source.step_key !== node.step_key
+    ) {
       this.connectionTarget.set(node);
       this.createConnection();
       return;
     }
 
-    // ⭐ NEW: If node has no options, show message
+    // ⭐ If node has no options, show message
     if (!node.data.options || node.data.options.length === 0) {
       console.warn(
         'This node has no options to connect from. Add options first.'
@@ -353,7 +357,7 @@ export class ChatFlowComponent {
       return;
     }
 
-    // ⭐ NEW: If node has options, user should click on option to connect
+    // ⭐ If node has options, user should click on option to connect
     // For now, we'll use the first available option
     const firstEmptyOption = node.data.options.findIndex(
       (opt) => !opt.next_node_id
@@ -396,7 +400,7 @@ export class ChatFlowComponent {
     const targetNode = this.connectionTarget()!;
     const optionIndex = this.selectedOptionIndex();
 
-    // ⭐ NEW: Validate option index
+    // ⭐ Validate option index
     if (
       optionIndex === null ||
       optionIndex < 0 ||
@@ -407,17 +411,17 @@ export class ChatFlowComponent {
       return;
     }
 
-    const sourceId = sourceNode.id;
-    const targetId = targetNode.id;
+    const sourceStepKey = sourceNode.step_key;
+    const targetStepKey = targetNode.step_key;
 
-    // ⭐ NEW: Update the specific option's next_node_id
+    // ⭐ Update the specific option's next_node_id
     const updatedOptions = [...sourceNode.data.options];
     updatedOptions[optionIndex] = {
       ...updatedOptions[optionIndex],
-      next_node_id: targetId,
+      next_node_id: targetStepKey,
     };
 
-    // ⭐ NEW: Update the source node with new options
+    // ⭐ Update the source node with new options
     const updatedSourceNode: FlowNode = {
       ...sourceNode,
       data: {
@@ -428,16 +432,18 @@ export class ChatFlowComponent {
 
     // Save updated node
     this.nodes.set(
-      this.nodes().map((n) => (n.id === sourceId ? updatedSourceNode : n))
+      this.nodes().map((n) =>
+        n.step_key === sourceStepKey ? updatedSourceNode : n
+      )
     );
 
-    // ⭐ NEW: Create visual connection with option reference
+    // ⭐ Create visual connection with option reference
     this.connections.set([
       ...this.connections(),
       {
         id: 'c-' + uuid().slice(0, 6),
-        source: sourceId,
-        target: targetId,
+        source: sourceStepKey,
+        target: targetStepKey,
         optionIndex: optionIndex,
       },
     ]);
@@ -447,12 +453,12 @@ export class ChatFlowComponent {
 
   /** Delete node + its connections */
   deleteNode(node: FlowNode) {
-    // ⭐ NEW: Remove next_node_id references from other nodes' options
+    // ⭐ Remove next_node_id references from other nodes' options
     const updatedNodes = this.nodes().map((n) => {
-      if (n.id === node.id) return n; // Will be filtered out
+      if (n.step_key === node.step_key) return n; // Will be filtered out
 
       const hasReferences = n.data.options?.some(
-        (opt) => opt.next_node_id === node.id
+        (opt) => opt.next_node_id === node.step_key
       );
 
       if (hasReferences) {
@@ -461,7 +467,7 @@ export class ChatFlowComponent {
           data: {
             ...n.data,
             options: n.data.options.map((opt) =>
-              opt.next_node_id === node.id
+              opt.next_node_id === node.step_key
                 ? { ...opt, next_node_id: null }
                 : opt
             ),
@@ -472,29 +478,31 @@ export class ChatFlowComponent {
       return n;
     });
 
-    this.nodes.set(updatedNodes.filter((n) => n.id !== node.id));
+    this.nodes.set(updatedNodes.filter((n) => n.step_key !== node.step_key));
 
     this.connections.set(
       this.connections().filter(
-        (c) => c.source !== node.id && c.target !== node.id
+        (c) => c.source !== node.step_key && c.target !== node.step_key
       )
     );
 
-    if (this.activeNodeId() === node.id) {
-      this.activeNodeId.set(null);
+    if (this.activeNodeStepKey() === node.step_key) {
+      this.activeNodeStepKey.set(null);
     }
-    if (this.selectedNode()?.id === node.id) {
+    if (this.selectedNode()?.step_key === node.step_key) {
       this.selectedNode.set(null);
     }
   }
 
-  // ⭐ NEW: Delete specific connection
+  // ⭐ Delete specific connection
   deleteConnection(connectionId: string) {
     const connection = this.connections().find((c) => c.id === connectionId);
 
     if (connection) {
       // Remove next_node_id from the option
-      const sourceNode = this.nodes().find((n) => n.id === connection.source);
+      const sourceNode = this.nodes().find(
+        (n) => n.step_key === connection.source
+      );
 
       if (sourceNode && connection.optionIndex !== undefined) {
         const updatedOptions = [...sourceNode.data.options];
@@ -506,7 +514,7 @@ export class ChatFlowComponent {
 
           this.nodes.set(
             this.nodes().map((n) =>
-              n.id === sourceNode.id
+              n.step_key === sourceNode.step_key
                 ? { ...n, data: { ...n.data, options: updatedOptions } }
                 : n
             )
@@ -526,7 +534,7 @@ export class ChatFlowComponent {
     this.selectedNode.set(node);
     this.model = new TemplateModel(node.data);
     this.templateForm.patchValue(this.model);
-    this.activeNodeId.set(node.id);
+    this.activeNodeStepKey.set(node.step_key);
   }
 
   saveNode() {
@@ -541,13 +549,13 @@ export class ChatFlowComponent {
       data: updatedData,
     };
 
-    // ⭐ NEW: Sync connections with option changes
+    // ⭐ Sync connections with option changes
     const oldOptions = this.selectedNode()!.data.options || [];
     const newOptions = updatedData.options || [];
 
     // Update connections based on next_node_id changes
     const updatedConnections = this.connections().filter((c) => {
-      if (c.source !== updatedNode.id) return true;
+      if (c.source !== updatedNode.step_key) return true;
 
       // Check if this connection's option still exists and has matching next_node_id
       if (c.optionIndex !== undefined && c.optionIndex < newOptions.length) {
@@ -562,7 +570,7 @@ export class ChatFlowComponent {
       if (option.next_node_id) {
         const existingConnection = updatedConnections.find(
           (c) =>
-            c.source === updatedNode.id &&
+            c.source === updatedNode.step_key &&
             c.optionIndex === index &&
             c.target === option.next_node_id
         );
@@ -570,7 +578,7 @@ export class ChatFlowComponent {
         if (!existingConnection) {
           updatedConnections.push({
             id: 'c-' + uuid().slice(0, 6),
-            source: updatedNode.id,
+            source: updatedNode.step_key,
             target: option.next_node_id,
             optionIndex: index,
           });
@@ -581,17 +589,19 @@ export class ChatFlowComponent {
     this.connections.set(updatedConnections);
 
     this.nodes.set(
-      this.nodes().map((n) => (n.id === updatedNode.id ? updatedNode : n))
+      this.nodes().map((n) =>
+        n.step_key === updatedNode.step_key ? updatedNode : n
+      )
     );
 
     this.selectedNode.set(null);
   }
 
   saveFullFlow() {
-    // ⭐ NEW: Build complete flow structure
+    // ⭐ Build complete flow structure
     const flowData = {
       nodes: this.nodes().map((node) => ({
-        id: node.id,
+        step_key: node.step_key,
         name: node.name,
         position: { x: node.x, y: node.y },
         data: node.data,
@@ -613,11 +623,28 @@ export class ChatFlowComponent {
   closeEditor() {
     this.selectedNode.set(null);
   }
-  /** Get the name of the next node by its id */
-  getNextNodeName(nextNodeId: string | null): string {
-    if (!nextNodeId) return 'Template'; // fallback if no next_node_id
 
-    const nextNode = this.nodes().find((n) => n.id === nextNodeId);
+  /** Get the name of the next node by its step_key */
+  getNextNodeName(nextNodeStepKey: string | null): string {
+    if (!nextNodeStepKey) return 'Template'; // fallback if no next_node_id
+
+    const nextNode = this.nodes().find((n) => n.step_key === nextNodeStepKey);
     return nextNode?.data.name || 'Template';
+  }
+
+  /** Calculate midpoint for delete button */
+  getConnectionMidpoint(
+    sourceStepKey: string,
+    targetStepKey: string
+  ): { x: number; y: number } {
+    const source = this.nodes().find((n) => n.step_key === sourceStepKey);
+    const target = this.nodes().find((n) => n.step_key === targetStepKey);
+
+    if (!source || !target) return { x: 0, y: 0 };
+
+    return {
+      x: (source.x + target.x) / 2 + 100,
+      y: (source.y + target.y) / 2 + 40,
+    };
   }
 }

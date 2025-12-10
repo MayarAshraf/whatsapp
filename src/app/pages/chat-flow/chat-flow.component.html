@@ -28,7 +28,7 @@
       @for (node of nodes(); track $index) {
       <div
         class="node-item flex gap-2 justify-content-between align-items-center bg-white p-2 mb-2 border-round cursor-pointer"
-        [class.active]="isNodeActive(node.id)"
+        [class.active]="isNodeActive(node.step_key)"
         (click)="openEditor(node)"
       >
         <div class="flex flex-1 align-items-center gap-2 min-w-0">
@@ -87,7 +87,7 @@
   >
     <f-flow fDraggable>
       <f-canvas>
-        <!-- ⭐ NEW: Connections with labels -->
+        <!-- ⭐ Connections with hover delete buttons -->
         @for (c of connections(); track c.id) {
         <f-connection
           [fOutputId]="c.source"
@@ -130,10 +130,10 @@
           [fNodePosition]="{ x: node.x, y: node.y }"
           fNodeInput
           fNodeOutput
-          [fInputId]="node.id"
-          [fOutputId]="node.id"
+          [fInputId]="node.step_key"
+          [fOutputId]="node.step_key"
           class="flow-node"
-          [class.active]="isNodeActive(node.id)"
+          [class.active]="isNodeActive(node.step_key)"
           (click)="selectNodeForConnection(node, $event)"
           (dblclick)="openEditor(node)"
           fOutputConnectableSide="right"
@@ -173,7 +173,7 @@
               {{ node.data.message_text || ("no_message" | translate) }}
             </small>
 
-            <!-- ⭐ NEW: Show options with connection buttons -->
+            <!-- ⭐ Show options with connection buttons -->
             @if (node.data.options && node.data.options.length > 0) {
             <div class="mt-2">
               <div class="text-xs font-semibold text-500 mb-1">
@@ -254,7 +254,7 @@
         <formly-form [model]="model" [fields]="fields" [form]="templateForm" />
       </div>
 
-      <!-- ⭐ NEW: Visual connection summary -->
+      <!-- ⭐ Visual connection summary -->
       @if (selectedNode()!.data.options && selectedNode()!.data.options.length >
       0) {
       <div class="mt-3 border-1 border-300 border-round bg-blue-50">
