@@ -34,7 +34,7 @@ export class TemplateModel {
     this.message_text = editData?.message_text || null;
     this.level_type = editData?.level_type || null;
     this.order = editData?.order ?? null;
-    this.is_active = editData?.is_active ?? false;
+    this.is_active = editData?.is_active ?? true;
     this.parent_department_id = editData?.parent_department_id ?? null;
     this.options = editData?.options?.length
       ? editData.options
@@ -44,7 +44,7 @@ export class TemplateModel {
             department_id: null,
             subrole_id: null,
             order: null,
-            is_active: false,
+            is_active: true,
             next_node_id: null,
           },
         ];

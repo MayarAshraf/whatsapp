@@ -306,7 +306,7 @@ export class ChatFlowComponent {
         options: [],
       }),
     };
-
+    this.openEditor(newNode);
     this.nodes.set([...this.nodes(), newNode]);
   }
 
