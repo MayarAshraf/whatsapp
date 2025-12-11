@@ -69,8 +69,7 @@ export abstract class BaseCreateUpdateComponent<
   protected updateUi(data: any): Observable<any> | void {}
 
   protected createUpdateRecord(endpoints: { [key: string]: string }, model: T) {
-    const { headers, params, updateApiVersion, createApiVersion } =
-      this.dialogMeta;
+    const { headers, params } = this.dialogMeta;
     const isUpdateAction =
       this.editData?.method !== 'create' && !!this.editData;
 

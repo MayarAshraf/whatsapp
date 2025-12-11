@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FFlowModule } from '@foblex/flow';
+import { EFConnectionBehavior, EFMarkerType, FFlowModule } from '@foblex/flow';
 import { FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { _, TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -11,6 +11,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { map } from 'rxjs';
 import { FieldBuilderService } from 'src/app/shared/services/field-builder.service';
 import { GlobalListService } from 'src/app/shared/services/global-list.service';
+import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { LangService } from 'src/app/shared/services/lang.service';
 import { v4 as uuid } from 'uuid';
 import { flowModel, TemplateModel } from './services/service-type';
@@ -52,6 +53,7 @@ export class ChatFlowComponent {
   #fieldBuilder = inject(FieldBuilderService);
   #globalList = inject(GlobalListService);
   #currentLang = inject(LangService).currentLanguage;
+  #api = inject(ApiService);
 
   templateList$ = this.#globalList.getGlobalList('chat-flows');
 
@@ -64,13 +66,15 @@ export class ChatFlowComponent {
   pointer = signal({ x: 0, y: 0 });
   templatevisible = signal(false);
   loading = signal(false);
-  model: any;
+  selectedOptionIndex = signal<number | null>(null);
+
+  templateModel: TemplateModel = new TemplateModel();
   flowModel: flowModel = new flowModel();
   templateForm = new FormGroup({});
   flowForm = new FormGroup({});
 
-  // ⭐ Track which option is being connected
-  selectedOptionIndex = signal<number | null>(null);
+  eConnectionBehaviour = EFConnectionBehavior;
+  readonly eMarkerType = EFMarkerType;
 
   nodes = signal<FlowNode[]>([
     {
@@ -110,7 +114,7 @@ export class ChatFlowComponent {
     () => this.connectionSource() && this.connectionTarget()
   );
 
-  fields: FormlyFieldConfig[] = [
+  Templatefields: FormlyFieldConfig[] = [
     {
       key: 'name',
       type: 'input-field',
@@ -140,7 +144,7 @@ export class ChatFlowComponent {
     {
       key: 'interactive_type',
       type: 'select-field',
-      hideExpression: () => this.model?.message_type !== 'interactive',
+      hideExpression: () => this.templateModel?.message_type !== 'interactive',
       props: {
         label: _('interactive_type'),
         filter: true,
@@ -148,7 +152,7 @@ export class ChatFlowComponent {
       },
       expressions: {
         'props.options': () => {
-          if (!this.model.message_type) {
+          if (!this.templateModel.message_type) {
             return [];
           }
           return this.#globalList
@@ -168,7 +172,7 @@ export class ChatFlowComponent {
       hooks: {
         onInit: (field) => {
           field.formControl?.valueChanges.subscribe(() => {
-            if (this.model.message_type !== 'interactive') {
+            if (this.templateModel.message_type !== 'interactive') {
               field.formControl?.reset(null, { emitEvent: false });
             }
           });
@@ -190,7 +194,7 @@ export class ChatFlowComponent {
     {
       key: 'options',
       type: 'order-list-field',
-      hideExpression: () => !this.model?.interactive_type,
+      hideExpression: () => !this.templateModel?.interactive_type,
       props: {
         label: _('response_options'),
         description: _('drag_to_reorder_configure_buttons'),
@@ -199,7 +203,7 @@ export class ChatFlowComponent {
       },
       expressions: {
         'props.maxItems': () =>
-          this.model?.interactive_type === 'button' ? 3 : 10,
+          this.templateModel?.interactive_type === 'button' ? 3 : 10,
       },
       fieldArray: {
         fieldGroup: [
@@ -337,12 +341,6 @@ export class ChatFlowComponent {
     ]),
   ];
 
-  submit(): void {
-    if (this.templateForm.invalid) return;
-    this.loading.set(true);
-    console.log(this.model);
-  }
-
   isNodeActive(stepKey: string): boolean {
     return this.activeNodeStepKey() === stepKey;
   }
@@ -365,7 +363,7 @@ export class ChatFlowComponent {
     this.nodes.set([...this.nodes(), newNode]);
   }
 
-  // ⭐ Start connection from specific option
+  //Start connection from specific option
   startConnectionFromOption(
     node: FlowNode,
     optionIndex: number,
@@ -379,12 +377,9 @@ export class ChatFlowComponent {
     this.isDraggingConnection.set(true);
   }
 
-  /** Start selecting source node */
   selectNodeForConnection(node: FlowNode, event: MouseEvent) {
     event.stopPropagation();
-
     this.activeNodeStepKey.set(node.step_key);
-
     const source = this.connectionSource();
 
     // Ensure source still exists in nodes
@@ -393,7 +388,6 @@ export class ChatFlowComponent {
       return;
     }
 
-    // If we're in connection mode and this is a different node, complete connection
     if (
       this.isDraggingConnection() &&
       source &&
@@ -404,7 +398,6 @@ export class ChatFlowComponent {
       return;
     }
 
-    // ⭐ If node has no options, show message
     if (!node.data.options || node.data.options.length === 0) {
       console.warn(
         'This node has no options to connect from. Add options first.'
@@ -412,8 +405,6 @@ export class ChatFlowComponent {
       return;
     }
 
-    // ⭐ If node has options, user should click on option to connect
-    // For now, we'll use the first available option
     const firstEmptyOption = node.data.options.findIndex(
       (opt) => !opt.target_step_key
     );
@@ -428,26 +419,15 @@ export class ChatFlowComponent {
     this.isDraggingConnection.set(true);
   }
 
-  /** Mouse move listens inside canvas */
-  onCanvasMouseMove(event: MouseEvent) {
-    if (!this.isDraggingConnection()) return;
-
-    const rect = (event.target as HTMLElement).getBoundingClientRect();
-    this.pointer.set({
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    });
-  }
-
-  /** Cancel drag if clicked outside */
   cancelConnection() {
     this.connectionSource.set(null);
     this.connectionTarget.set(null);
+    this.activeNodeStepKey.set(null);
+    this.selectedNode.set(null);
     this.selectedOptionIndex.set(null);
     this.isDraggingConnection.set(false);
   }
 
-  /** Actually create a connection */
   createConnection() {
     if (!this.canConnect()) return;
 
@@ -455,7 +435,6 @@ export class ChatFlowComponent {
     const targetNode = this.connectionTarget()!;
     const optionIndex = this.selectedOptionIndex();
 
-    // ⭐ Validate option index
     if (
       optionIndex === null ||
       optionIndex < 0 ||
@@ -469,14 +448,14 @@ export class ChatFlowComponent {
     const sourceStepKey = sourceNode.step_key;
     const targetStepKey = targetNode.step_key;
 
-    // ⭐ Update the specific option's target_step_key
+    // Update the specific option's target_step_key
     const updatedOptions = [...sourceNode.data.options];
     updatedOptions[optionIndex] = {
       ...updatedOptions[optionIndex],
       target_step_key: targetStepKey,
     };
 
-    // ⭐ Update the source node with new options
+    // Update the source node with new options
     const updatedSourceNode: FlowNode = {
       ...sourceNode,
       data: {
@@ -485,14 +464,12 @@ export class ChatFlowComponent {
       },
     };
 
-    // Save updated node
     this.nodes.set(
       this.nodes().map((n) =>
         n.step_key === sourceStepKey ? updatedSourceNode : n
       )
     );
 
-    // ⭐ Create visual connection with option reference
     this.connections.set([
       ...this.connections(),
       {
@@ -506,11 +483,10 @@ export class ChatFlowComponent {
     this.cancelConnection();
   }
 
-  /** Delete node + its connections */
   deleteNode(node: FlowNode) {
-    // ⭐ Remove target_step_key references from other nodes' options
+    // Remove target_step_key references from other nodes' options
     const updatedNodes = this.nodes().map((n) => {
-      if (n.step_key === node.step_key) return n; // Will be filtered out
+      if (n.step_key === node.step_key) return n;
 
       const hasReferences = n.data.options?.some(
         (opt) => opt.target_step_key === node.step_key
@@ -549,7 +525,6 @@ export class ChatFlowComponent {
     }
   }
 
-  // ⭐ Delete specific connection
   deleteConnection(connectionId: string) {
     const connection = this.connections().find((c) => c.id === connectionId);
 
@@ -578,50 +553,42 @@ export class ChatFlowComponent {
       }
     }
 
-    // Remove visual connection
     this.connections.set(
       this.connections().filter((c) => c.id !== connectionId)
     );
   }
 
-  /** Editor */
   openEditor(node: FlowNode) {
     this.selectedNode.set(node);
-    this.model = new TemplateModel(node.data);
-    this.templateForm.patchValue(this.model);
+    this.templateModel = new TemplateModel(node.data);
+    this.templateForm.patchValue(this.templateModel);
     this.activeNodeStepKey.set(node.step_key);
   }
 
   saveNode() {
     if (!this.selectedNode()) return;
-    if (this.templateForm.invalid) return;
-
-    const formValue = this.templateForm.value;
-    const updatedData = new TemplateModel(formValue);
+    if (this.templateForm.invalid) {
+      this.templateForm.markAllAsTouched();
+      return;
+    }
 
     const updatedNode: FlowNode = {
       ...this.selectedNode()!,
-      data: updatedData,
+      data: this.templateModel,
     };
 
-    // ⭐ Sync connections with option changes
-    const oldOptions = this.selectedNode()!.data.options || [];
-    const newOptions = updatedData.options || [];
+    const options = this.templateModel.options || [];
 
     // Update connections based on target_step_key changes
     const updatedConnections = this.connections().filter((c) => {
       if (c.source !== updatedNode.step_key) return true;
-
-      // Check if this connection's option still exists and has matching target_step_key
-      if (c.optionIndex !== undefined && c.optionIndex < newOptions.length) {
-        return newOptions[c.optionIndex].target_step_key === c.target;
+      if (c.optionIndex !== undefined && c.optionIndex < options.length) {
+        return options[c.optionIndex].target_step_key === c.target;
       }
-
       return false;
     });
 
-    // Add new connections for manually set target_step_key
-    newOptions.forEach((option, index) => {
+    options.forEach((option, index) => {
       if (option.target_step_key) {
         const existingConnection = updatedConnections.find(
           (c) =>
@@ -653,14 +620,7 @@ export class ChatFlowComponent {
   }
 
   openFlowDialog() {
-    // this.flowModel = new flowModel();
-    // Reset the form with the default values
-    this.flowForm.reset(this.flowModel);
     this.templatevisible.set(true);
-    // ⭐ Build complete flow structure
-
-    // Call your API here
-    // this.apiService.saveFlow(flowData).subscribe(...)
   }
 
   saveFlow() {
@@ -691,9 +651,9 @@ export class ChatFlowComponent {
     this.selectedNode.set(null);
   }
 
-  /** Get the name of the next node by its step_key */
+  // Get the name of the next node by its step_key
   getNextNodeName(nextNodeStepKey: string | null | undefined): string {
-    if (!nextNodeStepKey) return 'Template'; // fallback if no target_step_key
+    if (!nextNodeStepKey) return 'Template';
 
     const nextNode = this.nodes().find((n) => n.step_key === nextNodeStepKey);
     return nextNode?.data.name || 'Template';

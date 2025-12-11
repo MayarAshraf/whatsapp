@@ -53,9 +53,13 @@
             </span>
             <small
               class="block text-primary text-xs white-space-nowrap line-clamp-1"
-              [pTooltip]="node.data.message_content || ('no_message' | translate)"
+              [pTooltip]="
+                node.data.message_content || ('no_message' | translate)
+              "
               tooltipPosition="top"
-              >{{ node.data.message_content || ("no_message" | translate) }}</small
+              >{{
+                node.data.message_content || ("no_message" | translate)
+              }}</small
             >
           </div>
         </div>
@@ -80,50 +84,41 @@
     </div>
   </div>
 
-  <div
-    class="col-9 canvas-area"
-    (mousemove)="onCanvasMouseMove($event)"
-    (click)="cancelConnection()"
-  >
+  <div class="col-9" (click)="cancelConnection()">
     <f-flow fDraggable>
       <f-canvas>
-        <!-- ⭐ Connections with hover delete buttons -->
         @for (c of connections(); track c.id) {
         <f-connection
           [fOutputId]="c.source"
           [fInputId]="c.target"
-          fType="segment"
+          fType="bezier"
+          [fSelectionDisabled]="true"
+          [fBehavior]="eConnectionBehaviour.FIXED"
         >
+          <svg
+            viewBox="0 0 10 10"
+            fMarker
+            [type]="eMarkerType.START"
+            [height]="10"
+            [width]="10"
+            [refX]="5"
+            [refY]="5"
+          >
+            <circle cx="5" cy="5" r="2" stroke="none" fill="#3B82F6"></circle>
+          </svg>
+          <svg
+            viewBox="0 0 700 700"
+            fMarker
+            [type]="eMarkerType.END"
+            [height]="15"
+            [width]="15"
+            [refX]="9"
+            [refY]="8"
+          >
+            <path fill="#3B82F6" d="M0,0L700,350L0,700L150,350z" />
+          </svg>
         </f-connection>
-        } @if (isDraggingConnection() && connectionSource()) {
-        <svg class="preview-line">
-          <defs>
-            <marker
-              id="arrowhead-preview"
-              markerWidth="10"
-              markerHeight="10"
-              refX="9"
-              refY="3"
-              orient="auto"
-            >
-              <polygon points="0 0, 10 3, 0 6" fill="#3B82F6" />
-            </marker>
-          </defs>
-          <line
-            [attr.x1]="connectionSource()!.x + 130"
-            [attr.y1]="connectionSource()!.y + 80"
-            [attr.x2]="pointer().x"
-            [attr.y2]="pointer().y"
-            stroke="#3B82F6"
-            stroke-width="2"
-            stroke-dasharray="5,5"
-            marker-end="url(#arrowhead-preview)"
-          />
-        </svg>
-        }
-
-        <!-- Nodes -->
-        @for (node of nodes(); track $index) {
+        } @for (node of nodes(); track $index) {
         <div
           fNode
           fDragHandle
@@ -136,6 +131,7 @@
           [class.active]="isNodeActive(node.step_key)"
           (click)="selectNodeForConnection(node, $event)"
           (dblclick)="openEditor(node)"
+          fInputConnectableSide="left"
           fOutputConnectableSide="right"
         >
           <div class="node-header p-2 bg-primary text-white border-round-top">
@@ -164,16 +160,17 @@
             </div>
           </div>
 
-          <div class="node-content p-2 bg-white">
+          <div class="p-2 bg-white">
             <small
               class="block text-color-secondary text-xs white-space-nowrap line-clamp-2"
-              [pTooltip]="node.data.message_content || ('no_message' | translate)"
+              [pTooltip]="
+                node.data.message_content || ('no_message' | translate)
+              "
               tooltipPosition="top"
             >
               {{ node.data.message_content || ("no_message" | translate) }}
             </small>
 
-            <!-- ⭐ Show options with connection buttons -->
             @if (node.data.options && node.data.options.length > 0) {
             <div class="mt-2">
               <div class="text-xs font-semibold text-500 mb-1">
@@ -187,7 +184,6 @@
                   option?.title || ("option" | translate) + " " + ($index + 1)
                 }}</span>
 
-                <!-- Connection indicator -->
                 @if (option?.target_step_key) {
                 <i
                   class="pi pi-check-circle text-green-500 text-xs"
@@ -209,18 +205,6 @@
             </div>
             }
           </div>
-
-          <!-- Connection points -->
-          <div
-            class="connection-point connection-input"
-            [pTooltip]="'Input'"
-            tooltipPosition="left"
-          ></div>
-          <div
-            class="connection-point connection-output"
-            [pTooltip]="'Output'"
-            tooltipPosition="right"
-          ></div>
         </div>
         }
       </f-canvas>
@@ -228,7 +212,6 @@
   </div>
 </div>
 
-<!-- EDITOR SIDEBAR -->
 @if (selectedNode()) {
 <div class="node-editor flex flex-column h-full">
   <div
@@ -249,12 +232,15 @@
   </div>
 
   <div class="p-3 flex-1 overflow-y-auto">
-    <form [formGroup]="templateForm" (ngSubmit)="submit()">
+    <form [formGroup]="templateForm" (ngSubmit)="saveNode()">
       <div>
-        <formly-form [model]="model" [fields]="fields" [form]="templateForm" />
+        <formly-form
+          [model]="templateModel"
+          [fields]="Templatefields"
+          [form]="templateForm"
+        />
       </div>
 
-      <!-- ⭐ Visual connection summary -->
       @if (selectedNode()?.data?.options &&
       selectedNode()?.data?.options?.length) {
       <div class="mt-3 border-1 border-300 border-round bg-blue-50">
@@ -303,23 +289,27 @@
   [style]="{ width: '30rem', 'max-width': '90vw' }"
   [closeOnEscape]="true"
 >
-<div class="p-2">
-  <form [formGroup]="flowForm" (ngSubmit)="saveFlow()">
-    <formly-form [model]="flowModel" [fields]="flowFields" [form]="flowForm" />
-  </form>
-</div>
-<ng-template #footer>
-  <p-button
-    [label]="'cancel'|translate"
-    [text]="true"
-    severity="secondary"
-    (click)="templatevisible.set(false)"
-  />
-  <p-button
-    [label]="'save_flow'|translate"
-    [outlined]="true"
-    severity="secondary"
-    (click)="saveFlow()"
-  />
-</ng-template>
+  <div class="p-2">
+    <form [formGroup]="flowForm" (ngSubmit)="saveFlow()">
+      <formly-form
+        [model]="flowModel"
+        [fields]="flowFields"
+        [form]="flowForm"
+      />
+    </form>
+  </div>
+  <ng-template #footer>
+    <p-button
+      [label]="'cancel' | translate"
+      [text]="true"
+      severity="secondary"
+      (click)="templatevisible.set(false)"
+    />
+    <p-button
+      [label]="'save_flow' | translate"
+      [outlined]="true"
+      severity="secondary"
+      (click)="saveFlow()"
+    />
+  </ng-template>
 </p-dialog>
