@@ -53,9 +53,9 @@
             </span>
             <small
               class="block text-primary text-xs white-space-nowrap line-clamp-1"
-              [pTooltip]="node.data.message_text || ('no_message' | translate)"
+              [pTooltip]="node.data.message_content || ('no_message' | translate)"
               tooltipPosition="top"
-              >{{ node.data.message_text || ("no_message" | translate) }}</small
+              >{{ node.data.message_content || ("no_message" | translate) }}</small
             >
           </div>
         </div>
@@ -167,10 +167,10 @@
           <div class="node-content p-2 bg-white">
             <small
               class="block text-color-secondary text-xs white-space-nowrap line-clamp-2"
-              [pTooltip]="node.data.message_text || ('no_message' | translate)"
+              [pTooltip]="node.data.message_content || ('no_message' | translate)"
               tooltipPosition="top"
             >
-              {{ node.data.message_text || ("no_message" | translate) }}
+              {{ node.data.message_content || ("no_message" | translate) }}
             </small>
 
             <!-- ⭐ Show options with connection buttons -->

@@ -1,53 +1,49 @@
 export interface Template {
   id: number;
   name: string;
-  message_text: string;
-  level_type: string;
   order: number;
-  parent_department_id: number;
   is_active: boolean;
+  message_type: string;
+  interactive_type: string;
+  message_content: string;
   options: TemplateOption[];
 }
 
 export interface TemplateOption {
   title: string | null;
-  department_id: number | null;
-  subrole_id: number | null;
-  order: number | null;
-  is_active: boolean;
-  target_step_key?: string | null;
   action_type: string | null;
+  target_step_key?: string | null;
+  target_group_id?: number | null;
+  target_user_id?: number | null;
 }
 
 export class TemplateModel {
   id?: number | null;
   name: string | null;
-  message_text: string | null;
-  level_type: string | null;
   order: number | null;
+  message_type: string | null;
+  interactive_type: string | null;
+  message_content: string | null;
   is_active: boolean;
-  parent_department_id: number | null;
   options: TemplateOption[];
 
   constructor(editData?: Partial<TemplateModel>) {
     this.id = editData?.id || null;
     this.name = editData?.name || null;
-    this.message_text = editData?.message_text || null;
-    this.level_type = editData?.level_type || null;
     this.order = editData?.order ?? null;
+    this.message_type = editData?.message_type || null;
+    this.interactive_type = editData?.interactive_type || null;
+    this.message_content = editData?.message_content || null;
     this.is_active = editData?.is_active ?? true;
-    this.parent_department_id = editData?.parent_department_id ?? null;
     this.options = editData?.options?.length
       ? editData.options
       : [
           {
             title: null,
-            department_id: null,
-            subrole_id: null,
-            order: null,
-            is_active: true,
             target_step_key: null,
             action_type: null,
+            target_group_id: null,
+            target_user_id: null,
           },
         ];
   }
