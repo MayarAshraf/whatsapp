@@ -15,7 +15,8 @@ export interface TemplateOption {
   subrole_id: number | null;
   order: number | null;
   is_active: boolean;
-  next_node_id?: string | null;
+  target_step_key?: string | null;
+  action_type: string | null;
 }
 
 export class TemplateModel {
@@ -45,8 +46,25 @@ export class TemplateModel {
             subrole_id: null,
             order: null,
             is_active: true,
-            next_node_id: null,
+            target_step_key: null,
+            action_type: null,
           },
         ];
+  }
+}
+
+export class flowModel {
+  id?: number | null;
+  name: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  description: string | null;
+
+  constructor(editData?: Partial<flowModel>) {
+    this.id = editData?.id || null;
+    this.description = editData?.description || null;
+    this.name = editData?.name || null;
+    this.is_active = editData?.is_active ?? true;
+    this.is_default = editData?.is_default ?? true;
   }
 }

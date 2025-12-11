@@ -15,7 +15,7 @@
           <i class="pi pi-plus"></i>
         </a>
         <a
-          (click)="saveFullFlow()"
+          (click)="openFlowDialog()"
           class="hover:text-primary"
           [pTooltip]="'save_flow' | translate"
           tooltipPosition="bottom"
@@ -184,11 +184,11 @@
                 class="flex align-items-center gap-2 mb-1 p-1 border-round bg-blue-50"
               >
                 <span class="flex-1 text-xs">{{
-                  option.title || ("option" | translate) + " " + ($index + 1)
+                  option?.title || ("option" | translate) + " " + ($index + 1)
                 }}</span>
 
                 <!-- Connection indicator -->
-                @if (option.next_node_id) {
+                @if (option?.target_step_key) {
                 <i
                   class="pi pi-check-circle text-green-500 text-xs"
                   [pTooltip]="'connected' | translate"
@@ -255,22 +255,22 @@
       </div>
 
       <!-- ⭐ Visual connection summary -->
-      @if (selectedNode()!.data.options && selectedNode()!.data.options.length >
-      0) {
+      @if (selectedNode()?.data?.options &&
+      selectedNode()?.data?.options?.length) {
       <div class="mt-3 border-1 border-300 border-round bg-blue-50">
         <div class="font-semibold text-sm mb-2 text-primary">
           <i class="pi pi-sitemap m-2"></i>{{ "routing_preview" | translate }}
         </div>
-        @for (option of selectedNode()!.data.options; track $index) {
+        @for (option of selectedNode()?.data?.options; track $index) {
         <div class="flex align-items-center gap-2 mb-2 text-xs m-2">
           <i class="pi pi-angle-right text-primary"></i>
           <span class="font-medium">{{
-            option.title || ("option" | translate) + " " + ($index + 1)
+            option?.title || ("option" | translate) + " " + ($index + 1)
           }}</span>
           <i class="pi pi-arrow-right text-400"></i>
-          @if (option.next_node_id) {
+          @if (option?.target_step_key) {
           <span class="text-success font-semibold">
-            {{ getNextNodeName(option.next_node_id) }}
+            {{ getNextNodeName(option.target_step_key) }}
           </span>
           } @else {
           <span class="text-400 italic">{{ "not_connected" | translate }}</span>
@@ -294,3 +294,32 @@
   </div>
 </div>
 }
+
+<p-dialog
+  [header]="'template_flow' | translate"
+  [modal]="true"
+  [(visible)]="templatevisible"
+  [closable]="true"
+  [style]="{ width: '30rem', 'max-width': '90vw' }"
+  [closeOnEscape]="true"
+>
+<div class="p-2">
+  <form [formGroup]="flowForm" (ngSubmit)="saveFlow()">
+    <formly-form [model]="flowModel" [fields]="flowFields" [form]="flowForm" />
+  </form>
+</div>
+<ng-template #footer>
+  <p-button
+    [label]="'cancel'|translate"
+    [text]="true"
+    severity="secondary"
+    (click)="templatevisible.set(false)"
+  />
+  <p-button
+    [label]="'save_flow'|translate"
+    [outlined]="true"
+    severity="secondary"
+    (click)="saveFlow()"
+  />
+</ng-template>
+</p-dialog>

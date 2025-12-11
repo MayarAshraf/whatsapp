@@ -4,14 +4,16 @@ import { FFlowModule } from '@foblex/flow';
 import { FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { _, TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
 import { map } from 'rxjs';
+import { FieldBuilderService } from 'src/app/shared/services/field-builder.service';
 import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { LangService } from 'src/app/shared/services/lang.service';
 import { v4 as uuid } from 'uuid';
-import { TemplateModel } from './services/service-type';
+import { flowModel, TemplateModel } from './services/service-type';
 
 interface FlowNode {
   step_key: string;
@@ -41,15 +43,17 @@ interface FlowConnection {
     TooltipModule,
     FormlyModule,
     ReactiveFormsModule,
+    DialogModule,
   ],
   templateUrl: './chat-flow.component.html',
   styleUrls: ['./chat-flow.component.scss'],
 })
 export class ChatFlowComponent {
+  #fieldBuilder = inject(FieldBuilderService);
   #globalList = inject(GlobalListService);
   #currentLang = inject(LangService).currentLanguage;
 
-  templateList$ = this.#globalList.getGlobalList('routing');
+  templateList$ = this.#globalList.getGlobalList('chat-flows');
 
   activeNodeStepKey = signal<string | null>(null);
   connections = signal<FlowConnection[]>([]);
@@ -58,9 +62,12 @@ export class ChatFlowComponent {
   connectionTarget = signal<FlowNode | null>(null);
   isDraggingConnection = signal(false);
   pointer = signal({ x: 0, y: 0 });
+  templatevisible = signal(false);
   loading = signal(false);
   model: any;
+  flowModel: flowModel = new flowModel();
   templateForm = new FormGroup({});
+  flowForm = new FormGroup({});
 
   // ⭐ Track which option is being connected
   selectedOptionIndex = signal<number | null>(null);
@@ -85,7 +92,8 @@ export class ChatFlowComponent {
             subrole_id: null,
             order: 1,
             is_active: true,
-            next_node_id: null,
+            target_step_key: null,
+            action_type: null,
           },
           {
             title: 'Support',
@@ -93,7 +101,8 @@ export class ChatFlowComponent {
             subrole_id: null,
             order: 2,
             is_active: true,
-            next_node_id: null,
+            target_step_key: null,
+            action_type: null,
           },
           {
             title: 'Marketing',
@@ -101,7 +110,8 @@ export class ChatFlowComponent {
             subrole_id: null,
             order: 3,
             is_active: true,
-            next_node_id: null,
+            target_step_key: null,
+            action_type: null,
           },
         ],
       },
@@ -124,16 +134,15 @@ export class ChatFlowComponent {
       props: { label: _('order'), type: 'number' },
     },
     {
-      key: 'level_type',
+      key: 'message_type',
       type: 'select-field',
       props: {
-        label: _('level_type'),
+        label: _('message_type'),
         filter: true,
-        required: true,
         options: this.templateList$.pipe(
           map((res: any) =>
-            res['level-types'].map((type: any) => ({
-              label: type.label,
+            res['message_types'].map((type: any) => ({
+              label: type[`label_${this.#currentLang()}`],
               value: type.value,
             }))
           )
@@ -141,26 +150,47 @@ export class ChatFlowComponent {
       },
     },
     {
-      key: 'parent_department_id',
+      key: 'interactive_type',
       type: 'select-field',
-      hideExpression: () => this.model?.level_type !== 'subrole',
+      hideExpression: () => this.model?.message_type !== 'interactive',
       props: {
-        label: _('department'),
+        label: _('interactive_type'),
         filter: true,
-        options: this.templateList$.pipe(
-          map(({ departments }) =>
-            departments.map((department: any) => ({
-              label: department[`label_${this.#currentLang()}`],
-              value: department.value,
-            }))
-          )
-        ),
+        options: [],
+      },
+      expressions: {
+        'props.options': () => {
+          if (!this.model.message_type) {
+            return [];
+          }
+          return this.#globalList
+            .getGlobalList('chat-flows', {
+              message_types: 'interactive',
+            })
+            .pipe(
+              map((res: any) =>
+                res['interactive_types'].map((type: any) => ({
+                  label: type[`label_${this.#currentLang()}`],
+                  value: type.value,
+                }))
+              )
+            );
+        },
+      },
+      hooks: {
+        onInit: (field) => {
+          field.formControl?.valueChanges.subscribe(() => {
+            if (this.model.message_type !== 'interactive') {
+              field.formControl?.reset(null, { emitEvent: false });
+            }
+          });
+        },
       },
     },
     {
-      key: 'message_text',
+      key: 'message_content',
       type: 'textarea-field',
-      props: { label: _('message_text'), required: true },
+      props: { label: _('message_content'), required: true },
     },
     {
       key: 'is_active',
@@ -172,12 +202,16 @@ export class ChatFlowComponent {
     {
       key: 'options',
       type: 'order-list-field',
+      hideExpression: () => !this.model?.interactive_type,
       props: {
         label: _('response_options'),
         description: _('drag_to_reorder_configure_buttons'),
         itemLabel: _('option'),
         addBtnText: _('add_option'),
-        maxItems: 3,
+      },
+      expressions: {
+        'props.maxItems': () =>
+          this.model?.interactive_type === 'button' ? 3 : 10,
       },
       fieldArray: {
         fieldGroup: [
@@ -187,70 +221,25 @@ export class ChatFlowComponent {
             props: { label: _('title') },
           },
           {
-            key: 'order',
-            type: 'input-field',
-            props: { label: _('order'), type: 'number' },
-          },
-          {
-            key: 'department_id',
+            key: 'action_type',
             type: 'select-field',
-            hideExpression: () => this.model?.level_type !== 'department',
             props: {
-              label: _('department'),
+              label: _('action_type'),
               filter: true,
               options: this.templateList$.pipe(
-                map(({ departments }) =>
-                  departments.map((department: any) => ({
-                    label: department[`label_${this.#currentLang()}`],
-                    value: department.value,
+                map((res: any) =>
+                  res['action_types'].map((type: any) => ({
+                    label: type[`label_${this.#currentLang()}`],
+                    value: type.value,
                   }))
                 )
               ),
             },
           },
           {
-            key: 'subrole_id',
+            key: 'target_step_key',
             type: 'select-field',
-            hideExpression: () =>
-              this.model?.level_type !== 'subrole' ||
-              !this.model.parent_department_id,
-            props: {
-              label: _('subrole'),
-              filter: true,
-              options: [],
-            },
-            expressions: {
-              'props.options': () => {
-                if (!this.model.parent_department_id) {
-                  return [];
-                }
-                return this.#globalList
-                  .getGlobalList('routing', {
-                    department_id: this.model.parent_department_id,
-                  })
-                  .pipe(
-                    map((res: any) =>
-                      res['sub-roles'].map((sub: any) => ({
-                        label: sub[`label_${this.#currentLang()}`],
-                        value: sub.value,
-                      }))
-                    )
-                  );
-              },
-            },
-            hooks: {
-              onInit: (field) => {
-                field.formControl?.valueChanges.subscribe(() => {
-                  if (!this.model?.parent_department_id) {
-                    field.formControl?.reset();
-                  }
-                });
-              },
-            },
-          },
-          {
-            key: 'next_node_id',
-            type: 'select-field',
+            hideExpression: (field) => field?.action_type !== 'jump_to_step',
             props: {
               label: _('next_template'),
               filter: true,
@@ -269,15 +258,95 @@ export class ChatFlowComponent {
             },
           },
           {
-            key: 'is_active',
-            type: 'switch-field',
+            key: 'target_group_id',
+            type: 'select-field',
+            hideExpression: (field) => field?.action_type !== 'assign_to_group',
             props: {
-              label: 'is_active',
+              label: _('group'),
+              filter: true,
+              showClear: true,
+              options: [],
+            },
+            expressions: {
+              'props.options': (field) => {
+                if (field?.model?.action_type !== 'assign_to_group') {
+                  return [];
+                }
+                return this.#globalList
+                  .getGlobalList('chat-flows', {
+                    action_types: 'assign_to_group',
+                  })
+                  .pipe(
+                    map((res: any) =>
+                      res['groups'].map((group: any) => ({
+                        label: group.label,
+                        value: group.value,
+                      }))
+                    )
+                  );
+              },
+            },
+            hooks: {
+              onInit: (field) => {
+                field.formControl?.valueChanges.subscribe(() => {
+                  if (field?.model?.action_type !== 'assign_to_group') {
+                    field.formControl?.reset(null, {
+                      emitEvent: false,
+                    });
+                  }
+                });
+              },
             },
           },
+          {
+            key: 'target_user',
+            type: 'autocomplete-field',
+            hideExpression: (field) => field?.action_type !== 'assign_to_user',
+            props: {
+              placeholder: _('target_user'),
+              endpoint: `auth/users/autocomplete`,
+              fieldKey: 'target_user_id',
+            },
+          },
+          { key: 'target_user_id' },
         ],
       },
     },
+  ];
+
+  flowFields: FormlyFieldConfig[] = [
+    {
+      key: 'name',
+      type: 'input-field',
+      props: {
+        label: _('name'),
+        required: true,
+      },
+    },
+    {
+      key: 'description',
+      type: 'textarea-field',
+      props: {
+        label: _('description'),
+        rows: 3,
+      },
+    },
+    this.#fieldBuilder.fieldBuilder([
+      {
+        key: 'is_active',
+        type: 'switch-field',
+        props: {
+          label: _('is_active'),
+        },
+      },
+      {
+        key: 'is_default',
+        type: 'switch-field',
+        props: {
+          label: _('is_default'),
+        },
+      },
+    ]),
   ];
 
   submit(): void {
@@ -360,7 +429,7 @@ export class ChatFlowComponent {
     // ⭐ If node has options, user should click on option to connect
     // For now, we'll use the first available option
     const firstEmptyOption = node.data.options.findIndex(
-      (opt) => !opt.next_node_id
+      (opt) => !opt.target_step_key
     );
 
     if (firstEmptyOption === -1) {
@@ -414,11 +483,11 @@ export class ChatFlowComponent {
     const sourceStepKey = sourceNode.step_key;
     const targetStepKey = targetNode.step_key;
 
-    // ⭐ Update the specific option's next_node_id
+    // ⭐ Update the specific option's target_step_key
     const updatedOptions = [...sourceNode.data.options];
     updatedOptions[optionIndex] = {
       ...updatedOptions[optionIndex],
-      next_node_id: targetStepKey,
+      target_step_key: targetStepKey,
     };
 
     // ⭐ Update the source node with new options
@@ -453,12 +522,12 @@ export class ChatFlowComponent {
 
   /** Delete node + its connections */
   deleteNode(node: FlowNode) {
-    // ⭐ Remove next_node_id references from other nodes' options
+    // ⭐ Remove target_step_key references from other nodes' options
     const updatedNodes = this.nodes().map((n) => {
       if (n.step_key === node.step_key) return n; // Will be filtered out
 
       const hasReferences = n.data.options?.some(
-        (opt) => opt.next_node_id === node.step_key
+        (opt) => opt.target_step_key === node.step_key
       );
 
       if (hasReferences) {
@@ -467,8 +536,8 @@ export class ChatFlowComponent {
           data: {
             ...n.data,
             options: n.data.options.map((opt) =>
-              opt.next_node_id === node.step_key
-                ? { ...opt, next_node_id: null }
+              opt.target_step_key === node.step_key
+                ? { ...opt, target_step_key: null }
                 : opt
             ),
           },
@@ -499,7 +568,7 @@ export class ChatFlowComponent {
     const connection = this.connections().find((c) => c.id === connectionId);
 
     if (connection) {
-      // Remove next_node_id from the option
+      // Remove target_step_key from the option
       const sourceNode = this.nodes().find(
         (n) => n.step_key === connection.source
       );
@@ -509,7 +578,7 @@ export class ChatFlowComponent {
         if (updatedOptions[connection.optionIndex]) {
           updatedOptions[connection.optionIndex] = {
             ...updatedOptions[connection.optionIndex],
-            next_node_id: null,
+            target_step_key: null,
           };
 
           this.nodes.set(
@@ -553,33 +622,33 @@ export class ChatFlowComponent {
     const oldOptions = this.selectedNode()!.data.options || [];
     const newOptions = updatedData.options || [];
 
-    // Update connections based on next_node_id changes
+    // Update connections based on target_step_key changes
     const updatedConnections = this.connections().filter((c) => {
       if (c.source !== updatedNode.step_key) return true;
 
-      // Check if this connection's option still exists and has matching next_node_id
+      // Check if this connection's option still exists and has matching target_step_key
       if (c.optionIndex !== undefined && c.optionIndex < newOptions.length) {
-        return newOptions[c.optionIndex].next_node_id === c.target;
+        return newOptions[c.optionIndex].target_step_key === c.target;
       }
 
       return false;
     });
 
-    // Add new connections for manually set next_node_id
+    // Add new connections for manually set target_step_key
     newOptions.forEach((option, index) => {
-      if (option.next_node_id) {
+      if (option.target_step_key) {
         const existingConnection = updatedConnections.find(
           (c) =>
             c.source === updatedNode.step_key &&
             c.optionIndex === index &&
-            c.target === option.next_node_id
+            c.target === option.target_step_key
         );
 
         if (!existingConnection) {
           updatedConnections.push({
             id: 'c-' + uuid().slice(0, 6),
             source: updatedNode.step_key,
-            target: option.next_node_id,
+            target: option.target_step_key,
             optionIndex: index,
           });
         }
@@ -597,9 +666,23 @@ export class ChatFlowComponent {
     this.selectedNode.set(null);
   }
 
-  saveFullFlow() {
+  openFlowDialog() {
+    // this.flowModel = new flowModel();
+    // Reset the form with the default values
+    this.flowForm.reset(this.flowModel);
+    this.templatevisible.set(true);
     // ⭐ Build complete flow structure
+
+    // Call your API here
+    // this.apiService.saveFlow(flowData).subscribe(...)
+  }
+
+  saveFlow() {
+    const formValue = this.flowForm.value;
+    const model = new flowModel(formValue);
+
     const flowData = {
+      ...model,
       nodes: this.nodes().map((node) => ({
         step_key: node.step_key,
         name: node.name,
@@ -613,11 +696,9 @@ export class ChatFlowComponent {
         optionIndex: conn.optionIndex,
       })),
     };
-
     console.log('COMPLETE FLOW PAYLOAD:', flowData);
 
-    // Call your API here
-    // this.apiService.saveFlow(flowData).subscribe(...)
+    this.templatevisible.set(false);
   }
 
   closeEditor() {
@@ -625,26 +706,10 @@ export class ChatFlowComponent {
   }
 
   /** Get the name of the next node by its step_key */
-  getNextNodeName(nextNodeStepKey: string | null): string {
-    if (!nextNodeStepKey) return 'Template'; // fallback if no next_node_id
+  getNextNodeName(nextNodeStepKey: string | null | undefined): string {
+    if (!nextNodeStepKey) return 'Template'; // fallback if no target_step_key
 
     const nextNode = this.nodes().find((n) => n.step_key === nextNodeStepKey);
     return nextNode?.data.name || 'Template';
-  }
-
-  /** Calculate midpoint for delete button */
-  getConnectionMidpoint(
-    sourceStepKey: string,
-    targetStepKey: string
-  ): { x: number; y: number } {
-    const source = this.nodes().find((n) => n.step_key === sourceStepKey);
-    const target = this.nodes().find((n) => n.step_key === targetStepKey);
-
-    if (!source || !target) return { x: 0, y: 0 };
-
-    return {
-      x: (source.x + target.x) / 2 + 100,
-      y: (source.y + target.y) / 2 + 40,
-    };
   }
 }
