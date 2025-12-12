@@ -56,7 +56,6 @@ import { ApiService } from 'src/app/shared/services/global-services/api.service'
 import { BreakpointService } from 'src/app/shared/services/global-services/breakpoint.service';
 import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
 import { IdleService } from 'src/app/shared/services/idle.service';
-import { LangService } from 'src/app/shared/services/lang.service';
 import { SoundsService } from 'src/app/shared/services/sounds.service';
 import { VoiceRecorderComponent } from './voice-recorder.component';
 
@@ -122,7 +121,6 @@ export default class ChatComponent implements OnInit, OnDestroy {
   #alertService = inject(AlertService);
   #confirmService = inject(ConfirmService);
   #translate = inject(TranslateService);
-  #currentLang = inject(LangService).currentLanguage;
   #globalList = inject(GlobalListService);
   isSmScreen = inject(BreakpointService).isSmScreen;
   idleService = inject(IdleService);

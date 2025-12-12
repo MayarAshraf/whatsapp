@@ -51,6 +51,6 @@ export class flowModel {
     this.description = editData?.description || null;
     this.name = editData?.name || null;
     this.is_active = editData?.is_active ?? true;
-    this.is_default = editData?.is_default ?? true;
+    this.is_default = editData?.is_default ?? false;
   }
 }

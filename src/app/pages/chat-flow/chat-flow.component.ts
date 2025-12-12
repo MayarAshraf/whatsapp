@@ -1,4 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  takeUntilDestroyed,
+  toObservable,
+  toSignal,
+} from '@angular/core/rxjs-interop';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { EFConnectionBehavior, EFMarkerType, FFlowModule } from '@foblex/flow';
 import { FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
@@ -6,9 +12,10 @@ import { _, TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
-import { map } from 'rxjs';
+import { filter, finalize, map, switchMap, tap } from 'rxjs';
 import { FieldBuilderService } from 'src/app/shared/services/field-builder.service';
 import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
@@ -45,6 +52,8 @@ interface FlowConnection {
     FormlyModule,
     ReactiveFormsModule,
     DialogModule,
+    TagModule,
+    DatePipe,
   ],
   templateUrl: './chat-flow.component.html',
   styleUrls: ['./chat-flow.component.scss'],
@@ -54,9 +63,11 @@ export class ChatFlowComponent {
   #globalList = inject(GlobalListService);
   #currentLang = inject(LangService).currentLanguage;
   #api = inject(ApiService);
+  #destroyRef = inject(DestroyRef);
 
   templateList$ = this.#globalList.getGlobalList('chat-flows');
 
+  flowId = signal<number | undefined>(undefined);
   activeNodeStepKey = signal<string | null>(null);
   connections = signal<FlowConnection[]>([]);
   selectedNode = signal<FlowNode | null>(null);
@@ -67,6 +78,10 @@ export class ChatFlowComponent {
   templatevisible = signal(false);
   loading = signal(false);
   selectedOptionIndex = signal<number | null>(null);
+  isFlowLoading = signal(false);
+  isLoading = signal(true);
+  nodes = signal<FlowNode[]>([]);
+  isWorkspaceOpened = signal(false);
 
   templateModel: TemplateModel = new TemplateModel();
   flowModel: flowModel = new flowModel();
@@ -76,43 +91,42 @@ export class ChatFlowComponent {
   eConnectionBehaviour = EFConnectionBehavior;
   readonly eMarkerType = EFMarkerType;
 
-  nodes = signal<FlowNode[]>([
-    {
-      step_key: 'n1',
-      name: 'Department Selection',
-      x: 40,
-      y: 40,
-      data: {
-        name: 'Department Selection',
-        message_content: '👋 Welcome to 8X CRM!',
-        order: 1,
-        is_active: true,
-        message_type: 'interactive',
-        interactive_type: 'button',
-        options: [
-          {
-            title: 'Sales',
-            target_step_key: null,
-            action_type: null,
-          },
-          {
-            title: 'Support',
-            target_step_key: null,
-            action_type: null,
-          },
-          {
-            title: 'Marketing',
-            target_step_key: null,
-            action_type: null,
-          },
-        ],
-      },
-    },
-  ]);
+  flows$ = this.#api.request('get', 'chat-flows/chat-flow').pipe(
+    finalize(() => this.isLoading.set(false)),
+    map(({ data }) => data)
+  );
+
+  flows = toSignal(this.flows$, { initialValue: [] });
+
+  selectedFlow$ = toObservable(this.flowId).pipe(
+    filter((id) => !!id),
+    switchMap((id) =>
+      this.#api
+        .request('post', 'chat-flows/chat-flow/show', {
+          id: id,
+          _method: 'GET',
+        })
+        .pipe(
+          map(({ data }) => data),
+          tap((data) => {
+            this.flowModel = new flowModel(data);
+            this.nodes.set(data.nodes);
+            this.connections.set(data.connections);
+          })
+        )
+    )
+  );
+
+  selectedFlow = toSignal(this.selectedFlow$, { initialValue: [] });
 
   canConnect = computed(
     () => this.connectionSource() && this.connectionTarget()
   );
+
+  openWorkspace(flowId?: number) {
+    this.isWorkspaceOpened.set(true);
+    this.flowId.set(flowId);
+  }
 
   Templatefields: FormlyFieldConfig[] = [
     {
@@ -130,6 +144,7 @@ export class ChatFlowComponent {
       type: 'select-field',
       props: {
         label: _('message_type'),
+        required: true,
         filter: true,
         options: this.templateList$.pipe(
           map((res: any) =>
@@ -345,6 +360,14 @@ export class ChatFlowComponent {
     return this.activeNodeStepKey() === stepKey;
   }
 
+  onNodePositionChange(event: any, stepKey: any) {
+    this.nodes.update((nodes) =>
+      nodes.map((node) =>
+        node.step_key === stepKey ? { ...node, x: event.x, y: event.y } : node
+      )
+    );
+  }
+
   addNode() {
     const newNode: FlowNode = {
       step_key: 'n-' + uuid().slice(0, 6),
@@ -359,8 +382,9 @@ export class ChatFlowComponent {
         options: [],
       }),
     };
+    this.nodes.update((nodes) => [...nodes, newNode]);
+
     this.openEditor(newNode);
-    this.nodes.set([...this.nodes(), newNode]);
   }
 
   //Start connection from specific option
@@ -562,6 +586,7 @@ export class ChatFlowComponent {
   }
 
   openEditor(node: FlowNode) {
+    this.templateForm.reset();
     this.selectedNode.set(node);
     this.templateModel = new TemplateModel(node.data);
     this.templateForm.patchValue(this.templateModel);
@@ -627,15 +652,19 @@ export class ChatFlowComponent {
   }
 
   saveFlow() {
-    const formValue = this.flowForm.value;
-    const model = new flowModel(formValue);
+    if (this.flowForm.invalid) {
+      this.flowForm.markAllAsTouched();
+      return;
+    }
+    this.isFlowLoading.set(true);
 
     const flowData = {
-      ...model,
+      ...this.flowModel,
       nodes: this.nodes().map((node) => ({
         step_key: node.step_key,
         name: node.name,
-        position: { x: node.x, y: node.y },
+        x: node.x,
+        y: node.y,
         data: node.data,
       })),
       connections: this.connections().map((conn) => ({
@@ -645,9 +674,21 @@ export class ChatFlowComponent {
         optionIndex: conn.optionIndex,
       })),
     };
-    console.log('COMPLETE FLOW PAYLOAD:', flowData);
 
-    this.templatevisible.set(false);
+    const endpoint = this.flowId()
+      ? 'chat-flows/chat-flow/update'
+      : 'chat-flows/chat-flow';
+    const method = this.flowId() ? 'put' : 'post';
+
+    this.#api
+      .request(method, endpoint, flowData)
+      .pipe(
+        finalize(() => this.isFlowLoading.set(false)),
+        takeUntilDestroyed(this.#destroyRef)
+      )
+      .subscribe((res) => {
+        this.templatevisible.set(false);
+      });
   }
 
   closeEditor() {

@@ -1,3 +1,96 @@
+@if(!isWorkspaceOpened()){
+<div class="table-card overflow-auto h-full">
+  <div class="grid">
+    <div class="col-12 sm:col-9">
+      <h2 class="m-0 text-xl font-semibold">
+        <i class="fa fa-solid fa-robot"></i>
+        {{ "whatsapp_templates" | translate }}
+      </h2>
+    </div>
+    <div class="col-12 sm:col-3 ml-auto">
+      <button
+        pButton
+        [label]="'create_chat_flow' | translate"
+        icon="pi pi-plus font-semibold"
+        [outlined]="true"
+        class="w-full"
+        (click)="openWorkspace()"
+      ></button>
+    </div>
+    @if(!isLoading()){ @for (flow of flows(); track $index) {
+    <div class="col-12 md:col-3">
+      <div class="border-round shadow-1 overflow-hidden border-1 border-200">
+        <div class="p-2 flex flex-column gap-1 bg-primary-500">
+          <div class="flex gap-2 justify-content-end">
+            @if(flow.is_default){
+            <p-tag
+              severity="secondary"
+              [value]="'default' | translate"
+              styleClass="font-semibold p-1 h-1.5rem text-xs"
+            />
+            } @if(flow.is_active){
+            <p-tag
+              icon="pi pi-check"
+              severity="success"
+              styleClass="font-semibold p-1 h-1.5rem text-xs"
+              [value]="'active' | translate"
+            />
+            }
+          </div>
+          <h2 class="m-0 font-medium text-lg text-white">{{ flow.name }}</h2>
+        </div>
+        <div class="p-2 flex justify-content-between">
+          <div
+            class="flex flex-column gap-1 align-items-center justify-content-center p-2 border-round bg-blue-50"
+          >
+            <i class="fa-regular fa-message text-primary"></i>
+            <span class="text-primary font-bold line-height-1">8</span>
+            <span class="line-height-1 text-sm text-500 text-xs font-medium">{{
+              "templates" | translate
+            }}</span>
+          </div>
+          <div
+            class="flex flex-column gap-1 align-items-center justify-content-center p-2 border-round bg-pink-50"
+          >
+            <i class="fa-solid fa-code-fork text-pink-700"></i>
+            <span class="font-bold text-pink-700 line-height-1">8</span>
+            <span class="line-height-1 text-sm text-500 text-xs font-medium">{{
+              "connections" | translate
+            }}</span>
+          </div>
+        </div>
+        <div class="px-2 text-xs">
+          <span class="text-500"
+            ><i class="fa-regular fa-user"></i> John Doe</span
+          >
+          <span class="text-500 mx-2"
+            ><i class="fa-regular fa-calendar"></i>
+            {{ flow.updated_at | date : "shortTime" }}
+          </span>
+        </div>
+        <div class="p-2">
+          <button
+            pButton
+            size="small"
+            [label]="'view' | translate"
+            icon="fa-solid fa-eye"
+            [outlined]="true"
+            class="w-full"
+            (click)="openWorkspace(flow.id)"
+          ></button>
+        </div>
+      </div>
+    </div>
+    }@empty{
+    <p>{{ "no_chat_flows_yet" | translate }}</p>
+    }}@else{
+    <div class="col-12 text-center">
+      <i class="pi pi-spinner pi-spin text-2xl text-primary"></i>
+    </div>
+    }
+  </div>
+</div>
+}@else{
 <div class="grid h-full">
   <div
     class="col-3 flex flex-column border-right-1 bg-white border-300 h-full p-0"
@@ -133,6 +226,7 @@
           (dblclick)="openEditor(node)"
           fInputConnectableSide="left"
           fOutputConnectableSide="right"
+          (fNodePositionChange)="onNodePositionChange($event, node.step_key)"
         >
           <div class="node-header p-2 bg-primary text-white border-round-top">
             <div class="flex flex-1 align-items-center gap-2 min-w-0">
@@ -308,8 +402,10 @@
     <p-button
       [label]="'save_flow' | translate"
       [outlined]="true"
+      [loading]="isFlowLoading()"
       severity="secondary"
       (click)="saveFlow()"
     />
   </ng-template>
 </p-dialog>
+}

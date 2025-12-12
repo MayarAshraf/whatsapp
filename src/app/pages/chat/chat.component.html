@@ -13,7 +13,7 @@
             <a
               routerLink="/conversations"
               class="text-primary hover:text-primary-600"
-              ><i class="fa-solid fa-arrow-left"></i
+              ><i class="fa-solid fa-arrow-left text-base"></i
             ></a>
             {{ "settings" | translate }}
           </div>
@@ -30,7 +30,7 @@
               class="p-button-sm w-full hover:surface-200 justify-content-start"
               [class.surface-200]="activeIndex() === 0"
               (click)="activeIndex.set(0)"
-              [label]="'whatsapp_template' | translate"
+              [label]="'whatsapp_templates' | translate"
             ></button>
             <button
               pButton
