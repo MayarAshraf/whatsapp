@@ -399,9 +399,9 @@ export class ChatFlowComponent {
     }
 
     if (!node.data.options || node.data.options.length === 0) {
-      console.warn(
-        'This node has no options to connect from. Add options first.'
-      );
+      this.connectionSource.set(node);
+      this.selectedOptionIndex.set(null);
+      this.isDraggingConnection.set(true);
       return;
     }
 
@@ -435,38 +435,41 @@ export class ChatFlowComponent {
     const targetNode = this.connectionTarget()!;
     const optionIndex = this.selectedOptionIndex();
 
-    if (
-      optionIndex === null ||
-      optionIndex < 0 ||
-      optionIndex >= sourceNode.data.options.length
-    ) {
+    if (optionIndex === null) {
+      this.connections.set([
+        ...this.connections(),
+        {
+          id: 'c-' + uuid().slice(0, 6),
+          source: sourceNode.step_key,
+          target: targetNode.step_key,
+          optionIndex: undefined,
+        },
+      ]);
+
+      this.cancelConnection();
+      return;
+    }
+
+    if (optionIndex < 0 || optionIndex >= sourceNode.data.options.length) {
       console.error('Invalid option index');
       this.cancelConnection();
       return;
     }
 
-    const sourceStepKey = sourceNode.step_key;
-    const targetStepKey = targetNode.step_key;
-
-    // Update the specific option's target_step_key
     const updatedOptions = [...sourceNode.data.options];
     updatedOptions[optionIndex] = {
       ...updatedOptions[optionIndex],
-      target_step_key: targetStepKey,
+      target_step_key: targetNode.step_key,
     };
 
-    // Update the source node with new options
-    const updatedSourceNode: FlowNode = {
+    const updatedSourceNode = {
       ...sourceNode,
-      data: {
-        ...sourceNode.data,
-        options: updatedOptions,
-      },
+      data: { ...sourceNode.data, options: updatedOptions },
     };
 
     this.nodes.set(
       this.nodes().map((n) =>
-        n.step_key === sourceStepKey ? updatedSourceNode : n
+        n.step_key === sourceNode.step_key ? updatedSourceNode : n
       )
     );
 
@@ -474,9 +477,9 @@ export class ChatFlowComponent {
       ...this.connections(),
       {
         id: 'c-' + uuid().slice(0, 6),
-        source: sourceStepKey,
-        target: targetStepKey,
-        optionIndex: optionIndex,
+        source: sourceNode.step_key,
+        target: targetNode.step_key,
+        optionIndex,
       },
     ]);
 
