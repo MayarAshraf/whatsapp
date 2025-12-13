@@ -187,9 +187,23 @@
         <f-connection
           [fOutputId]="c.source"
           [fInputId]="c.target"
-          fType="bezier"
+          fType="segment"
           [fSelectionDisabled]="true"
           [fBehavior]="eConnectionBehaviour.FIXED"
+          [fText]="getConnectionLabel(c)"
+          (click)="onConnectionClick(c.id, $event)"
+          (mouseenter)="onConnectionMouseEnter(c.id)"
+          (mouseleave)="onConnectionMouseLeave(c.id)"
+          [style]="{
+            cursor: 'pointer',
+            'stroke-width': '1.5',
+            'stroke-dasharray':
+              hoveredConnection() === c.id || selectedConnection() === c.id
+                ? '5,3'
+                : 'none',
+            opacity: hoveredConnection() === c.id ? '0.9' : '1',
+            transition: 'all 0.2s ease'
+          }"
         >
           <svg
             viewBox="0 0 10 10"
@@ -411,4 +425,32 @@
     />
   </ng-template>
 </p-dialog>
+} @if (isConnectionMenuVisible() && selectedConnection()) {
+<div
+  class="p-2 shadow-2 border-round"
+  [style]="{
+    position: 'fixed',
+    top: connectionMenuPosition().y + 'px',
+    left: connectionMenuPosition().x + 'px',
+    'z-index': 1000,
+    background: 'white',
+    width: '13rem'
+  }"
+  (clickOutside)="closeConnectionMenu()"
+>
+  <button
+    pButton
+    [label]="'delete_connection' | translate"
+    icon="pi pi-trash"
+    class="p-button-text p-button-sm w-full justify-content-start p-button-danger"
+    (click)="deleteConnection(selectedConnection()!)"
+  ></button>
+  <button
+    pButton
+    [label]="'cancel' | translate"
+    icon="pi pi-times"
+    class="p-button-text p-button-sm w-full justify-content-start"
+    (click)="closeConnectionMenu()"
+  ></button>
+</div>
 }

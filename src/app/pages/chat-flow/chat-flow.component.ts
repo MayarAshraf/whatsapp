@@ -82,6 +82,10 @@ export class ChatFlowComponent {
   isLoading = signal(true);
   nodes = signal<FlowNode[]>([]);
   isWorkspaceOpened = signal(false);
+  selectedConnection = signal<string | null>(null);
+  isConnectionMenuVisible = signal(false);
+  connectionMenuPosition = signal({ x: 0, y: 0 });
+  hoveredConnection = signal<string | null>(null);
 
   templateModel: TemplateModel = new TemplateModel();
   flowModel: flowModel = new flowModel();
@@ -583,6 +587,52 @@ export class ChatFlowComponent {
     this.connections.set(
       this.connections().filter((c) => c.id !== connectionId)
     );
+    this.closeConnectionMenu();
+  }
+
+  onConnectionMouseEnter(connectionId: string) {
+    this.hoveredConnection.set(connectionId);
+  }
+
+  onConnectionMouseLeave(connectionId: string) {
+    if (this.hoveredConnection() === connectionId) {
+      this.hoveredConnection.set(null);
+    }
+  }
+
+  onConnectionClick(connectionId: string, event: MouseEvent) {
+    event.stopPropagation();
+    this.selectedConnection.set(connectionId);
+    this.isConnectionMenuVisible.set(true);
+    this.connectionMenuPosition.set({ x: event.clientX, y: event.clientY });
+  }
+
+  closeConnectionMenu() {
+    this.isConnectionMenuVisible.set(false);
+    this.selectedConnection.set(null);
+  }
+
+  getConnectionLabel(connection: FlowConnection): string {
+    if (
+      connection.optionIndex === undefined ||
+      connection.optionIndex === null
+    ) {
+      return 'Connection';
+    }
+
+    const sourceNode = this.nodes().find(
+      (n) => n.step_key === connection.source
+    );
+    if (!sourceNode || !sourceNode.data.options) {
+      return `Option ${connection.optionIndex + 1}`;
+    }
+
+    const option = sourceNode.data.options[connection.optionIndex];
+    if (!option) {
+      return `Option ${connection.optionIndex + 1}`;
+    }
+
+    return option.title || `Option ${connection.optionIndex + 1}`;
   }
 
   openEditor(node: FlowNode) {
