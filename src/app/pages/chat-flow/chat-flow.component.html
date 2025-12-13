@@ -179,6 +179,9 @@
 
   <div class="col-9" (click)="cancelConnection()">
     <f-flow fDraggable>
+      <f-background>
+        <f-rect-pattern></f-rect-pattern>
+      </f-background>
       <f-canvas>
         @for (c of connections(); track c.id) {
         <f-connection
