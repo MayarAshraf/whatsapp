@@ -20,16 +20,22 @@ import { _, TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
-import { filter, finalize, map, switchMap, tap } from 'rxjs';
+import { combineLatest, filter, finalize, map, switchMap, tap } from 'rxjs';
+import { localStorageSignal } from 'src/app/shared/helpers/utils';
 import { FieldBuilderService } from 'src/app/shared/services/field-builder.service';
 import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { LangService } from 'src/app/shared/services/lang.service';
 import { v4 as uuid } from 'uuid';
-import { flowModel, TemplateModel } from './services/service-type';
+import {
+  flowModel,
+  TemplateModel,
+  TemplateOption,
+} from './services/service-type';
 
 const isWorkspaceOpened = new InjectionToken('IS_WORKSPACE_OPEN', {
   providedIn: 'root',
@@ -55,6 +61,12 @@ interface FlowConnection {
   optionIndex?: number;
 }
 
+interface ChatFlowWorkspaceDraft {
+  flowId?: number;
+  nodes: FlowNode[];
+  connections: FlowConnection[];
+  activeNodeStepKey: string | null;
+}
 @Component({
   selector: 'app-chat-flow',
   standalone: true,
@@ -71,6 +83,7 @@ interface FlowConnection {
     DialogModule,
     TagModule,
     DatePipe,
+    SkeletonModule,
   ],
   templateUrl: './chat-flow.component.html',
   styleUrls: ['./chat-flow.component.scss'],
@@ -107,6 +120,10 @@ export class ChatFlowComponent {
     Array<{ optionIndex: number; label: string; connectionId: string }>
   >([]);
   showDeleteOptionsMenu = signal(false);
+  workspaceDraft = localStorageSignal<ChatFlowWorkspaceDraft | null>(
+    null,
+    this.getWorkspaceKey()
+  );
 
   templateModel: TemplateModel = new TemplateModel();
   flowModel: flowModel = new flowModel();
@@ -180,6 +197,19 @@ export class ChatFlowComponent {
   openWorkspace(flowId?: number) {
     this.isWorkspaceOpened.set(true);
     this.flowId.set(flowId);
+    this.workspaceDraft = localStorageSignal<ChatFlowWorkspaceDraft | null>(
+      null,
+      this.getWorkspaceKey(flowId)
+    );
+
+    const draft = this.workspaceDraft();
+
+    if (draft) {
+      this.nodes.set(draft.nodes);
+      this.connections.set(draft.connections);
+      this.activeNodeStepKey.set(draft.activeNodeStepKey);
+      return;
+    }
   }
 
   Templatefields: FormlyFieldConfig[] = [
@@ -834,6 +864,17 @@ export class ChatFlowComponent {
     return node.data;
   }
 
+  getPreviewOptions(options: TemplateOption[]): TemplateOption[] {
+    return options.filter(
+      (option) =>
+        option.title ||
+        option.target_step_key ||
+        option.action_type ||
+        option.target_group_id ||
+        option.target_user_id
+    );
+  }
+
   saveNode() {
     if (!this.selectedNode()) return;
     if (this.templateForm.invalid) {
@@ -928,6 +969,7 @@ export class ChatFlowComponent {
         takeUntilDestroyed(this.#destroyRef)
       )
       .subscribe((res) => {
+        this.workspaceDraft.set(null);
         this.templatevisible.set(false);
       });
   }
@@ -942,4 +984,25 @@ export class ChatFlowComponent {
     const nextNode = this.nodes().find((n) => n.step_key === nextNodeStepKey);
     return nextNode?.data.name || 'Template';
   }
+
+  getWorkspaceKey(flowId?: number) {
+    return flowId ? `CHAT_FLOW_WORKSPACE_${flowId}` : `CHAT_FLOW_WORKSPACE_NEW`;
+  }
+
+  workspaceDraft$ = combineLatest([
+    toObservable(this.nodes),
+    toObservable(this.connections),
+    toObservable(this.activeNodeStepKey),
+  ])
+    .pipe(takeUntilDestroyed(this.#destroyRef))
+    .subscribe(() => {
+      if (!this.isWorkspaceOpened()) return;
+
+      this.workspaceDraft.set({
+        flowId: this.flowId(),
+        nodes: this.nodes(),
+        connections: this.connections(),
+        activeNodeStepKey: this.activeNodeStepKey(),
+      });
+    });
 }

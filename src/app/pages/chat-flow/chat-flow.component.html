@@ -89,11 +89,11 @@
     </div>
     }@empty{
     <p>{{ "no_chat_flows_yet" | translate }}</p>
-    }}@else{
-    <div class="col-12 text-center">
-      <i class="pi pi-spinner pi-spin text-2xl text-primary"></i>
+    }}@else{ @for (i of [1, 2, 3]; track $index) {
+    <div class="col-12 md:col-4">
+      <p-skeleton width="100%" height="15rem" />
     </div>
-    }
+    } }
   </div>
 </div>
 }@else{
@@ -285,12 +285,13 @@
               {{ preview.message_content || ("no_message" | translate) }}
             </small>
 
-            @if (preview.options.length) {
+            @if (getPreviewOptions(preview.options).length) {
             <div class="mt-2">
               <div class="text-xs font-semibold text-500 mb-1">
                 {{ "options" | translate }}:
               </div>
-              @for (option of preview.options; track $index) {
+              @for (option of getPreviewOptions(preview.options); track $index)
+              {
               <div
                 class="flex align-items-center gap-2 mb-1 p-1 border-round bg-blue-50"
               >

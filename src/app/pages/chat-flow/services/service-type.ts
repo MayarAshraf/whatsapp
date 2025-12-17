@@ -35,7 +35,17 @@ export class TemplateModel {
     this.interactive_type = editData?.interactive_type || null;
     this.message_content = editData?.message_content || null;
     this.is_active = editData?.is_active ?? true;
-    this.options = Array.isArray(editData?.options) ? editData.options : [];
+    this.options = editData?.options?.length
+      ? editData.options
+      : [
+          {
+            title: null,
+            target_step_key: null,
+            action_type: null,
+            target_group_id: null,
+            target_user_id: null,
+          },
+        ];
   }
 }
 
