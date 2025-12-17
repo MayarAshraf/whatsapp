@@ -99,7 +99,7 @@
 }@else{
 <div class="grid h-full">
   <div
-    class="col-3 flex flex-column border-right-1 bg-white border-300 h-full p-0"
+    class="col-12 md:col-3 flex flex-column border-right-1 bg-white border-300 h-full p-0"
   >
     <div class="p-2 border-bottom-1 border-300 flex align-items-center gap-2">
       <i class="pi pi-comments text-base"></i>
@@ -183,7 +183,10 @@
     </div>
   </div>
 
-  <div class="col-9" (click)="cancelConnection(); closeConnectionMenu()">
+  <div
+    class="col-12 md:col-9"
+    (click)="cancelConnection(); closeConnectionMenu()"
+  >
     <f-flow fDraggable>
       <f-background>
         <f-rect-pattern></f-rect-pattern>

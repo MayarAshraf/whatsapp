@@ -1,8 +1,12 @@
 <div class="h-screen">
   <div class="grid grid-nogutter h-full overflow-hidden">
     <div
-      [class]="selectedUser() && isSmScreen() ? 'hidden md:flex' : ''"
       class="col-12 md:col-3 h-full"
+      [style.width]="isSmScreen() ? '100%' : '270px'"
+      [class.hidden]="
+        isSmScreen() &&
+        (selectedUser() || (pageData() && isSettingsContentOpened()))
+      "
     >
       <div
         class="user-list surface-100 overflow-y-auto border-right-1 border-300 h-full"
@@ -29,7 +33,11 @@
               [text]="true"
               class="p-button-sm w-full hover:surface-200 justify-content-start"
               [class.surface-200]="activeIndex() === 0"
-              (click)="activeIndex.set(0); isWorkspaceOpened.set(false)"
+              (click)="
+                activeIndex.set(0);
+                isWorkspaceOpened.set(false);
+                isSettingsContentOpened.set(true)
+              "
               [label]="'whatsapp_templates' | translate"
             ></button>
             <button
@@ -38,7 +46,7 @@
               [text]="true"
               class="p-button-sm w-full hover:surface-200 justify-content-start"
               [class.surface-200]="activeIndex() === 1"
-              (click)="activeIndex.set(1)"
+              (click)="activeIndex.set(1); isSettingsContentOpened.set(true)"
               [label]="'whatsapp_credentials' | translate"
             ></button>
           </div>
@@ -54,7 +62,7 @@
               [text]="true"
               class="p-button-sm w-full hover:surface-200 justify-content-start"
               [class.surface-200]="activeIndex() === 2"
-              (click)="activeIndex.set(2)"
+              (click)="activeIndex.set(2); isSettingsContentOpened.set(true)"
               [label]="'manage_users' | translate"
             ></button>
 
@@ -64,7 +72,7 @@
               [text]="true"
               class="p-button-sm w-full hover:surface-200 justify-content-start"
               [class.surface-200]="activeIndex() === 3"
-              (click)="activeIndex.set(3)"
+              (click)="activeIndex.set(3); isSettingsContentOpened.set(true)"
               [label]="'manage_groups' | translate"
             ></button>
           </div>
@@ -174,8 +182,12 @@
     </div>
 
     <div
-      class="col-12 md:col-9 h-full"
-      [class]="!selectedUser() && isSmScreen() ? 'hidden md:flex' : ''"
+      class="flex-1 h-full"
+      [class.hidden]="
+        isSmScreen() &&
+        !selectedUser() &&
+        !(pageData() && isSettingsContentOpened())
+      "
     >
       @if (selectedUser()) {
       <div class="chat-window flex flex-column relative h-full">
@@ -492,8 +504,16 @@
         ></button>
         }
       </div>
-      } @else if (this.pageData()) { @if(activeIndex()!==null){
+      } @else if (this.pageData() && isSettingsContentOpened()) {
+      @if(activeIndex()!==null){
       <div class="h-full surface-100 p-2">
+        <button
+          pButton
+          icon="fa-solid fa-arrow-left"
+          [label]="'settings' | translate"
+          class="p-button-text p-button-sm md:hidden"
+          (click)="isSettingsContentOpened.set(false)"
+        ></button>
         @if (activeIndex() === 0) { @defer (when activeIndex() === 0) {
         <app-chat-flow />
         } } @if (activeIndex() === 1) { @defer (when activeIndex() === 1) {

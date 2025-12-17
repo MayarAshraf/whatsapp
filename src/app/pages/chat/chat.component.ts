@@ -163,6 +163,8 @@ export default class ChatComponent implements OnInit, OnDestroy {
   conversationsStatue = signal('all');
   activeIndex = signal<number | null>(null);
   settings = signal<SettingsModel | undefined>(undefined);
+  isSettingsContentOpened = signal(false);
+
   isWorkspaceOpened = injectIsWorkspaceOpened();
 
   hostname = window.location.hostname;
