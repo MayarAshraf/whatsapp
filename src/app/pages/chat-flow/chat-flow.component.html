@@ -18,7 +18,7 @@
       ></button>
     </div>
     @if(!isLoading()){ @for (flow of flows(); track $index) {
-    <div class="col-12 md:col-3">
+    <div class="col-12 md:col-4">
       <div class="border-round shadow-1 overflow-hidden border-1 border-200">
         <div class="p-2 flex flex-column gap-1 bg-primary-500">
           <div class="flex gap-2 justify-content-end">
@@ -37,9 +37,15 @@
             />
             }
           </div>
-          <h2 class="m-0 font-medium text-lg text-white">{{ flow.name }}</h2>
+          <h2
+            class="m-0 font-medium text-lg text-white text-overflow-ellipsis overflow-hidden white-space-nowrap"
+            [pTooltip]="flow.name"
+            tooltipPosition="top"
+          >
+            {{ flow.name }}
+          </h2>
         </div>
-        <div class="p-2 flex justify-content-between">
+        <div class="p-2 flex flex-auto justify-content-between h-full">
           <div
             class="flex flex-column gap-1 align-items-center justify-content-center p-2 border-round bg-blue-50"
           >
@@ -177,21 +183,20 @@
     </div>
   </div>
 
-  <div class="col-9" (click)="cancelConnection()">
+  <div class="col-9" (click)="cancelConnection(); closeConnectionMenu()">
     <f-flow fDraggable>
       <f-background>
         <f-rect-pattern></f-rect-pattern>
       </f-background>
       <f-canvas>
-        @for (c of connections(); track c.id) {
+        @for (c of mergedConnections(); track c.id) {
         <f-connection
           [fOutputId]="c.source"
           [fInputId]="c.target"
           fType="segment"
           [fSelectionDisabled]="true"
           [fBehavior]="eConnectionBehaviour.FIXED"
-          [fText]="getConnectionLabel(c)"
-          (click)="onConnectionClick(c.id, $event)"
+          (click)="onConnectionClick(c, $event)"
           (mouseenter)="onConnectionMouseEnter(c.id)"
           (mouseleave)="onConnectionMouseLeave(c.id)"
           [style]="{
@@ -241,7 +246,7 @@
           [class.active]="isNodeActive(node.step_key)"
           (click)="selectNodeForConnection(node, $event)"
           (dblclick)="openEditor(node)"
-          fInputConnectableSide="left"
+          fInputConnectableSide="top"
           fOutputConnectableSide="right"
           (fNodePositionChange)="onNodePositionChange($event, node.step_key)"
         >
@@ -319,6 +324,17 @@
         </div>
         }
       </f-canvas>
+      @for (c of mergedConnections(); track c.id) {
+      <div
+        fOverlay
+        class="connection-label"
+        [style.left.px]="getConnectionMidpoint(c).x"
+        [style.top.px]="getConnectionMidpoint(c).y"
+        (click)="onConnectionClick(c, $event)"
+      >
+        {{ getConnectionLabel(c) }}
+      </div>
+      }
     </f-flow>
   </div>
 </div>
@@ -425,7 +441,54 @@
     />
   </ng-template>
 </p-dialog>
-} @if (isConnectionMenuVisible() && selectedConnection()) {
+} @if (showDeleteOptionsMenu() && selectedConnectionOptions().length > 0) {
+<div
+  class="p-2 shadow-2 border-round"
+  [style]="{
+    position: 'fixed',
+    top: connectionMenuPosition().y + 'px',
+    left: connectionMenuPosition().x + 'px',
+    'z-index': 1000,
+    background: 'white',
+    width: '15rem'
+  }"
+>
+  <div class="text-sm font-semibold mb-2 text-700">
+    {{ "select_connection_to_delete" | translate }}
+  </div>
+
+  @for (option of selectedConnectionOptions(); track option.connectionId) {
+  <button
+    pButton
+    [label]="option.label"
+    icon="pi pi-trash"
+    class="p-button-text p-button-sm w-full justify-content-start p-button-danger mb-1"
+    (click)="deleteSingleOptionConnection(option.connectionId)"
+  ></button>
+  }
+  <button
+    pButton
+    [label]="'delete_all_connections' | translate"
+    icon="pi pi-trash"
+    class="p-button-text p-button-sm w-full justify-content-start p-button-danger mb-2"
+    (click)="
+      deleteAllConnections(
+        selectedConnectionGroup()!.source,
+        selectedConnectionGroup()!.target
+      )
+    "
+  ></button>
+
+  <button
+    pButton
+    [label]="'cancel' | translate"
+    icon="pi pi-times"
+    class="p-button-text p-button-sm w-full justify-content-start"
+    (click)="closeConnectionMenu()"
+  ></button>
+</div>
+} @if (isConnectionMenuVisible() && selectedConnection() &&
+!showDeleteOptionsMenu()) {
 <div
   class="p-2 shadow-2 border-round"
   [style]="{
@@ -443,8 +506,9 @@
     [label]="'delete_connection' | translate"
     icon="pi pi-trash"
     class="p-button-text p-button-sm w-full justify-content-start p-button-danger"
-    (click)="deleteConnection(selectedConnection()!)"
+    (click)="deleteSingleOptionConnection(selectedConnection()!)"
   ></button>
+
   <button
     pButton
     [label]="'cancel' | translate"

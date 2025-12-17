@@ -86,6 +86,10 @@ export class ChatFlowComponent {
   isConnectionMenuVisible = signal(false);
   connectionMenuPosition = signal({ x: 0, y: 0 });
   hoveredConnection = signal<string | null>(null);
+  selectedConnectionOptions = signal<
+    Array<{ optionIndex: number; label: string; connectionId: string }>
+  >([]);
+  showDeleteOptionsMenu = signal(false);
 
   templateModel: TemplateModel = new TemplateModel();
   flowModel: flowModel = new flowModel();
@@ -127,6 +131,35 @@ export class ChatFlowComponent {
     () => this.connectionSource() && this.connectionTarget()
   );
 
+  // Merge connections with same source and target
+  mergedConnections = computed(() => {
+    const merged = new Map<
+      string,
+      FlowConnection & { optionIndices: number[]; connectionIds: string[] }
+    >();
+
+    this.connections().forEach((conn) => {
+      const key = `${conn.source}-${conn.target}`;
+
+      if (merged.has(key)) {
+        const existing = merged.get(key)!;
+        if (conn.optionIndex !== undefined) {
+          existing.optionIndices.push(conn.optionIndex);
+          existing.connectionIds.push(conn.id);
+        }
+      } else {
+        merged.set(key, {
+          ...conn,
+          optionIndices:
+            conn.optionIndex !== undefined ? [conn.optionIndex] : [],
+          connectionIds: [conn.id],
+        });
+      }
+    });
+
+    return Array.from(merged.values());
+  });
+
   openWorkspace(flowId?: number) {
     this.isWorkspaceOpened.set(true);
     this.flowId.set(flowId);
@@ -167,6 +200,7 @@ export class ChatFlowComponent {
       props: {
         label: _('interactive_type'),
         filter: true,
+        required: true,
         options: [],
       },
       expressions: {
@@ -229,7 +263,7 @@ export class ChatFlowComponent {
           {
             key: 'title',
             type: 'input-field',
-            props: { label: _('title') },
+            props: { label: _('title'), required: true },
           },
           {
             key: 'action_type',
@@ -237,6 +271,7 @@ export class ChatFlowComponent {
             props: {
               label: _('action_type'),
               filter: true,
+              required: true,
               options: this.templateList$.pipe(
                 map((res: any) =>
                   res['action_types'].map((type: any) => ({
@@ -254,6 +289,7 @@ export class ChatFlowComponent {
             props: {
               label: _('next_template'),
               filter: true,
+              required: true,
               showClear: true,
               options: [],
             },
@@ -275,6 +311,7 @@ export class ChatFlowComponent {
             props: {
               label: _('group'),
               filter: true,
+              required: true,
               showClear: true,
               options: [],
             },
@@ -316,6 +353,7 @@ export class ChatFlowComponent {
             props: {
               placeholder: _('target_user'),
               endpoint: `auth/users/autocomplete`,
+              required: true,
               fieldKey: 'target_user_id',
             },
           },
@@ -391,7 +429,6 @@ export class ChatFlowComponent {
     this.openEditor(newNode);
   }
 
-  //Start connection from specific option
   startConnectionFromOption(
     node: FlowNode,
     optionIndex: number,
@@ -462,6 +499,20 @@ export class ChatFlowComponent {
     const sourceNode = this.connectionSource()!;
     const targetNode = this.connectionTarget()!;
     const optionIndex = this.selectedOptionIndex();
+
+    // Check for duplicate connection
+    const isDuplicate = this.connections().some(
+      (c) =>
+        c.source === sourceNode.step_key &&
+        c.target === targetNode.step_key &&
+        c.optionIndex === optionIndex
+    );
+
+    if (isDuplicate) {
+      console.warn('Connection already exists');
+      this.cancelConnection();
+      return;
+    }
 
     if (optionIndex === null) {
       this.connections.set([
@@ -556,38 +607,58 @@ export class ChatFlowComponent {
     }
   }
 
-  deleteConnection(connectionId: string) {
+  deleteSingleOptionConnection(connectionId: string) {
     const connection = this.connections().find((c) => c.id === connectionId);
+    if (!connection) return;
 
-    if (connection) {
-      // Remove target_step_key from the option
-      const sourceNode = this.nodes().find(
-        (n) => n.step_key === connection.source
-      );
-
-      if (sourceNode && connection.optionIndex !== undefined) {
-        const updatedOptions = [...sourceNode.data.options];
-        if (updatedOptions[connection.optionIndex]) {
-          updatedOptions[connection.optionIndex] = {
-            ...updatedOptions[connection.optionIndex],
-            target_step_key: null,
-          };
-
-          this.nodes.set(
-            this.nodes().map((n) =>
-              n.step_key === sourceNode.step_key
-                ? { ...n, data: { ...n.data, options: updatedOptions } }
-                : n
-            )
-          );
-        }
-      }
+    if (connection.optionIndex !== undefined) {
+      this.clearOptionTarget(connection.source, connection.optionIndex);
     }
 
     this.connections.set(
       this.connections().filter((c) => c.id !== connectionId)
     );
+
     this.closeConnectionMenu();
+  }
+
+  deleteAllConnections(source: string, target: string) {
+    const connectionsToRemove = this.connections().filter(
+      (c) => c.source === source && c.target === target
+    );
+
+    connectionsToRemove.forEach((conn) => {
+      if (conn.optionIndex !== undefined) {
+        this.clearOptionTarget(conn.source, conn.optionIndex);
+      }
+    });
+
+    this.connections.set(
+      this.connections().filter(
+        (c) => !(c.source === source && c.target === target)
+      )
+    );
+
+    this.closeConnectionMenu();
+  }
+
+  clearOptionTarget(sourceStepKey: string, optionIndex: number) {
+    const sourceNode = this.nodes().find((n) => n.step_key === sourceStepKey);
+    if (!sourceNode || !sourceNode.data.options?.[optionIndex]) return;
+
+    const updatedOptions = [...sourceNode.data.options];
+    updatedOptions[optionIndex] = {
+      ...updatedOptions[optionIndex],
+      target_step_key: null,
+    };
+
+    this.nodes.set(
+      this.nodes().map((n) =>
+        n.step_key === sourceStepKey
+          ? { ...n, data: { ...n.data, options: updatedOptions } }
+          : n
+      )
+    );
   }
 
   onConnectionMouseEnter(connectionId: string) {
@@ -599,40 +670,134 @@ export class ChatFlowComponent {
       this.hoveredConnection.set(null);
     }
   }
+  selectedConnectionGroup = signal<{
+    source: string;
+    target: string;
+  } | null>(null);
 
-  onConnectionClick(connectionId: string, event: MouseEvent) {
+  onConnectionClick(
+    connection: FlowConnection & {
+      optionIndices?: number[];
+      connectionIds?: string[];
+    },
+    event: MouseEvent
+  ) {
     event.stopPropagation();
+
+    const labels = this.getConnectionLabels(connection);
+
+    if (labels.length === 1) {
+      this.selectedConnection.set(labels[0].connectionId);
+      this.isConnectionMenuVisible.set(true);
+      this.showDeleteOptionsMenu.set(false);
+    } else {
+      this.selectedConnectionOptions.set(labels);
+      this.selectedConnectionGroup.set({
+        source: connection.source,
+        target: connection.target,
+      });
+
+      this.showDeleteOptionsMenu.set(true);
+    }
+
+    this.connectionMenuPosition.set({
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  selectConnectionToDelete(connectionId: string) {
+    this.showDeleteOptionsMenu.set(false);
     this.selectedConnection.set(connectionId);
     this.isConnectionMenuVisible.set(true);
-    this.connectionMenuPosition.set({ x: event.clientX, y: event.clientY });
   }
 
   closeConnectionMenu() {
     this.isConnectionMenuVisible.set(false);
+    this.showDeleteOptionsMenu.set(false);
     this.selectedConnection.set(null);
+    this.selectedConnectionOptions.set([]);
   }
 
-  getConnectionLabel(connection: FlowConnection): string {
-    if (
-      connection.optionIndex === undefined ||
-      connection.optionIndex === null
-    ) {
+  getConnectionLabel(
+    connection: FlowConnection & {
+      optionIndices?: number[];
+    }
+  ): string {
+    const indices =
+      connection.optionIndices ??
+      (connection.optionIndex !== undefined ? [connection.optionIndex] : []);
+
+    if (!indices.length) {
       return 'Connection';
     }
 
     const sourceNode = this.nodes().find(
       (n) => n.step_key === connection.source
     );
+
+    if (!sourceNode?.data?.options) {
+      return indices.map((i) => `Option ${i + 1}`).join(', ');
+    }
+    console.log(indices);
+    return indices
+      .map((i) => sourceNode.data.options[i]?.title || `Option ${i + 1}`)
+      .join(', ');
+  }
+
+  getConnectionMidpoint(connection: FlowConnection): { x: number; y: number } {
+    const source = this.nodes().find((n) => n.step_key === connection.source);
+    const target = this.nodes().find((n) => n.step_key === connection.target);
+
+    if (!source || !target) {
+      return { x: 0, y: 0 };
+    }
+
+    const NODE_WIDTH = 220;
+    const NODE_HEIGHT = 90;
+
+    return {
+      x: (source.x + NODE_WIDTH + target.x) / 2,
+      y: (source.y + NODE_HEIGHT / 2 + target.y + NODE_HEIGHT / 2) / 2,
+    };
+  }
+
+  getConnectionLabels(
+    connection: FlowConnection & {
+      optionIndices?: number[];
+      connectionIds?: string[];
+    }
+  ): Array<{ label: string; optionIndex: number; connectionId: string }> {
+    const optionIndices =
+      connection.optionIndices ||
+      (connection.optionIndex !== undefined ? [connection.optionIndex] : []);
+    const connectionIds = connection.connectionIds || [connection.id];
+
+    if (optionIndices.length === 0) {
+      return [
+        { label: 'Connection', optionIndex: -1, connectionId: connection.id },
+      ];
+    }
+
+    const sourceNode = this.nodes().find(
+      (n) => n.step_key === connection.source
+    );
     if (!sourceNode || !sourceNode.data.options) {
-      return `Option ${connection.optionIndex + 1}`;
+      return optionIndices.map((i, idx) => ({
+        label: `Option ${i + 1}`,
+        optionIndex: i,
+        connectionId: connectionIds[idx] || connection.id,
+      }));
     }
 
-    const option = sourceNode.data.options[connection.optionIndex];
-    if (!option) {
-      return `Option ${connection.optionIndex + 1}`;
-    }
-
-    return option.title || `Option ${connection.optionIndex + 1}`;
+    return optionIndices.map((index, idx) => {
+      const option = sourceNode.data.options[index];
+      return {
+        label: option?.title || `Option ${index + 1}`,
+        optionIndex: index,
+        connectionId: connectionIds[idx] || connection.id,
+      };
+    });
   }
 
   openEditor(node: FlowNode) {
@@ -694,7 +859,7 @@ export class ChatFlowComponent {
       )
     );
 
-    this.selectedNode.set(null);
+    this.closeEditor();
   }
 
   openFlowDialog() {
@@ -742,10 +907,9 @@ export class ChatFlowComponent {
   }
 
   closeEditor() {
-    this.selectedNode.set(null);
+    this.cancelConnection();
   }
 
-  // Get the name of the next node by its step_key
   getNextNodeName(nextNodeStepKey: string | null | undefined): string {
     if (!nextNodeStepKey) return 'Template';
 
