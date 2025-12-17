@@ -126,19 +126,19 @@
     <div class="p-2 flex-1 overflow-y-auto my-2">
       @for (node of nodes(); track $index) {
       <div
-        class="node-item flex gap-2 justify-content-between align-items-center bg-white p-2 mb-2 border-round cursor-pointer"
+        class="node-item flex gap-2 justify-content-between align-items-center bg-white p-1 mb-2 border-round cursor-pointer"
         [class.active]="isNodeActive(node.step_key)"
         (click)="openEditor(node)"
       >
         <div class="flex flex-1 align-items-center gap-2 min-w-0">
           <div
-            class="w-2rem h-2rem flex flex-shrink-0 align-items-center justify-content-center border-circle bg-blue-50 text-primary"
+            class="w-1.5rem h-1.5rem flex flex-shrink-0 align-items-center justify-content-center border-circle bg-blue-50 text-primary"
           >
-            <i class="pi pi-comment font-semibold"></i>
+            <i class="pi pi-comment font-semibold text-xs"></i>
           </div>
           <div class="flex-1 min-w-0">
             <span
-              class="block font-medium text-sm white-space-nowrap line-clamp-1"
+              class="block font-medium text-xs white-space-nowrap line-clamp-1"
               [pTooltip]="
                 node.data.name || ('template' | translate) + ' ' + ($index + 1)
               "
@@ -151,7 +151,8 @@
               }}
             </span>
             <small
-              class="block text-primary text-xs white-space-nowrap line-clamp-1"
+              class="block text-primary white-space-nowrap line-clamp-1"
+              style="font-size: 10px"
               [pTooltip]="
                 node.data.message_content || ('no_message' | translate)
               "
@@ -167,14 +168,14 @@
           <button
             pButton
             icon="pi pi-pencil text-xs"
-            class="p-button-text p-button-sm p-button-rounded p-0"
+            class="p-button-text p-button-rounded w-1.5rem h-1.5rem"
             (click)="openEditor(node); $event.stopPropagation()"
           ></button>
 
           <button
             pButton
             icon="pi pi-trash text-xs"
-            class="p-button-text p-button-sm p-button-rounded p-button-danger"
+            class="p-button-text p-button-rounded p-button-danger w-1.5rem h-1.5rem"
             (click)="deleteNode(node); $event.stopPropagation()"
           ></button>
         </div>
@@ -253,16 +254,16 @@
           fOutputConnectableSide="right"
           (fNodePositionChange)="onNodePositionChange($event, node.step_key)"
         >
-          <div class="node-header p-2 bg-primary text-white border-round-top">
+          <div class="node-header p-1 bg-primary text-white border-round-top">
             <div class="flex flex-1 align-items-center gap-2 min-w-0">
               <div
-                class="w-2rem h-2rem flex flex-shrink-0 align-items-center justify-content-center border-circle bg-white-alpha-20"
+                class="w-1.5rem h-1.5rem flex flex-shrink-0 align-items-center justify-content-center border-circle bg-white-alpha-20"
               >
-                <i class="pi pi-comment font-semibold"></i>
+                <i class="pi pi-comment font-semibold text-xs"></i>
               </div>
               <div class="flex-1 min-w-0">
                 <span
-                  class="block font-medium text-sm white-space-nowrap line-clamp-1"
+                  class="block font-medium text-xs white-space-nowrap line-clamp-1"
                   [pTooltip]="
                     node.data.name ||
                     ('template' | translate) + ' ' + ($index + 1)
@@ -279,7 +280,7 @@
             </div>
           </div>
 
-          <div class="p-2 bg-white">
+          <div class="p-1 bg-white">
             <small
               class="block text-color-secondary text-xs white-space-nowrap line-clamp-2"
               [pTooltip]="
