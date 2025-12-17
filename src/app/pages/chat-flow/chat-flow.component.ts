@@ -820,9 +820,18 @@ export class ChatFlowComponent {
   openEditor(node: FlowNode) {
     this.templateForm.reset();
     this.selectedNode.set(node);
-    this.templateModel = new TemplateModel(node.data);
+    this.templateModel = new TemplateModel(
+      JSON.parse(JSON.stringify(node.data))
+    );
     this.templateForm.patchValue(this.templateModel);
     this.activeNodeStepKey.set(node.step_key);
+  }
+
+  getNodePreview(node: FlowNode) {
+    if (this.selectedNode()?.step_key === node.step_key) {
+      return this.templateModel;
+    }
+    return node.data;
   }
 
   saveNode() {

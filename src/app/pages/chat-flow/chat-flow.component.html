@@ -137,29 +137,25 @@
             <i class="pi pi-comment font-semibold text-xs"></i>
           </div>
           <div class="flex-1 min-w-0">
+            @let preview = getNodePreview(node);
             <span
               class="block font-medium text-xs white-space-nowrap line-clamp-1"
               [pTooltip]="
-                node.data.name || ('template' | translate) + ' ' + ($index + 1)
+                preview.name || ('template' | translate) + ' ' + ($index + 1)
               "
               tooltipPosition="top"
             >
               {{
-                (node.data.name || ("template" | translate)) +
-                  " " +
-                  ($index + 1)
+                preview.name || ("template" | translate) + " " + ($index + 1)
               }}
             </span>
             <small
               class="block text-primary white-space-nowrap line-clamp-1"
               style="font-size: 10px"
-              [pTooltip]="
-                node.data.message_content || ('no_message' | translate)
-              "
+              [pTooltip]="preview.message_content || ('no_message' | translate)"
               tooltipPosition="top"
-              >{{
-                node.data.message_content || ("no_message" | translate)
-              }}</small
+            >
+              {{ preview.message_content || ("no_message" | translate) }}</small
             >
           </div>
         </div>
@@ -262,18 +258,18 @@
                 <i class="pi pi-comment font-semibold text-xs"></i>
               </div>
               <div class="flex-1 min-w-0">
+                @let preview = getNodePreview(node);
                 <span
                   class="block font-medium text-xs white-space-nowrap line-clamp-1"
                   [pTooltip]="
-                    node.data.name ||
+                    preview.name ||
                     ('template' | translate) + ' ' + ($index + 1)
                   "
                   tooltipPosition="top"
                 >
                   {{
-                    (node.data.name || ("template" | translate)) +
-                      " " +
-                      ($index + 1)
+                    preview.name ||
+                      ("template" | translate) + " " + ($index + 1)
                   }}
                 </span>
               </div>
@@ -283,20 +279,18 @@
           <div class="p-1 bg-white">
             <small
               class="block text-color-secondary text-xs white-space-nowrap line-clamp-2"
-              [pTooltip]="
-                node.data.message_content || ('no_message' | translate)
-              "
+              [pTooltip]="preview.message_content || ('no_message' | translate)"
               tooltipPosition="top"
             >
-              {{ node.data.message_content || ("no_message" | translate) }}
+              {{ preview.message_content || ("no_message" | translate) }}
             </small>
 
-            @if (node.data.options && node.data.options.length > 0) {
+            @if (preview.options.length) {
             <div class="mt-2">
               <div class="text-xs font-semibold text-500 mb-1">
                 {{ "options" | translate }}:
               </div>
-              @for (option of node.data.options; track $index) {
+              @for (option of preview.options; track $index) {
               <div
                 class="flex align-items-center gap-2 mb-1 p-1 border-round bg-blue-50"
               >
