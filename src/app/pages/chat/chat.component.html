@@ -29,7 +29,7 @@
               [text]="true"
               class="p-button-sm w-full hover:surface-200 justify-content-start"
               [class.surface-200]="activeIndex() === 0"
-              (click)="activeIndex.set(0)"
+              (click)="activeIndex.set(0); isWorkspaceOpened.set(false)"
               [label]="'whatsapp_templates' | translate"
             ></button>
             <button

@@ -30,7 +30,10 @@ import { RouterLink } from '@angular/router';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ChatFlowComponent } from '@pages/chat-flow/chat-flow.component';
+import {
+  ChatFlowComponent,
+  injectIsWorkspaceOpened,
+} from '@pages/chat-flow/chat-flow.component';
 import GroupsComponent from '@pages/groups/groups.component';
 import { SettingsModel } from '@pages/settings/services/service-type';
 import { SettingCuComponent } from '@pages/settings/setting-cu.component';
@@ -160,6 +163,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   conversationsStatue = signal('all');
   activeIndex = signal<number | null>(null);
   settings = signal<SettingsModel | undefined>(undefined);
+  isWorkspaceOpened = injectIsWorkspaceOpened();
 
   hostname = window.location.hostname;
   #rawSubdomain = this.hostname.split('.8xrespond.com')[0];

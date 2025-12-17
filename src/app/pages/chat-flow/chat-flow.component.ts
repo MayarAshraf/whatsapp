@@ -1,5 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  assertInInjectionContext,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  InjectionToken,
+  signal,
+} from '@angular/core';
 import {
   takeUntilDestroyed,
   toObservable,
@@ -23,6 +31,15 @@ import { LangService } from 'src/app/shared/services/lang.service';
 import { v4 as uuid } from 'uuid';
 import { flowModel, TemplateModel } from './services/service-type';
 
+const isWorkspaceOpened = new InjectionToken('IS_WORKSPACE_OPEN', {
+  providedIn: 'root',
+  factory: () => signal<boolean>(false),
+});
+
+export function injectIsWorkspaceOpened() {
+  assertInInjectionContext(injectIsWorkspaceOpened);
+  return inject(isWorkspaceOpened);
+}
 interface FlowNode {
   step_key: string;
   name: string;
@@ -81,7 +98,7 @@ export class ChatFlowComponent {
   isFlowLoading = signal(false);
   isLoading = signal(true);
   nodes = signal<FlowNode[]>([]);
-  isWorkspaceOpened = signal(false);
+  isWorkspaceOpened = injectIsWorkspaceOpened();
   selectedConnection = signal<string | null>(null);
   isConnectionMenuVisible = signal(false);
   connectionMenuPosition = signal({ x: 0, y: 0 });
@@ -739,7 +756,7 @@ export class ChatFlowComponent {
     if (!sourceNode?.data?.options) {
       return indices.map((i) => `Option ${i + 1}`).join(', ');
     }
-    console.log(indices);
+
     return indices
       .map((i) => sourceNode.data.options[i]?.title || `Option ${i + 1}`)
       .join(', ');
