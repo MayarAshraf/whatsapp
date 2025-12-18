@@ -14,6 +14,7 @@ export interface TemplateOption {
   action_type: string | null;
   target_step_key?: string | null;
   target_group_id?: number | null;
+  target_user: { [key: string]: any } | null;
   target_user_id?: number | null;
 }
 
@@ -36,13 +37,25 @@ export class TemplateModel {
     this.message_content = editData?.message_content || null;
     this.is_active = editData?.is_active ?? true;
     this.options = editData?.options?.length
-      ? editData.options
+      ? editData.options.map((option) => ({
+          ...option,
+
+          target_user: option.target_user
+            ? {
+                label: option.target_user.name,
+                id: option.target_user.value,
+              }
+            : null,
+          target_user_id:
+            option.target_user_id ?? option.target_user?.id ?? null,
+        }))
       : [
           {
             title: null,
-            target_step_key: null,
             action_type: null,
+            target_step_key: null,
             target_group_id: null,
+            target_user: null,
             target_user_id: null,
           },
         ];
