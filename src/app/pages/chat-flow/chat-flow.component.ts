@@ -15,7 +15,12 @@ import {
 } from '@angular/core/rxjs-interop';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
-import { EFConnectionBehavior, EFMarkerType, FFlowModule } from '@foblex/flow';
+import {
+  EFConnectionBehavior,
+  EFMarkerType,
+  FConnectionContent,
+  FFlowModule,
+} from '@foblex/flow';
 import { FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -86,6 +91,7 @@ interface ChatFlowWorkspaceDraft {
     TagModule,
     DatePipe,
     SkeletonModule,
+    FConnectionContent,
   ],
   templateUrl: './chat-flow.component.html',
   styleUrls: ['./chat-flow.component.scss'],
@@ -794,23 +800,6 @@ export class ChatFlowComponent {
     return indices
       .map((i) => sourceNode.data.options[i]?.title || `Option ${i + 1}`)
       .join(', ');
-  }
-
-  getConnectionMidpoint(connection: FlowConnection): { x: number; y: number } {
-    const source = this.nodes().find((n) => n.step_key === connection.source);
-    const target = this.nodes().find((n) => n.step_key === connection.target);
-
-    if (!source || !target) {
-      return { x: 0, y: 0 };
-    }
-
-    const NODE_WIDTH = 220;
-    const NODE_HEIGHT = 90;
-
-    return {
-      x: (source.x + NODE_WIDTH + target.x) / 2,
-      y: (source.y + NODE_HEIGHT / 2 + target.y + NODE_HEIGHT / 2) / 2,
-    };
   }
 
   getConnectionLabels(

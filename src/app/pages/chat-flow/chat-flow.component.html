@@ -217,6 +217,9 @@
             transition: 'all 0.2s ease'
           }"
         >
+          <div fConnectionContent class="connection-label">
+            {{ getConnectionLabel(c) }}
+          </div>
           <svg
             viewBox="0 0 10 10"
             fMarker
@@ -330,17 +333,6 @@
         </div>
         }
       </f-canvas>
-      @for (c of mergedConnections(); track c.id) {
-      <div
-        fOverlay
-        class="connection-label"
-        [style.left.px]="getConnectionMidpoint(c).x"
-        [style.top.px]="getConnectionMidpoint(c).y"
-        (click)="onConnectionClick(c, $event)"
-      >
-        {{ getConnectionLabel(c) }}
-      </div>
-      }
     </f-flow>
   </div>
 </div>
