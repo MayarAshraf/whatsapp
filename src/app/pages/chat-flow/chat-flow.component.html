@@ -106,6 +106,13 @@
       <h4 class="m-0 font-medium text-base">{{ "chat_flow" | translate }}</h4>
       <div class="flex gap-2 ml-auto">
         <a
+          (click)="clearWorkspace()"
+          class="hover:text-primary"
+          [pTooltip]="'clear_workspace' | translate"
+          tooltipPosition="bottom"
+          ><i class="fa-solid fa-eraser"></i>
+        </a>
+        <a
           (click)="addNode()"
           class="hover:text-primary"
           [pTooltip]="'add_template' | translate"

@@ -14,9 +14,10 @@ import {
   toSignal,
 } from '@angular/core/rxjs-interop';
 import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { EFConnectionBehavior, EFMarkerType, FFlowModule } from '@foblex/flow';
 import { FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
-import { _, TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -29,6 +30,7 @@ import { localStorageSignal } from 'src/app/shared/helpers/utils';
 import { FieldBuilderService } from 'src/app/shared/services/field-builder.service';
 import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
+import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
 import { LangService } from 'src/app/shared/services/lang.service';
 import { v4 as uuid } from 'uuid';
 import {
@@ -94,6 +96,8 @@ export class ChatFlowComponent {
   #currentLang = inject(LangService).currentLanguage;
   #api = inject(ApiService);
   #destroyRef = inject(DestroyRef);
+  #confirmService = inject(ConfirmService);
+  #translate = inject(TranslateService);
 
   templateList$ = this.#globalList.getGlobalList('chat-flows');
 
@@ -864,14 +868,17 @@ export class ChatFlowComponent {
     return node.data;
   }
 
-  getPreviewOptions(options: TemplateOption[]): TemplateOption[] {
+  getPreviewOptions(options?: TemplateOption[]): TemplateOption[] {
+    if (!Array.isArray(options)) return [];
+
     return options.filter(
       (option) =>
-        option.title ||
-        option.target_step_key ||
-        option.action_type ||
-        option.target_group_id ||
-        option.target_user_id
+        !!option &&
+        (!!option.title ||
+          !!option.target_step_key ||
+          !!option.action_type ||
+          !!option.target_group_id ||
+          !!option.target_user_id)
     );
   }
 
@@ -944,7 +951,7 @@ export class ChatFlowComponent {
       ...this.flowModel,
       nodes: this.nodes().map((node) => ({
         step_key: node.step_key,
-        name: node.name,
+        name: node.data.name,
         x: node.x,
         y: node.y,
         data: node.data,
@@ -972,6 +979,16 @@ export class ChatFlowComponent {
         this.workspaceDraft.set(null);
         this.templatevisible.set(false);
       });
+  }
+
+  clearWorkspace() {
+    this.#confirmService.confirmDelete({
+      message: this.#translate.instant(_('please_confirm_to_clear_workspace')),
+      acceptCallback: () => {
+        this.nodes.set([]);
+        this.connections.set([]);
+      },
+    });
   }
 
   closeEditor() {
