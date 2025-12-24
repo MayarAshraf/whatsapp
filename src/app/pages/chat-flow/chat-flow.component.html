@@ -187,60 +187,101 @@
     </div>
   </div>
 
-  <div
-    class="col-12 md:col-9"
-    (click)="cancelConnection(); closeConnectionMenu()"
-  >
-    <f-flow fDraggable>
+  <div class="col-12 md:col-9">
+    <f-flow
+      fDraggable
+      (fLoaded)="onLoaded()"
+      (fCreateConnection)="addConnection($event)"
+    >
+      <f-line-alignment [fAlignThreshold]="10"></f-line-alignment>
+
       <f-background>
-        <f-rect-pattern></f-rect-pattern>
+        <f-circle-pattern></f-circle-pattern>
       </f-background>
       <f-canvas>
-        @for (c of mergedConnections(); track c.id) {
-        <f-connection
-          [fOutputId]="c.source"
-          [fInputId]="c.target"
+        <f-connection-for-create fType="segment"></f-connection-for-create>
+        <f-snap-connection
+          [fSnapThreshold]="50"
           fType="segment"
-          [fSelectionDisabled]="true"
-          [fBehavior]="eConnectionBehaviour.FIXED"
-          (click)="onConnectionClick(c, $event)"
-          (mouseenter)="onConnectionMouseEnter(c.id)"
-          (mouseleave)="onConnectionMouseLeave(c.id)"
+        ></f-snap-connection>
+
+        @for (connection of connections(); track connection.id) {
+        <f-connection
+          [fReassignDisabled]="true"
+          fType="segment"
+          [fOutputId]="connection.fOutputId"
+          [fInputId]="connection.fInputId"
+          (mouseenter)="onConnectionMouseEnter(connection.id)"
+          (mouseleave)="onConnectionMouseLeave(connection.id)"
           [style]="{
             cursor: 'pointer',
             'stroke-width': '1.5',
             'stroke-dasharray':
-              hoveredConnection() === c.id || selectedConnection() === c.id
+              hoveredConnection() === connection.id ||
+              selectedConnection()?.id === connection.id
                 ? '5,3'
                 : 'none',
-            opacity: hoveredConnection() === c.id ? '0.9' : '1',
+            opacity: hoveredConnection() === connection.id ? '0.9' : '1',
             transition: 'all 0.2s ease'
           }"
+          (click)="onConnectionClick($event, connection)"
         >
           <div fConnectionContent class="connection-label">
-            {{ getConnectionLabel(c) }}
+            {{ getConnectionLabel(connection) }}
           </div>
           <svg
-            viewBox="0 0 10 10"
+            viewBox="0 0 700 700"
             fMarker
             [type]="eMarkerType.START"
-            [height]="10"
-            [width]="10"
-            [refX]="5"
-            [refY]="5"
+            class="connection-marker"
+            [height]="5"
+            [width]="5"
+            [refX]="2.5"
+            [refY]="2.5"
+            markerUnits="strokeWidth"
           >
-            <circle cx="5" cy="5" r="2" stroke="none" fill="#3B82F6"></circle>
+            <circle cx="350" cy="350" r="350" />
           </svg>
           <svg
             viewBox="0 0 700 700"
             fMarker
-            [type]="eMarkerType.END"
-            [height]="15"
-            [width]="15"
-            [refX]="9"
-            [refY]="8"
+            [type]="eMarkerType.SELECTED_START"
+            class="connection-marker"
+            [height]="5"
+            [width]="5"
+            [refX]="2.5"
+            [refY]="2.5"
+            markerUnits="strokeWidth"
           >
-            <path fill="#3B82F6" d="M0,0L700,350L0,700L150,350z" />
+            <circle cx="350" cy="350" r="350" />
+          </svg>
+          <svg
+            viewBox="0 0 6 7"
+            fMarker
+            [type]="eMarkerType.END"
+            class="connection-marker"
+            [height]="7"
+            [width]="6"
+            [refX]="5.5"
+            [refY]="3.5"
+            markerUnits="strokeWidth"
+            orient="auto"
+          >
+            <path d="M0.000391006 0L6 3.5L0.000391006 7L0.000391006 0Z" />
+          </svg>
+          <svg
+            viewBox="0 0 6 7"
+            fMarker
+            [type]="eMarkerType.SELECTED_END"
+            class="connection-marker"
+            [height]="7"
+            [width]="6"
+            [refX]="5.5"
+            [refY]="3.5"
+            markerUnits="strokeWidth"
+            orient="auto"
+          >
+            <path d="M0.000391006 0L6 3.5L0.000391006 7L0.000391006 0Z" />
           </svg>
         </f-connection>
         } @for (node of nodes(); track $index) {
@@ -248,26 +289,32 @@
           fNode
           fDragHandle
           [fNodePosition]="{ x: node.x, y: node.y }"
-          fNodeInput
-          fNodeOutput
-          [fInputId]="node.step_key"
-          [fOutputId]="node.step_key"
-          class="flow-node"
-          [class.active]="isNodeActive(node.step_key)"
-          (click)="selectNodeForConnection(node, $event)"
           (dblclick)="openEditor(node)"
-          fInputConnectableSide="top"
-          fOutputConnectableSide="right"
+          (click)="activeNodeStepKey.set(node.step_key)"
           (fNodePositionChange)="onNodePositionChange($event, node.step_key)"
         >
-          <div class="node-header p-1 bg-primary text-white border-round-top">
-            <div class="flex flex-1 align-items-center gap-2 min-w-0">
+          <div
+            fNodeOutput
+            fNodeInput
+            [fInputId]="node.step_key"
+            [fOutputId]="node.step_key"
+            [fInputMultiple]="true"
+            [fOutputMultiple]="true"
+            [isSelfConnectable]="false"
+            class="right"
+            [fInputConnectableSide]="eConnectableSide.CALCULATE"
+            [fOutputConnectableSide]="eConnectableSide.CALCULATE"
+          ></div>
+          <div class="flow-node" [class.active]="isNodeActive(node.step_key)">
+            <div
+              class="flex align-items-center gap-1 p-1 bg-primary text-white"
+            >
               <div
                 class="w-1.5rem h-1.5rem flex flex-shrink-0 align-items-center justify-content-center border-circle bg-white-alpha-20"
               >
                 <i class="pi pi-comment font-semibold text-xs"></i>
               </div>
-              <div class="flex-1 min-w-0">
+              <div class="min-w-0">
                 @let preview = getNodePreview(node);
                 <span
                   class="block font-medium text-xs white-space-nowrap line-clamp-1"
@@ -284,51 +331,60 @@
                 </span>
               </div>
             </div>
-          </div>
 
-          <div class="p-1 bg-white">
-            <small
-              class="block text-color-secondary text-xs white-space-nowrap line-clamp-2"
-              [pTooltip]="preview.message_content || ('no_message' | translate)"
-              tooltipPosition="top"
-            >
-              {{ preview.message_content || ("no_message" | translate) }}
-            </small>
-
-            @if (getPreviewOptions(preview.options).length) {
-            <div>
-              <div class="text-xs font-semibold text-500 mb-1">
-                {{ "options" | translate }}:
-              </div>
-              @for (option of getPreviewOptions(preview.options); track $index)
-              {
-              <div
-                class="flex align-items-center gap-2 mb-1 p-1 border-round bg-blue-50"
+            <div class="p-1 bg-white">
+              <small
+                class="block text-color-secondary text-xs white-space-nowrap line-clamp-2"
+                [pTooltip]="
+                  preview.message_content || ('no_message' | translate)
+                "
+                tooltipPosition="top"
               >
-                <span class="flex-1 text-xs">{{
-                  option?.title || ("option" | translate) + " " + ($index + 1)
-                }}</span>
+                {{ preview.message_content || ("no_message" | translate) }}
+              </small>
 
-                @if (option?.target_step_key) {
-                <i
-                  class="pi pi-check-circle text-green-500 text-xs"
-                  [pTooltip]="'connected' | translate"
-                  tooltipPosition="left"
-                ></i>
-                } @else {
-                <a
-                  pButton
-                  [pTooltip]="'click_to_connect_this_option' | translate"
-                  tooltipPosition="left"
-                  (click)="startConnectionFromOption(node, $index, $event)"
-                  class="p-button-text p-button-sm p-0"
-                  ><i class="pi pi-link text-xs"></i
-                ></a>
+              @if (getPreviewOptions(preview.options).length) {
+              <div>
+                <div class="text-xs font-semibold text-500 mb-1">
+                  {{ "options" | translate }}:
+                </div>
+                @for (option of getPreviewOptions(preview.options); track
+                $index) {
+                <div
+                  class="flex align-items-center gap-2 mb-1 p-1 border-round bg-blue-50"
+                >
+                  <span
+                    class="flex-1 text-xs white-space-nowrap line-clamp-1"
+                    [pTooltip]="option?.title || ('no_message' | translate)"
+                    tooltipPosition="left"
+                    >{{
+                      option?.title ||
+                        ("option" | translate) + " " + ($index + 1)
+                    }}</span
+                  >
+
+                  @if (option?.target_step_key) {
+                  <i
+                    class="pi pi-check-circle text-green-500 text-xs"
+                    [pTooltip]="'connected' | translate"
+                    tooltipPosition="left"
+                  ></i>
+                  } @else {
+                  <a
+                    pButton
+                    [pTooltip]="'click_to_connect_this_option' | translate"
+                    tooltipPosition="left"
+                    class="p-button-text p-button-sm p-0"
+                    (click)="openConnectMenu($event, node, $index)"
+                  >
+                    <i class="pi pi-link text-xs"></i>
+                  </a>
+                  }
+                </div>
                 }
               </div>
               }
             </div>
-            }
           </div>
         </div>
         }
@@ -336,6 +392,13 @@
     </f-flow>
   </div>
 </div>
+
+<p-menu
+  #connectMenu
+  [model]="connectMenuItems()"
+  [popup]="true"
+  appendTo="body"
+></p-menu>
 
 @if (selectedNode()) {
 <div class="node-editor flex flex-column h-full">
@@ -439,80 +502,29 @@
     />
   </ng-template>
 </p-dialog>
-} @if (showDeleteOptionsMenu() && selectedConnectionOptions().length > 0) {
+} @if (connectionMenuVisible()) {
 <div
-  class="p-2 shadow-2 border-round"
-  [style]="{
-    position: 'fixed',
-    top: connectionMenuPosition().y + 'px',
-    left: connectionMenuPosition().x + 'px',
-    'z-index': 1000,
-    background: 'white',
-    width: '15rem'
-  }"
+  class="connection-menu"
+  [style.left.px]="connectionMenuPosition().x"
+  [style.top.px]="connectionMenuPosition().y"
+  (click)="$event.stopPropagation()"
 >
-  <div class="text-sm font-semibold mb-2 text-700">
-    {{ "select_connection_to_delete" | translate }}
+  <div class="menu-title">
+    {{ "connections" | translate }}
   </div>
 
-  @for (option of selectedConnectionOptions(); track option.connectionId) {
-  <button
-    pButton
-    [label]="option.label"
-    icon="pi pi-trash"
-    class="p-button-text p-button-sm w-full justify-content-start p-button-danger mb-1"
-    (click)="deleteSingleOptionConnection(option.connectionId)"
-  ></button>
+  @for (node of connectedTargets(); track node.step_key) {
+  <div class="menu-item" (click)="deleteConnectionWith(node.step_key)">
+    <i class="pi pi-trash text-red-500"></i>
+    {{ node.data.name || node.name }}
+  </div>
   }
-  <button
-    pButton
-    [label]="'delete_all_connections' | translate"
-    icon="pi pi-trash"
-    class="p-button-text p-button-sm w-full justify-content-start p-button-danger mb-2"
-    (click)="
-      deleteAllConnections(
-        selectedConnectionGroup()!.source,
-        selectedConnectionGroup()!.target
-      )
-    "
-  ></button>
 
-  <button
-    pButton
-    [label]="'cancel' | translate"
-    icon="pi pi-times"
-    class="p-button-text p-button-sm w-full justify-content-start"
-    (click)="closeConnectionMenu()"
-  ></button>
-</div>
-} @if (isConnectionMenuVisible() && selectedConnection() &&
-!showDeleteOptionsMenu()) {
-<div
-  class="p-2 shadow-2 border-round"
-  [style]="{
-    position: 'fixed',
-    top: connectionMenuPosition().y + 'px',
-    left: connectionMenuPosition().x + 'px',
-    'z-index': 1000,
-    background: 'white',
-    width: '13rem'
-  }"
-  (clickOutside)="closeConnectionMenu()"
->
-  <button
-    pButton
-    [label]="'delete_connection' | translate"
-    icon="pi pi-trash"
-    class="p-button-text p-button-sm w-full justify-content-start p-button-danger"
-    (click)="deleteSingleOptionConnection(selectedConnection()!)"
-  ></button>
+  <div class="menu-divider"></div>
 
-  <button
-    pButton
-    [label]="'cancel' | translate"
-    icon="pi pi-times"
-    class="p-button-text p-button-sm w-full justify-content-start"
-    (click)="closeConnectionMenu()"
-  ></button>
+  <div class="menu-item text-red-500" (click)="deleteAllConnections()">
+    <i class="pi pi-times-circle"></i>
+    {{ "delete_all_connections" | translate }}
+  </div>
 </div>
 }
