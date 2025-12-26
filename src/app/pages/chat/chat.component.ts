@@ -164,6 +164,7 @@ export default class ChatComponent implements OnInit, OnDestroy {
   activeIndex = signal<number | null>(null);
   settings = signal<SettingsModel | undefined>(undefined);
   isSettingsContentOpened = signal(false);
+  isSettingsMenuCollapsed = signal(false);
 
   isWorkspaceOpened = injectIsWorkspaceOpened();
 

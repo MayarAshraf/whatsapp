@@ -1,28 +1,74 @@
 <div class="h-screen">
   <div class="grid grid-nogutter h-full overflow-hidden">
     <div
-      class="col-12 md:col-3 h-full"
-      [style.width]="isSmScreen() ? '100%' : '250px'"
+      class="col-12 md:col-3 h-full settings-sidebar"
+      [style.width]="
+        isSmScreen()
+          ? '100%'
+          : isSettingsMenuCollapsed() && pageData()
+          ? '60px'
+          : '250px'
+      "
       [class.hidden]="
         isSmScreen() &&
         (selectedUser() || (pageData() && isSettingsContentOpened()))
       "
+      [class.collapsed]="isSettingsMenuCollapsed() && pageData()"
     >
       <div
         class="user-list surface-100 overflow-y-auto border-right-1 border-300 h-full"
       >
         @if(pageData()){
         <div class="m-2">
-          <div class="font-medium text-lg my-3">
+          <div
+            class="font-medium text-lg flex flex-wrap justify-content-between align-items-center"
+          >
             <a
+              pButton
+              [text]="true"
               routerLink="/conversations"
-              class="text-primary hover:text-primary-600"
-              ><i class="fa-solid fa-arrow-left text-base"></i
-            ></a>
-            {{ "settings" | translate }}
+              class="p-button-sm"
+              [class]="
+                isSettingsMenuCollapsed()
+                  ? 'w-full flex-order-1 hover:surface-200'
+                  : 'bg-transparent p-0 hover:text-primary-600'
+              "
+              [pTooltip]="
+                isSettingsMenuCollapsed()
+                  ? ('back_to_conversations' | translate)
+                  : ''
+              "
+              tooltipPosition="right"
+              icon="fa-solid fa-arrow-left text-base"
+              [label]="
+                isSettingsMenuCollapsed() ? '' : ('settings' | translate)
+              "
+            >
+            </a>
+            <button
+              pButton
+              [text]="true"
+              [icon]="
+                isSettingsMenuCollapsed()
+                  ? 'fa-solid fa-bars'
+                  : 'fa-solid fa-xmark'
+              "
+              class="p-button-sm hover:surface-200"
+              [class]="isSettingsMenuCollapsed() ? 'w-full' : 'ml-auto'"
+              (click)="isSettingsMenuCollapsed.set(!isSettingsMenuCollapsed())"
+              [pTooltip]="
+                isSettingsMenuCollapsed()
+                  ? ('expand_menu' | translate)
+                  : ('collapse_menu' | translate)
+              "
+              tooltipPosition="right"
+            ></button>
           </div>
 
-          <div class="text-700 font-medium my-2">
+          <div
+            class="text-700 font-medium my-2"
+            [class.hidden]="isSettingsMenuCollapsed()"
+          >
             {{ "whatsapp_settings" | translate }}
           </div>
 
@@ -31,27 +77,60 @@
               pButton
               icon="fa-solid fa-robot"
               [text]="true"
-              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              class="p-button-sm w-full hover:surface-200"
+              [class]="
+                isSettingsMenuCollapsed()
+                  ? 'justify-content-center'
+                  : 'justify-content-start'
+              "
               [class.surface-200]="activeIndex() === 0"
               (click)="
                 activeIndex.set(0);
                 isWorkspaceOpened.set(false);
                 isSettingsContentOpened.set(true)
               "
-              [label]="'whatsapp_templates' | translate"
+              [label]="
+                isSettingsMenuCollapsed()
+                  ? ''
+                  : ('whatsapp_templates' | translate)
+              "
+              [pTooltip]="
+                isSettingsMenuCollapsed()
+                  ? ('whatsapp_templates' | translate)
+                  : ''
+              "
+              tooltipPosition="right"
             ></button>
             <button
               pButton
               icon="fa-brands fa-whatsapp"
               [text]="true"
-              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              class="p-button-sm w-full hover:surface-200"
+              [class]="
+                isSettingsMenuCollapsed()
+                  ? 'justify-content-center'
+                  : 'justify-content-start'
+              "
               [class.surface-200]="activeIndex() === 1"
               (click)="activeIndex.set(1); isSettingsContentOpened.set(true)"
-              [label]="'whatsapp_credentials' | translate"
+              [label]="
+                isSettingsMenuCollapsed()
+                  ? ''
+                  : ('whatsapp_credentials' | translate)
+              "
+              [pTooltip]="
+                isSettingsMenuCollapsed()
+                  ? ('whatsapp_credentials' | translate)
+                  : ''
+              "
+              tooltipPosition="right"
             ></button>
           </div>
 
-          <div class="text-700 font-medium my-2">
+          <div
+            class="text-700 font-medium my-2"
+            [class.hidden]="isSettingsMenuCollapsed()"
+          >
             {{ "users_settings" | translate }}
           </div>
 
@@ -60,20 +139,42 @@
               pButton
               icon="fa-users fas"
               [text]="true"
-              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              class="p-button-sm w-full hover:surface-200"
+              [class]="
+                isSettingsMenuCollapsed()
+                  ? 'justify-content-center'
+                  : 'justify-content-start'
+              "
               [class.surface-200]="activeIndex() === 2"
               (click)="activeIndex.set(2); isSettingsContentOpened.set(true)"
-              [label]="'manage_users' | translate"
+              [label]="
+                isSettingsMenuCollapsed() ? '' : ('manage_users' | translate)
+              "
+              [pTooltip]="
+                isSettingsMenuCollapsed() ? ('manage_users' | translate) : ''
+              "
+              tooltipPosition="right"
             ></button>
 
             <button
               pButton
               icon="fa-solid fa-building-user"
               [text]="true"
-              class="p-button-sm w-full hover:surface-200 justify-content-start"
+              class="p-button-sm w-full hover:surface-200"
+              [class]="
+                isSettingsMenuCollapsed()
+                  ? 'justify-content-center'
+                  : 'justify-content-start'
+              "
               [class.surface-200]="activeIndex() === 3"
               (click)="activeIndex.set(3); isSettingsContentOpened.set(true)"
-              [label]="'manage_groups' | translate"
+              [label]="
+                isSettingsMenuCollapsed() ? '' : ('manage_groups' | translate)
+              "
+              [pTooltip]="
+                isSettingsMenuCollapsed() ? ('manage_groups' | translate) : ''
+              "
+              tooltipPosition="right"
             ></button>
           </div>
         </div>

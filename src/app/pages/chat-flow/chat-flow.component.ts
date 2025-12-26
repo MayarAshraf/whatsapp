@@ -77,6 +77,17 @@ interface ChatFlowWorkspaceDraft {
   connections: FlowConnection[];
   activeNodeStepKey: string | null;
 }
+
+interface ConnectionMenuOption {
+  optionIndex: number;
+  optionTitle: string;
+  targetStepKey: string;
+  isFallback?: boolean;
+}
+interface FlowState {
+  nodes: FlowNode[];
+  connections: FlowConnection[];
+}
 @Component({
   selector: 'app-chat-flow',
   standalone: true,
@@ -143,7 +154,17 @@ export class ChatFlowComponent {
   connectionMenuVisible = signal(false);
   connectionMenuPosition = signal({ x: 0, y: 0 });
   selectedConnection = signal<FlowConnection | null>(null);
-  connectedTargets = signal<FlowNode[]>([]);
+  connectionMenuOptions = signal<ConnectionMenuOption[]>([]);
+
+  // Undo/Redo state
+  #history: FlowState[] = [];
+  #historyIndex = -1;
+  #maxHistorySize = 50;
+  canUndo = signal(false);
+  canRedo = signal(false);
+  #positionChangeTimeout: ReturnType<typeof setTimeout> | null = null;
+  #pendingPositionChanges = new Map<string, { x: number; y: number }>();
+  #isRestoringState = false;
 
   templateModel: TemplateModel = new TemplateModel();
   flowModel: flowModel = new flowModel();
@@ -156,14 +177,98 @@ export class ChatFlowComponent {
   readonly fCanvas = viewChild.required(FCanvasComponent);
   connectMenu = viewChild<Menu>('connectMenu');
 
+  constructor() {
+    this.saveStateToHistory();
+
+    // Keyboard shortcuts for undo/redo
+    document.addEventListener('keydown', (event) => {
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === 'z' &&
+        !event.shiftKey
+      ) {
+        event.preventDefault();
+        this.undo();
+      } else if (
+        (event.ctrlKey || event.metaKey) &&
+        (event.key === 'y' || (event.key === 'z' && event.shiftKey))
+      ) {
+        event.preventDefault();
+        this.redo();
+      }
+    });
+
+    document.addEventListener('click', () => {
+      this.closeConnectionMenu();
+    });
+  }
+
+  saveStateToHistory(): void {
+    if (this.#isRestoringState) return;
+
+    const currentState: FlowState = {
+      nodes: JSON.parse(JSON.stringify(this.nodes())),
+      connections: JSON.parse(JSON.stringify(this.connections())),
+    };
+
+    // Remove any future history if we're not at the end
+    if (this.#historyIndex < this.#history.length - 1) {
+      this.#history = this.#history.slice(0, this.#historyIndex + 1);
+    }
+
+    // Add new state to history
+    this.#history.push(currentState);
+
+    // Limit history size
+    if (this.#history.length > this.#maxHistorySize) {
+      this.#history.shift();
+    } else {
+      this.#historyIndex++;
+    }
+
+    this.updateUndoRedoState();
+  }
+
+  restoreStateFromHistory(state: FlowState): void {
+    this.#isRestoringState = true;
+    this.nodes.set(JSON.parse(JSON.stringify(state.nodes)));
+    this.connections.set(JSON.parse(JSON.stringify(state.connections)));
+    this.#isRestoringState = false;
+  }
+
+  updateUndoRedoState(): void {
+    this.canUndo.set(this.#historyIndex > 0);
+    this.canRedo.set(this.#historyIndex < this.#history.length - 1);
+  }
+
+  updateState(updater: (state: FlowState) => void): void {
+    const currentState: FlowState = {
+      nodes: JSON.parse(JSON.stringify(this.nodes())),
+      connections: JSON.parse(JSON.stringify(this.connections())),
+    };
+
+    updater(currentState);
+
+    this.nodes.set(currentState.nodes);
+    this.connections.set(currentState.connections);
+
+    this.saveStateToHistory();
+  }
+
   onLoaded(): void {
     this.fCanvas()?.resetScaleAndCenter(false);
 
     if (this.pendingDraft()) {
-      this.nodes.set(this.pendingDraft()!.nodes);
-      this.connections.set(this.pendingDraft()!.connections);
-      this.activeNodeStepKey.set(this.pendingDraft()!.activeNodeStepKey);
+      const draft = this.pendingDraft()!;
+      // Restore state from draft
+      this.nodes.set([...draft.nodes]);
+      this.connections.set([...draft.connections]);
+      this.activeNodeStepKey.set(draft.activeNodeStepKey);
       this.pendingDraft.set(null);
+      // Initialize history with restored state
+      this.#history = [];
+      this.#historyIndex = -1;
+      this.saveStateToHistory();
     }
   }
 
@@ -172,14 +277,13 @@ export class ChatFlowComponent {
       return;
     }
 
-    this.connections.update((connections) => [
-      ...connections,
-      {
+    this.updateState((state) => {
+      state.connections.push({
         id: 'c-' + uuid().slice(0, 6),
         fOutputId: event.fOutputId,
         fInputId: event.fInputId!,
-      },
-    ]);
+      });
+    });
   }
 
   flows$ = this.#api.request('get', 'chat-flows/chat-flow').pipe(
@@ -201,8 +305,13 @@ export class ChatFlowComponent {
           map(({ data }) => data),
           tap((data) => {
             this.flowModel = new flowModel(data);
-            this.nodes.set(data.nodes);
-            this.connections.set(data.connections);
+            // Restore state from loaded data
+            this.nodes.set([...data.nodes]);
+            this.connections.set([...data.connections]);
+            // Initialize history with loaded state
+            this.#history = [];
+            this.#historyIndex = -1;
+            this.saveStateToHistory();
           })
         )
     )
@@ -463,11 +572,29 @@ export class ChatFlowComponent {
   }
 
   onNodePositionChange(event: any, stepKey: any) {
+    // Update visual position immediately for smooth dragging
     this.nodes.update((nodes) =>
       nodes.map((node) =>
         node.step_key === stepKey ? { ...node, x: event.x, y: event.y } : node
       )
     );
+
+    // Store pending position change for history
+    this.#pendingPositionChanges.set(stepKey, { x: event.x, y: event.y });
+
+    // Debounce position changes to avoid too many history entries
+    if (this.#positionChangeTimeout) {
+      clearTimeout(this.#positionChangeTimeout);
+    }
+
+    this.#positionChangeTimeout = setTimeout(() => {
+      if (this.#pendingPositionChanges.size > 0) {
+        // Save current state to history before applying batched position changes
+        this.saveStateToHistory();
+        this.#pendingPositionChanges.clear();
+      }
+      this.#positionChangeTimeout = null;
+    }, 500);
   }
 
   addNode() {
@@ -485,7 +612,10 @@ export class ChatFlowComponent {
       }),
     };
     this.newNode.set(newNode);
-    this.nodes.update((nodes) => [...nodes, newNode]);
+
+    this.updateState((state) => {
+      state.nodes.push(newNode);
+    });
 
     this.openEditor(newNode);
   }
@@ -500,25 +630,62 @@ export class ChatFlowComponent {
     }
   }
 
+  onNodeMouseEnter(stepKey: string) {
+    this.hoveredNode.set(stepKey);
+  }
+
+  onNodeMouseLeave(stepKey: string) {
+    if (this.hoveredNode() === stepKey) {
+      this.hoveredNode.set(null);
+    }
+  }
+
+  addNodeConnectedTo(sourceNode: FlowNode) {
+    const newNode: FlowNode = {
+      step_key: 'n-' + uuid().slice(0, 6),
+      name: `Template ${this.nodes().length + 1}`,
+      x: sourceNode.x + 250,
+      y: sourceNode.y,
+      data: new TemplateModel({
+        name: '',
+        message_content: '',
+        order: this.nodes().length + 1,
+        is_active: true,
+        options: [],
+      }),
+    };
+
+    this.newNode.set(newNode);
+
+    this.updateState((state) => {
+      state.nodes.push(newNode);
+      state.connections.push({
+        id: 'c-' + uuid().slice(0, 6),
+        fOutputId: sourceNode.step_key,
+        fInputId: newNode.step_key,
+      });
+    });
+
+    this.openEditor(newNode);
+  }
+
   deleteNode(node: FlowNode) {
     this.#confirmService.confirmDelete({
       message: this.#translate.instant('confirm_delete_template'),
       acceptCallback: () => {
         const deletedStepKey = node.step_key;
 
-        this.nodes.update((nodes) =>
-          nodes.filter((n) => n.step_key !== deletedStepKey)
-        );
+        this.updateState((state) => {
+          state.nodes = state.nodes.filter(
+            (n) => n.step_key !== deletedStepKey
+          );
 
-        this.connections.update((connections) =>
-          connections.filter(
+          state.connections = state.connections.filter(
             (c) =>
               c.fOutputId !== deletedStepKey && c.fInputId !== deletedStepKey
-          )
-        );
+          );
 
-        this.nodes.update((nodes) =>
-          nodes.map((n) => ({
+          state.nodes = state.nodes.map((n) => ({
             ...n,
             data: {
               ...n.data,
@@ -531,8 +698,8 @@ export class ChatFlowComponent {
                       : opt.target_step_key,
                 })) ?? [],
             },
-          }))
-        );
+          }));
+        });
 
         if (this.selectedNode()?.step_key === deletedStepKey) {
           this.closeEditor();
@@ -551,7 +718,6 @@ export class ChatFlowComponent {
     this.templateModel = new TemplateModel(
       JSON.parse(JSON.stringify(node.data))
     );
-    this.templateForm.patchValue(this.templateModel);
     this.activeNodeStepKey.set(node.step_key);
   }
 
@@ -589,13 +755,6 @@ export class ChatFlowComponent {
       data: this.templateModel,
     };
 
-    // Update the node
-    this.nodes.set(
-      this.nodes().map((n) =>
-        n.step_key === updatedNode.step_key ? updatedNode : n
-      )
-    );
-
     // Update connections based on target_step_key values in options
     const sourceStepKey = updatedNode.step_key;
 
@@ -604,32 +763,41 @@ export class ChatFlowComponent {
       .map((option) => option?.target_step_key)
       .filter((key): key is string => !!key && typeof key === 'string');
 
-    // Remove all existing connections from this source node
-    this.connections.update((connections) =>
-      connections.filter((c) => c.fOutputId !== sourceStepKey)
-    );
+    this.updateState((state) => {
+      // Update the node
+      const nodeIndex = state.nodes.findIndex(
+        (n) => n.step_key === updatedNode.step_key
+      );
+      if (nodeIndex !== -1) {
+        state.nodes[nodeIndex] = { ...updatedNode };
+      }
 
-    // Create new connections for each target_step_key
-    targetStepKeys.forEach((targetStepKey) => {
-      // Check if target node exists
-      const targetNode = this.nodes().find((n) => n.step_key === targetStepKey);
-      if (!targetNode) return;
-
-      // Check if connection already exists (shouldn't happen after removal, but safety check)
-      const connectionExists = this.connections().some(
-        (c) => c.fOutputId === sourceStepKey && c.fInputId === targetStepKey
+      // Remove all existing connections from this source node
+      state.connections = state.connections.filter(
+        (c) => c.fOutputId !== sourceStepKey
       );
 
-      if (!connectionExists) {
-        this.connections.update((connections) => [
-          ...connections,
-          {
+      // Create new connections for each target_step_key
+      targetStepKeys.forEach((targetStepKey) => {
+        // Check if target node exists
+        const targetNode = state.nodes.find(
+          (n) => n.step_key === targetStepKey
+        );
+        if (!targetNode) return;
+
+        // Check if connection already exists (shouldn't happen after removal, but safety check)
+        const connectionExists = state.connections.some(
+          (c) => c.fOutputId === sourceStepKey && c.fInputId === targetStepKey
+        );
+
+        if (!connectionExists) {
+          state.connections.push({
             id: 'c-' + uuid().slice(0, 6),
             fOutputId: sourceStepKey,
             fInputId: targetStepKey,
-          },
-        ]);
-      }
+          });
+        }
+      });
     });
 
     this.closeEditor();
@@ -683,8 +851,11 @@ export class ChatFlowComponent {
     this.#confirmService.confirmDelete({
       message: this.#translate.instant(_('please_confirm_to_clear_workspace')),
       acceptCallback: () => {
-        this.nodes.set([]);
-        this.connections.set([]);
+        this.closeEditor();
+        this.updateState((state) => {
+          state.nodes = [];
+          state.connections = [];
+        });
       },
     });
   }
@@ -768,27 +939,31 @@ export class ChatFlowComponent {
     optionIndex: number,
     targetNode: FlowNode
   ) {
-    //update option model
-    sourceNode.data.options![optionIndex].target_step_key = targetNode.step_key;
+    this.updateState((state) => {
+      // Find and update the source node
+      const nodeIndex = state.nodes.findIndex(
+        (n) => n.step_key === sourceNode.step_key
+      );
+      if (nodeIndex !== -1) {
+        const updatedNode = { ...state.nodes[nodeIndex] };
+        if (!updatedNode.data.options) {
+          updatedNode.data.options = [];
+        }
+        updatedNode.data.options = [...updatedNode.data.options];
+        updatedNode.data.options[optionIndex] = {
+          ...updatedNode.data.options[optionIndex],
+          target_step_key: targetNode.step_key,
+        };
+        state.nodes[nodeIndex] = updatedNode;
+      }
 
-    this.nodes.update((nodes) =>
-      nodes.map((n) =>
-        n.step_key === sourceNode.step_key ? { ...sourceNode } : n
-      )
-    );
-
-    //create visual connection
-    this.connections.update(
-      (connections) =>
-        [
-          ...connections,
-          {
-            id: 'c-' + uuid().slice(0, 6),
-            fOutputId: sourceNode.step_key,
-            fInputId: targetNode.step_key,
-          },
-        ] as FlowConnection[]
-    );
+      // Create visual connection
+      state.connections.push({
+        id: 'c-' + uuid().slice(0, 6),
+        fOutputId: sourceNode.step_key,
+        fInputId: targetNode.step_key,
+      });
+    });
   }
 
   createNodeAndConnect(sourceNode: FlowNode, optionIndex: number) {
@@ -824,12 +999,6 @@ export class ChatFlowComponent {
     return 'Connect';
   }
 
-  constructor() {
-    document.addEventListener('click', () => {
-      this.closeConnectionMenu();
-    });
-  }
-
   onConnectionClick(event: MouseEvent, connection: FlowConnection) {
     event.preventDefault();
     event.stopPropagation();
@@ -842,12 +1011,39 @@ export class ChatFlowComponent {
 
     if (!sourceNode) return;
 
-    const targets = this.connections()
-      .filter((c) => c.fOutputId === sourceNode.step_key)
-      .map((c) => this.nodes().find((n) => n.step_key === c.fInputId))
-      .filter(Boolean) as FlowNode[];
+    // options-based connections
+    let options = (sourceNode.data.options || [])
+      .map((option, index) => ({
+        optionIndex: index,
+        optionTitle: option?.title || `Option ${index + 1}`,
+        targetStepKey: option?.target_step_key,
+        isFallback: false,
+      }))
+      .filter(
+        (opt) =>
+          opt.targetStepKey === connection.fInputId &&
+          typeof opt.targetStepKey === 'string'
+      );
 
-    this.connectedTargets.set(targets);
+    // fallback: no options but connection exists
+    if (!options.length) {
+      const targetNode = this.nodes().find(
+        (n) => n.step_key === connection.fInputId
+      );
+
+      if (targetNode) {
+        options = [
+          {
+            optionIndex: -1,
+            optionTitle: targetNode.data.name || targetNode.name,
+            targetStepKey: targetNode.step_key,
+            isFallback: true,
+          },
+        ];
+      }
+    }
+
+    this.connectionMenuOptions.set(options as ConnectionMenuOption[]);
 
     this.connectionMenuPosition.set({
       x: event.clientX,
@@ -857,30 +1053,58 @@ export class ChatFlowComponent {
     this.connectionMenuVisible.set(true);
   }
 
-  deleteConnectionWith(targetStepKey: string) {
+  deleteConnectionWith(optionIndex: number) {
     const connection = this.selectedConnection();
     if (!connection) return;
 
-    this.connections.update((connections) =>
-      connections.filter(
-        (c) =>
-          !(
-            c.fOutputId === connection.fOutputId && c.fInputId === targetStepKey
-          )
-      )
-    );
-
-    const sourceNode = this.nodes().find(
-      (n) => n.step_key === connection.fOutputId
-    );
-
-    if (sourceNode?.data?.options) {
-      sourceNode.data.options.forEach((option) => {
-        if (option.target_step_key === targetStepKey) {
-          option.target_step_key = null;
-        }
+    // fallback: delete entire connection
+    if (optionIndex === -1) {
+      this.updateState((state) => {
+        state.connections = state.connections.filter(
+          (c) => c.id !== connection.id
+        );
       });
+
+      this.closeConnectionMenu();
+      return;
     }
+
+    // normal option-based delete
+    this.updateState((state) => {
+      const sourceNodeIndex = state.nodes.findIndex(
+        (n) => n.step_key === connection.fOutputId
+      );
+
+      if (sourceNodeIndex === -1) return;
+
+      const updatedNode = { ...state.nodes[sourceNodeIndex] };
+      const option = updatedNode.data.options?.[optionIndex];
+      if (!option?.target_step_key) return;
+
+      const targetStepKey = option.target_step_key;
+
+      updatedNode.data.options = [...updatedNode.data.options];
+      updatedNode.data.options[optionIndex] = {
+        ...option,
+        target_step_key: null,
+      };
+
+      state.nodes[sourceNodeIndex] = updatedNode;
+
+      const stillUsed = updatedNode.data.options.some(
+        (opt, i) => i !== optionIndex && opt?.target_step_key === targetStepKey
+      );
+
+      if (!stillUsed) {
+        state.connections = state.connections.filter(
+          (c) =>
+            !(
+              c.fOutputId === connection.fOutputId &&
+              c.fInputId === targetStepKey
+            )
+        );
+      }
+    });
 
     this.closeConnectionMenu();
   }
@@ -889,18 +1113,35 @@ export class ChatFlowComponent {
     const connection = this.selectedConnection();
     if (!connection) return;
 
+    const targetStepKey = connection.fInputId;
     const sourceKey = connection.fOutputId;
 
-    this.connections.update((connections) =>
-      connections.filter((c) => c.fOutputId !== sourceKey)
-    );
+    this.updateState((state) => {
+      // Find source node
+      const sourceNodeIndex = state.nodes.findIndex(
+        (n) => n.step_key === sourceKey
+      );
 
-    const sourceNode = this.nodes().find((n) => n.step_key === sourceKey);
-    if (sourceNode?.data?.options) {
-      sourceNode.data.options.forEach((option) => {
-        option.target_step_key = null;
-      });
-    }
+      if (sourceNodeIndex === -1) return;
+
+      const updatedNode = { ...state.nodes[sourceNodeIndex] };
+
+      if (!updatedNode.data.options) return;
+
+      // Remove target_step_key from all options that point to this target
+      updatedNode.data.options = updatedNode.data.options.map((opt) => ({
+        ...opt,
+        target_step_key:
+          opt?.target_step_key === targetStepKey ? null : opt?.target_step_key,
+      }));
+
+      state.nodes[sourceNodeIndex] = updatedNode;
+
+      // Remove the connection
+      state.connections = state.connections.filter(
+        (c) => !(c.fOutputId === sourceKey && c.fInputId === targetStepKey)
+      );
+    });
 
     this.closeConnectionMenu();
   }
@@ -908,5 +1149,24 @@ export class ChatFlowComponent {
   closeConnectionMenu() {
     this.connectionMenuVisible.set(false);
     this.selectedConnection.set(null);
+    this.connectionMenuOptions.set([]);
+  }
+
+  undo(): void {
+    if (this.#historyIndex > 0) {
+      this.#historyIndex--;
+      const state = this.#history[this.#historyIndex];
+      this.restoreStateFromHistory(state);
+      this.updateUndoRedoState();
+    }
+  }
+
+  redo(): void {
+    if (this.#historyIndex < this.#history.length - 1) {
+      this.#historyIndex++;
+      const state = this.#history[this.#historyIndex];
+      this.restoreStateFromHistory(state);
+      this.updateUndoRedoState();
+    }
   }
 }

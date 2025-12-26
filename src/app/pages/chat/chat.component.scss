@@ -254,3 +254,13 @@ $primary-text: #333333;
     transform: translateY(0);
   }
 }
+
+.settings-sidebar {
+  transition: width 0.3s ease;
+
+  &.collapsed {
+    .user-list {
+      overflow: visible;
+    }
+  }
+}
