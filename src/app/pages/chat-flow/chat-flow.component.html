@@ -18,9 +18,9 @@
       ></button>
     </div>
     @if(!isLoading()){ @for (flow of flows(); track $index) {
-    <div class="col-12 md:col-4">
+    <div class="col-12 md:col-3">
       <div class="border-round shadow-1 overflow-hidden border-1 border-200">
-        <div class="p-2 flex flex-column gap-1 bg-primary-500">
+        <div class="p-2 flex flex-column gap-1 surface-200">
           <div class="flex gap-2 justify-content-end">
             @if(flow.is_default){
             <p-tag
@@ -38,7 +38,7 @@
             }
           </div>
           <h2
-            class="m-0 font-medium text-lg text-white text-overflow-ellipsis overflow-hidden white-space-nowrap"
+            class="m-0 font-medium text-lg text-overflow-ellipsis overflow-hidden white-space-nowrap"
             [pTooltip]="flow.name"
             tooltipPosition="top"
           >
@@ -341,7 +341,7 @@
               icon="fa-solid fa-plus text-xs"
               class="node-action-button add p-button-rounded bg-white"
               [outlined]="true"
-              [pTooltip]="'add_connected_template' | translate"
+              [pTooltip]="'add_template' | translate"
               tooltipPosition="top"
               (click)="addNodeConnectedTo(node); $event.stopPropagation()"
             ></button>
@@ -446,7 +446,7 @@
     class="p-2 bg-primary text-white flex align-items-center justify-content-between"
   >
     <div class="flex align-items-center gap-2">
-      <i class="pi pi-pencil text-base"></i>
+      <i class="fa-solid fa-plus text-base"></i>
       <h3 class="font-medium text-base m-0">
         {{ "create_template" | translate }}
       </h3>
@@ -549,7 +549,7 @@
   (click)="$event.stopPropagation()"
 >
   <div class="menu-title">
-    {{ "options" | translate }}
+    {{ "connections" | translate }}
   </div>
 
   @for (option of connectionMenuOptions(); track option.optionIndex) {

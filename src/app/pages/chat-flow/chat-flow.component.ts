@@ -671,7 +671,7 @@ export class ChatFlowComponent {
 
   deleteNode(node: FlowNode) {
     this.#confirmService.confirmDelete({
-      message: this.#translate.instant('confirm_delete_template'),
+      message: this.#translate.instant('please_confirm_to_delete_template'),
       acceptCallback: () => {
         const deletedStepKey = node.step_key;
 
