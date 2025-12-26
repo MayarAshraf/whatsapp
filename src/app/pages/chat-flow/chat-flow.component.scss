@@ -159,9 +159,10 @@
   padding: 0;
   border-radius: 12px;
 
-  .f-node-input,
-  .f-node-output {
-    border-radius: 50%;
+  .f-node-output,
+  .f-node-input {
+    width: 13px;
+    height: 13px;
   }
 }
 

@@ -314,15 +314,18 @@
           (mouseleave)="onNodeMouseLeave(node.step_key)"
         >
           <div
-            fNodeOutput
             fNodeInput
             [fInputId]="node.step_key"
-            [fOutputId]="node.step_key"
             [fInputMultiple]="true"
+            class="left"
+            [fInputConnectableSide]="eConnectableSide.CALCULATE"
+          ></div>
+          <div
+            fNodeOutput
+            [fOutputId]="node.step_key"
             [fOutputMultiple]="true"
             [isSelfConnectable]="false"
             class="right"
-            [fInputConnectableSide]="eConnectableSide.CALCULATE"
             [fOutputConnectableSide]="eConnectableSide.CALCULATE"
           ></div>
           <div class="flow-node" [class.active]="isNodeActive(node.step_key)">
