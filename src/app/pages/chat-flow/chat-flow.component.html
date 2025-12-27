@@ -89,8 +89,8 @@
     </div>
     }@empty{
     <p>{{ "no_chat_flows_yet" | translate }}</p>
-    }}@else{ @for (i of [1, 2, 3]; track $index) {
-    <div class="col-12 md:col-4">
+    }}@else{ @for (i of [1, 2, 3, 4]; track $index) {
+    <div class="col-12 md:col-3">
       <p-skeleton width="100%" height="15rem" />
     </div>
     } }
@@ -411,8 +411,8 @@
                         ("option" | translate) + " " + ($index + 1)
                     }}</span
                   >
-
-                  @if (option?.target_step_key) {
+                  @if (option?.action_type === 'jump_to_step') { @if
+                  (option?.target_step_key) {
                   <i
                     class="pi pi-check-circle text-green-500 text-xs"
                     [pTooltip]="'connected' | translate"
@@ -428,7 +428,7 @@
                   >
                     <i class="pi pi-link text-xs"></i>
                   </a>
-                  }
+                  } }
                 </div>
                 }
               </div>

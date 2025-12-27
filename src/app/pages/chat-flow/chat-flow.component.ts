@@ -479,7 +479,6 @@ export class ChatFlowComponent {
             props: {
               label: _('next_template'),
               filter: true,
-              required: true,
               showClear: true,
               options: [],
             },
