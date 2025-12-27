@@ -216,7 +216,7 @@
       <f-background>
         <f-circle-pattern></f-circle-pattern>
       </f-background>
-      <f-canvas>
+      <f-canvas [fZoom]="true">
         <f-connection-for-create fType="segment"></f-connection-for-create>
         <f-snap-connection
           [fSnapThreshold]="50"
@@ -433,6 +433,11 @@
         }
       </f-canvas>
     </f-flow>
+    <div class="flow-toolbar">
+      <button (click)="onZoomIn()"><i class="pi pi-search-plus"></i></button>
+      <button (click)="onZoomOut()"><i class="pi pi-search-minus"></i></button>
+      <button (click)="reset()">Reset</button>
+    </div>
   </div>
 </div>
 

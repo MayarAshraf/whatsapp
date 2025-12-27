@@ -23,6 +23,7 @@ import {
   FConnectionContent,
   FCreateConnectionEvent,
   FFlowModule,
+  FZoomDirective,
 } from '@foblex/flow';
 import { FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -108,6 +109,7 @@ interface FlowState {
     FConnectionContent,
     MenuModule,
     PopoverModule,
+    FZoomDirective,
   ],
   templateUrl: './chat-flow.component.html',
   styleUrls: ['./chat-flow.component.scss'],
@@ -175,6 +177,8 @@ export class ChatFlowComponent {
   readonly eMarkerType = EFMarkerType;
   readonly eConnectableSide = EFConnectableSide;
   readonly fCanvas = viewChild.required(FCanvasComponent);
+  fZoom = viewChild(FZoomDirective);
+
   connectMenu = viewChild<Menu>('connectMenu');
 
   constructor() {
@@ -203,6 +207,18 @@ export class ChatFlowComponent {
     });
   }
 
+  onZoomIn(): void {
+    this.fZoom()?.zoomIn();
+  }
+
+  onZoomOut(): void {
+    this.fZoom()?.zoomOut();
+  }
+
+  reset(): void {
+    this.fZoom()?.reset();
+  }
+  
   saveStateToHistory(): void {
     if (this.#isRestoringState) return;
 

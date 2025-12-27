@@ -239,8 +239,8 @@
   }
 }
 
-@mixin examples-toolbar {
-  .examples-toolbar {
+@mixin flow-toolbar {
+  .flow-toolbar {
     width: fit-content;
     display: flex;
     justify-content: flex-end;
