@@ -213,9 +213,15 @@
     >
       <f-line-alignment [fAlignThreshold]="10"></f-line-alignment>
 
+      @switch (background()) { @case ('circle') {
       <f-background>
-        <f-circle-pattern></f-circle-pattern>
+        <f-circle-pattern />
       </f-background>
+      } @case ('rect') {
+      <f-background>
+        <f-rect-pattern />
+      </f-background>
+      } }
       <f-canvas [fZoom]="true">
         <f-connection-for-create fType="segment"></f-connection-for-create>
         <f-snap-connection
@@ -434,9 +440,17 @@
       </f-canvas>
     </f-flow>
     <div class="flow-toolbar">
+      <p-select
+        size="small"
+        appendTo="body"
+        [options]="backgroundOptions"
+        [(ngModel)]="background"
+        [placeholder]="'choose_background' | translate"
+        class="h-2rem border-none font-semibold"
+      />
       <button (click)="onZoomIn()"><i class="pi pi-search-plus"></i></button>
       <button (click)="onZoomOut()"><i class="pi pi-search-minus"></i></button>
-      <button (click)="reset()">Reset</button>
+      <button (click)="reset()">{{ "reset" | translate }}</button>
     </div>
   </div>
 </div>

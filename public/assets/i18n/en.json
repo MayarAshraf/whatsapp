@@ -31,6 +31,8 @@
   "undo":"Undo",
   "redo":"Redo",
   "open_template":"Open Template",
+  "reset":"Reset",
+  "choose_background":"Choose Background",
 	"attachments": "Attachments",
 	"chat_flow": "Chat Flow",
 	"clear_all": "Clear All",

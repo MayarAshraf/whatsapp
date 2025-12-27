@@ -33,6 +33,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { Menu, MenuModule } from 'primeng/menu';
 import { PopoverModule } from 'primeng/popover';
+import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -50,6 +51,7 @@ import {
   TemplateModel,
   TemplateOption,
 } from './services/service-type';
+
 const isWorkspaceOpened = new InjectionToken('IS_WORKSPACE_OPEN', {
   providedIn: 'root',
   factory: () => signal<boolean>(false),
@@ -110,6 +112,7 @@ interface FlowState {
     MenuModule,
     PopoverModule,
     FZoomDirective,
+    SelectModule,
   ],
   templateUrl: './chat-flow.component.html',
   styleUrls: ['./chat-flow.component.scss'],
@@ -157,6 +160,8 @@ export class ChatFlowComponent {
   connectionMenuPosition = signal({ x: 0, y: 0 });
   selectedConnection = signal<FlowConnection | null>(null);
   connectionMenuOptions = signal<ConnectionMenuOption[]>([]);
+  background = signal('rect');
+  backgroundOptions = ['circle', 'rect', 'none'];
 
   // Undo/Redo state
   #history: FlowState[] = [];
@@ -218,7 +223,7 @@ export class ChatFlowComponent {
   reset(): void {
     this.fZoom()?.reset();
   }
-  
+
   saveStateToHistory(): void {
     if (this.#isRestoringState) return;
 
