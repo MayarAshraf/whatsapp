@@ -414,7 +414,7 @@
                   @if (option?.action_type === 'jump_to_step') { @if
                   (option?.target_step_key) {
                   <i
-                    class="pi pi-check-circle text-green-500 text-xs"
+                    class="fa-regular fa-circle-check text-green-500 text-xs"
                     [pTooltip]="'connected' | translate"
                     tooltipPosition="left"
                   ></i>
@@ -423,12 +423,24 @@
                     pButton
                     [pTooltip]="'click_to_connect_this_option' | translate"
                     tooltipPosition="left"
-                    class="p-button-text p-button-sm p-0"
+                    class="p-button-text p-button-sm p-0 h-1rem"
                     (click)="openConnectMenu($event, node, $index)"
                   >
-                    <i class="pi pi-link text-xs"></i>
+                    <i class="fa-solid fa-link text-xs"></i>
                   </a>
-                  } }
+                  } }@else if (option?.action_type === 'assign_to_group') {
+                  <i
+                    class="fa-solid fa-users text-xs"
+                    [pTooltip]="'assign_to_group' | translate"
+                    tooltipPosition="left"
+                  ></i>
+                  } @else if (option?.action_type === 'assign_to_user') {
+                  <i
+                    class="fa-solid fa-user text-xs"
+                    [pTooltip]="'assign_to_user' | translate"
+                    tooltipPosition="left"
+                  ></i>
+                  }
                 </div>
                 }
               </div>
@@ -468,9 +480,9 @@
     class="p-2 bg-primary text-white flex align-items-center justify-content-between"
   >
     <div class="flex align-items-center gap-2">
-      <i class="fa-solid fa-plus text-base"></i>
+      <i class="pi pi-sitemap text-base"></i>
       <h3 class="font-medium text-base m-0">
-        {{ "create_template" | translate }}
+        {{ "template" | translate }}
       </h3>
     </div>
     <button

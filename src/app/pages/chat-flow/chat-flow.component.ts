@@ -362,11 +362,6 @@ export class ChatFlowComponent {
       props: { label: _('name'), required: true },
     },
     {
-      key: 'order',
-      type: 'input-field',
-      props: { label: _('order'), type: 'number' },
-    },
-    {
       key: 'message_type',
       type: 'select-field',
       props: {

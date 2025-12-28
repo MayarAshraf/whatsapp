@@ -14,7 +14,7 @@ export class IdleService {
   }
 
   initializeIdleDetection() {
-    this.idle.setIdle(5);
+    this.idle.setIdle(300);
     this.idle.setTimeout(1);
     this.idle.setInterrupts(DEFAULT_INTERRUPTSOURCES);
 

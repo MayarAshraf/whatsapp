@@ -82,9 +82,8 @@ export class AutocompleteComponent extends FieldType<FieldTypeConfig> {
       )
       .subscribe((data) => {
         const coptions = data.map((item: any) => ({
-          label: this.props.accessLabel ?? item[`label_${this.#currentLang()}`],
-          id: item.value,
-          ...item,
+          label: this.props.accessLabel ?? item.label,
+          value: item,
         }));
         this.suggestions.set(coptions);
       });

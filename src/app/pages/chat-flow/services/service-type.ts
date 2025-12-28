@@ -42,7 +42,7 @@ export class TemplateModel {
 
           target_user: option.target_user
             ? {
-                label: option.target_user.name,
+                label: option.target_user.label,
                 id: option.target_user.value,
               }
             : null,
