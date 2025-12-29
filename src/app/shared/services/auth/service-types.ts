@@ -6,7 +6,7 @@ export interface UserData {
 
 export interface User {
   id: number;
-  role: string;
+  role: { id: number; name: string; slug: string };
   name: string;
   email: string;
   photo: string;

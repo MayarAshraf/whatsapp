@@ -2,9 +2,10 @@ import { Routes } from '@angular/router';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { AuthGuard } from './shared/guards/auth.guard';
 import { LoginGuard } from './shared/guards/login.guard';
+import { RoleGuard } from './shared/guards/role.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/auth/login', pathMatch: 'full' },
+  { path: '', redirectTo: '/conversations', pathMatch: 'full' },
   {
     path: 'auth',
     canActivate: [LoginGuard],
@@ -26,13 +27,31 @@ export const routes: Routes = [
         path: 'conversations',
         loadComponent: () => import('./pages/chat/chat.component'),
         title: _('conversations'),
+        canActivate: [RoleGuard],
+        data: {
+          roles: {
+            index: ['system-admin', 'manager', 'user'],
+            redirectTo: '403',
+          },
+        },
       },
       {
         path: 'conversations/:page',
         loadComponent: () => import('./pages/chat/chat.component'),
         title: _('conversations'),
+        canActivate: [RoleGuard],
+        data: {
+          roles: {
+            index: ['system-admin', 'manager'],
+            redirectTo: '403',
+          },
+        },
       },
     ],
+  },
+  {
+    path: '403',
+    loadComponent: () => import('@pages/errors/403/403.component'),
   },
   {
     path: '**',

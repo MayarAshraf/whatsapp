@@ -8,7 +8,12 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+} from '@angular/router';
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MenuItem } from 'primeng/api';
@@ -27,6 +32,7 @@ import { GlobalListService } from 'src/app/shared/services/global-list.service';
 import { ApiService } from 'src/app/shared/services/global-services/api.service';
 import { ConfirmService } from 'src/app/shared/services/global-services/confirm.service';
 import { LangService } from 'src/app/shared/services/lang.service';
+import { RoleService } from 'src/app/shared/services/role.service';
 
 @Component({
   selector: 'app-menu-sidebar',
@@ -59,20 +65,27 @@ export class MenuSidebarComponent {
   #api = inject(ApiService);
   #globalList = inject(GlobalListService);
   currentLang = inject(LangService).currentLanguage;
-
+  #userRole = inject(RoleService);
+  
   settingsList$ = this.#globalList.getGlobalList('user-settings');
 
   dialogRef: DynamicDialogRef | null = null;
   currentUser = this.#authService.currentUser;
 
   visible = signal(true);
+  hasConversationRole = this.#userRole.hasRole([
+    'system-admin',
+    'manager',
+    'user',
+  ]);
+  hasSettingsRole = this.#userRole.hasRole(['system-admin', 'manager']);
 
   topMenuItems = signal<MenuItem[]>([
     {
       label: _('conversations'),
       icon: 'fa-solid fa-comment-dots',
       routerLink: '/conversations',
-      visible: true,
+      visible: this.hasConversationRole,
     },
   ]);
 
@@ -81,7 +94,7 @@ export class MenuSidebarComponent {
       label: _('settings'),
       icon: 'fa-cogs fas',
       routerLink: ['/conversations', 'settings'],
-      visible: true,
+      visible: this.hasSettingsRole,
     },
   ]);
 
