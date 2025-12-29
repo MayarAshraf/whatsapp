@@ -616,12 +616,50 @@ export class ChatFlowComponent {
     }, 500);
   }
 
+  getVisibleViewportCenter(): { x: number; y: number } {
+    const canvas = this.fCanvas();
+    if (!canvas) {
+      return { x: 150, y: 150 };
+    }
+
+    const canvasElement = canvas.hostElement;
+    const rect = canvasElement.getBoundingClientRect();
+
+    const transform = canvas.transform;
+    const scale = transform.scale || 1;
+    const position = transform.position || { x: 0, y: 0 };
+
+    const viewportCenterX = rect.width / 2;
+    const viewportCenterY = rect.height / 2;
+
+    // Convert screen coordinates to canvas coordinates
+    const canvasX = (viewportCenterX - position.x) / scale;
+    const canvasY = (viewportCenterY - position.y) / scale;
+
+    return { x: canvasX, y: canvasY };
+  }
+
+  getNewNodePosition(): { x: number; y: number } {
+    const center = this.getVisibleViewportCenter();
+
+    // Add small random offset (±50px) to prevent exact overlap
+    const offsetX = (Math.random() - 0.5) * 100;
+    const offsetY = (Math.random() - 0.5) * 100;
+
+    return {
+      x: center.x + offsetX,
+      y: center.y + offsetY,
+    };
+  }
+
   addNode() {
+    const position = this.getNewNodePosition();
+
     const newNode: FlowNode = {
       step_key: 'n-' + uuid().slice(0, 6),
       name: `Template ${this.nodes().length + 1}`,
-      x: 150 + Math.random() * 200,
-      y: 150 + Math.random() * 200,
+      x: position.x,
+      y: position.y,
       data: new TemplateModel({
         name: '',
         message_content: '',
