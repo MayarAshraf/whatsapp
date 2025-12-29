@@ -25,10 +25,6 @@
   --yellow-color: #f2a510;
   --purple-color: #960fac;
   --dark-purple-color: #652ab8;
-
-  &[dir="rtl"] {
-    --font-family: "DroidArabicKufiRegular", serif;
-  }
 }
 
 ::-webkit-scrollbar {

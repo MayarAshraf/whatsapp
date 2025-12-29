@@ -1,0 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
+
+@font-face {
+  font-family: "DroidArabicKufiRegular";
+  src: url("../fonts/DroidArabicKufiRegular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --font-family: "Poppins", "Segoe UI", sans-serif;
+  --poppins-font: "Poppins", "Segoe UI", sans-serif;
+  &[dir="rtl"] {
+    --font-family: "DroidArabicKufiRegular", "Segoe UI", sans-serif;
+  }
+}
+
+body {
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  // Prevent adjustments of font size after orientation changes in iOS.
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
