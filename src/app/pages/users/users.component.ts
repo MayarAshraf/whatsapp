@@ -44,12 +44,12 @@ export default class UsersComponent extends BaseIndexComponent<
           name: 'id',
         },
         {
-          title: 'email',
-          name: 'email',
+          title: 'name',
+          name: `first_name`,
         },
         {
-          title: 'department',
-          name: `department.name_${this.currentLang()}`,
+          title: 'email',
+          name: 'email',
         },
       ],
     };

@@ -21,8 +21,8 @@ export class GroupCuComponent extends BaseCreateUpdateComponent<any> {
     this.dialogMeta = {
       ...this.dialogMeta,
       endpoints: {
-        store: 'departments/department',
-        update: 'departments/department/update',
+        store: 'groups/group',
+        update: 'groups/group/update',
       },
     };
 
@@ -48,57 +48,33 @@ export class GroupCuComponent extends BaseCreateUpdateComponent<any> {
     return [
       this.#fieldBuilder.fieldBuilder([
         {
-          type: 'tabs-field',
-          fieldGroup: this.#languages.map((lang) => ({
-            props: {
-              label: `${lang.label} (${lang.value.toUpperCase()})`,
-            },
-            fieldGroup: [...this.buildGroupFields(lang.value)],
-          })),
-        },
-      ]),
-      {
-        key: 'has_subroles',
-        type: 'checkbox-field',
-        props: {
-          label: 'has_subroles',
-        },
-      },
-      {
-        type: 'tabs-field',
-        hideExpression: (model) => !model?.has_subroles,
-        fieldGroup: this.#languages.map((lang) => ({
-          props: {
-            label: `${lang.label} (${lang.value.toUpperCase()})`,
-          },
-          fieldGroup: [
-            {
-              key: 'sub_roles',
-              type: 'order-list-field',
-              resetOnHide: false,
-              props: {
-                itemLabel: _('add_subroles'),
-                addBtnText: _('add_subroles'),
-                emptyMessage: _('no_subroles_added_yet'),
-              },
-              fieldArray: {
-                fieldGroup: [...this.buildGroupFields(lang.value)],
-              },
-            },
-          ],
-        })),
-      },
-    ];
-  }
-  buildGroupFields(lang: string): FormlyFieldConfig[] {
-    return [
-      this.#fieldBuilder.fieldBuilder([
-        {
-          key: `name_${lang}`,
+          key: `name`,
           type: 'input-field',
           props: {
             label: `name`,
-            required: lang === 'en',
+            required: true,
+          },
+        },
+        {
+          key: 'users_data',
+          type: 'autocomplete-field',
+          props: {
+            label: _('users'),
+            endpoint: `auth/users/autocomplete`,
+            required: true,
+            multiple: true,
+            fieldKey: 'users',
+          },
+        },
+        { key: 'users' },
+      ]),
+      this.#fieldBuilder.fieldBuilder([
+        {
+          key: 'description',
+          type: 'textarea-field',
+          props: {
+            label: _('description'),
+            rows: 3,
           },
         },
         {

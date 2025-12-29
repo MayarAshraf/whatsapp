@@ -8,8 +8,8 @@ export interface User {
   password: string;
   password_confirmation: string;
   job_title: string | null;
-  department_id: number | null;
-  subrole_id: number | null;
+  role_id: number | null;
+  group_ids: number[] | null;
   is_active: boolean;
 }
 
@@ -23,8 +23,8 @@ export class UserModel {
   password: string | null;
   password_confirmation: string | null;
   job_title: string | null;
-  department_id: number | null;
-  subrole_id: number | null;
+  role_id: number | null;
+  group_ids: number[] | null;
   is_active: boolean;
 
   constructor(editData?: UserModel) {
@@ -37,8 +37,8 @@ export class UserModel {
     this.password = null;
     this.password_confirmation = null;
     this.job_title = editData?.job_title || null;
-    this.department_id = editData?.department_id || null;
-    this.subrole_id = editData?.subrole_id || null;
+    this.role_id = editData?.role_id || null;
+    this.group_ids = editData?.group_ids || null;
     this.is_active = editData?.is_active ?? false;
   }
 }

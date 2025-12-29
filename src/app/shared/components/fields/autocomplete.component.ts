@@ -12,6 +12,7 @@ import {
   AutoCompleteCompleteEvent,
   AutoCompleteModule,
 } from 'primeng/autocomplete';
+import { FloatLabel } from 'primeng/floatlabel';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs';
 import { ApiService } from '../../services/global-services/api.service';
 import { LangService } from '../../services/lang.service';
@@ -19,51 +20,51 @@ import { LangService } from '../../services/lang.service';
 @Component({
   selector: 'formly-autocomplete-field',
   template: `
-    <div class="p-field">
-      <span
-        class="
-          p-float-label
-        "
-      >
-        <p-autoComplete
-          styleClass="w-full"
+    <div class="p-field" attr.data-field-key="{{ field.key }}">
+      <p-floatlabel variant="on">
+        <p-autocomplete
+          class="w-full"
           [formControl]="formControl"
           [formlyAttributes]="field"
           [class.ng-dirty]="showError"
           [forceSelection]="true"
           [delay]="1000"
-          inputStyleClass="w-full text-sm"
           [dropdown]="props.dropdown ?? false"
           [placeholder]="props.placeholder ?? ''"
           [multiple]="props.multiple"
           [placeholder]="props.placeholder ?? ''"
           [required]="props.required ?? false"
+          [typeahead]="props.typeahead ?? true"
           [showClear]="props.showClear"
           [suggestions]="suggestions()"
           (completeMethod)="onComplete($event)"
           (onClear)="field.form?.get(this.props.fieldKey)?.setValue(null)"
+          [invalid]="showError"
         />
+
         @if (props.label) {
-        <label [class.top-0]="formControl.value">
+        <label>
           {{ props.label }}
           @if (props.required && props.hideRequiredMarker !== true) {
-          <span class="text-red-500">*</span>
+          <span class="text-red">*</span>
           }
         </label>
         }
-      </span>
+      </p-floatlabel>
 
       @if (props.description) {
-      <p class="mt-3 text-xs">{{ props.description }}</p>
+      <p class="mt-1 mb-0 font-medium text-xs text-primary capitalize">
+        {{ props.description }}
+      </p>
       } @if (showError && formControl.errors) {
-      <small class="p-error" role="alert">
-        <formly-validation-message [field]="field"></formly-validation-message>
+      <small class="error-msg" role="alert">
+        <formly-validation-message [field]="field" />
       </small>
       }
     </div>
   `,
   standalone: true,
-  imports: [AutoCompleteModule, FormlyModule, ReactiveFormsModule],
+  imports: [FloatLabel, AutoCompleteModule, FormlyModule, ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AutocompleteComponent extends FieldType<FieldTypeConfig> {

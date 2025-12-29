@@ -34,8 +34,8 @@ export default class GroupsComponent extends BaseIndexComponent<
       indexIcon: 'fa-solid fa-building-user',
       createBtnLabel: 'create_group',
       endpoints: {
-        index: 'departments/department',
-        delete: 'departments/department/delete',
+        index: 'groups/group',
+        delete: 'groups/group/delete',
       },
       indexTableKey: 'GROUP_KEY',
       columns: [
@@ -45,7 +45,7 @@ export default class GroupsComponent extends BaseIndexComponent<
         },
         {
           title: 'group',
-          name: `name_${this.currentLang()}`,
+          name: `name`,
         },
       ],
     };

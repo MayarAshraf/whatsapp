@@ -153,15 +153,15 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
       ]),
       this.#fieldBuilder.fieldBuilder([
         {
-          key: 'department_id',
+          key: 'role_id',
           type: 'select-field',
           props: {
-            label: _('department'),
+            label: _('role'),
             filter: true,
             options: this.#globalList.getGlobalList('users').pipe(
-              map(({ departments }) =>
-                departments.map((department: any) => ({
-                  label: department[`label_${this.#currentLang()}`],
+              map(({ roles }) =>
+                roles.map((department: any) => ({
+                  label: department.label,
                   value: department.value,
                 }))
               )
@@ -169,42 +169,20 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
           },
         },
         {
-          key: 'subrole_id',
+          key: 'group_ids',
           type: 'select-field',
           props: {
-            label: _('subrole'),
+            label: _('groups'),
             filter: true,
-            options: [],
-            disabled: true,
-          },
-          expressions: {
-            'props.disabled': '!model.department_id',
-            'props.options': () => {
-              if (!this.model.department_id) {
-                return [];
-              }
-              return this.#globalList
-                .getGlobalList('users', {
-                  department_id: this.model.department_id,
-                })
-                .pipe(
-                  map((res: any) =>
-                    res['sub-roles'].map((sub: any) => ({
-                      label: sub[`label_${this.#currentLang()}`],
-                      value: sub.value,
-                    }))
-                  )
-                );
-            },
-          },
-          hooks: {
-            onInit: (field) => {
-              field.formControl?.valueChanges.subscribe(() => {
-                if (!this.model?.department_id) {
-                  field.formControl?.reset();
-                }
-              });
-            },
+            multiple: true,
+            options: this.#globalList.getGlobalList('users').pipe(
+              map(({ $groups }) =>
+                $groups.map((department: any) => ({
+                  label: department.label,
+                  value: department.value,
+                }))
+              )
+            ),
           },
         },
       ]),

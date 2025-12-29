@@ -1,39 +1,25 @@
 export interface Group {
   id: number;
-  name_en: string;
-  name_ar: string;
+  name: string;
+  description: string;
   is_active: boolean;
-  sub_roles: [];
+  users: [];
 }
 
 export class GroupModel {
   id?: number | null;
-  name_en: string | null;
-  name_ar: string | null;
+  name: string | null;
+  description: string | null;
   is_active: boolean | null;
-  sub_roles: SubRoleModel[] | null;
-  has_subroles: boolean;
+  users: [] | null;
+  users_data: [] | null;
 
   constructor(editData?: GroupModel) {
     this.id = editData?.id || null;
-    this.name_en = editData?.name_en || null;
-    this.name_ar = editData?.name_ar || null;
+    this.name = editData?.name || null;
+    this.description = editData?.description || null;
     this.is_active = editData?.is_active || false;
-    this.sub_roles = editData?.sub_roles?.length
-      ? editData.sub_roles
-      : [
-          {
-            name_en: null,
-            name_ar: null,
-            is_active: false,
-          },
-        ];
-    this.has_subroles = editData?.sub_roles?.length ? true : false;
+    this.users = editData?.users || null;
+    this.users_data = editData?.users_data || null;
   }
-}
-
-export interface SubRoleModel {
-  name_en: string | null;
-  name_ar: string | null;
-  is_active: boolean;
 }
