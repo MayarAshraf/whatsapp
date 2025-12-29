@@ -307,9 +307,13 @@ export class ChatFlowComponent {
     });
   }
 
-  flows$ = this.#api.request('get', 'chat-flows/chat-flow').pipe(
-    finalize(() => this.isLoading.set(false)),
-    map(({ data }) => data)
+  flows$ = toObservable(this.isWorkspaceOpened).pipe(
+    switchMap(() =>
+      this.#api.request('get', 'chat-flows/chat-flow').pipe(
+        finalize(() => this.isLoading.set(false)),
+        map(({ data }) => data)
+      )
+    )
   );
 
   flows = toSignal(this.flows$, { initialValue: [] });
@@ -859,6 +863,7 @@ export class ChatFlowComponent {
       .subscribe((res) => {
         this.workspaceDraft.set(null);
         this.templatevisible.set(false);
+        this.isWorkspaceOpened.set(false);
       });
   }
 
