@@ -160,9 +160,9 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
             filter: true,
             options: this.#globalList.getGlobalList('users').pipe(
               map(({ roles }) =>
-                roles.map((department: any) => ({
-                  label: department.label,
-                  value: department.value,
+                roles.map((user: any) => ({
+                  label: user.label,
+                  value: user.value,
                 }))
               )
             ),
@@ -176,10 +176,10 @@ export class UserCuComponent extends BaseCreateUpdateComponent<any> {
             filter: true,
             multiple: true,
             options: this.#globalList.getGlobalList('users').pipe(
-              map(({ $groups }) =>
-                $groups.map((department: any) => ({
-                  label: department.label,
-                  value: department.value,
+              map(({ groups }) =>
+                groups.map((group: any) => ({
+                  label: group.label,
+                  value: group.value,
                 }))
               )
             ),

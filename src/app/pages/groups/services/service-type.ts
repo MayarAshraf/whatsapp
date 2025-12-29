@@ -3,7 +3,7 @@ export interface Group {
   name: string;
   description: string;
   is_active: boolean;
-  users: [];
+  user_ids: [];
 }
 
 export class GroupModel {
@@ -11,7 +11,7 @@ export class GroupModel {
   name: string | null;
   description: string | null;
   is_active: boolean | null;
-  users: [] | null;
+  user_ids: [] | null;
   users_data: [] | null;
 
   constructor(editData?: GroupModel) {
@@ -19,7 +19,7 @@ export class GroupModel {
     this.name = editData?.name || null;
     this.description = editData?.description || null;
     this.is_active = editData?.is_active || false;
-    this.users = editData?.users || null;
+    this.user_ids = editData?.user_ids || null;
     this.users_data = editData?.users_data || null;
   }
 }

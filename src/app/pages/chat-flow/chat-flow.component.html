@@ -45,7 +45,7 @@
             {{ flow.name }}
           </h2>
         </div>
-        <div class="p-2 flex flex-auto justify-content-between h-full">
+        <!-- <div class="p-2 flex flex-auto justify-content-between h-full">
           <div
             class="flex flex-column gap-1 align-items-center justify-content-center p-2 border-round bg-blue-50"
           >
@@ -64,10 +64,10 @@
               "connections" | translate
             }}</span>
           </div>
-        </div>
-        <div class="px-2 text-xs">
+        </div> -->
+        <div class="px-2 pt-2 text-xs">
           <span class="text-500"
-            ><i class="fa-regular fa-user"></i> John Doe</span
+            ><i class="fa-regular fa-user"></i>{{flow.creator.email}}</span
           >
           <span class="text-500 mx-2"
             ><i class="fa-regular fa-calendar"></i>

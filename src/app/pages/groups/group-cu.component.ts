@@ -63,10 +63,10 @@ export class GroupCuComponent extends BaseCreateUpdateComponent<any> {
             endpoint: `auth/users/autocomplete`,
             required: true,
             multiple: true,
-            fieldKey: 'users',
+            fieldKey: 'user_ids',
           },
         },
-        { key: 'users' },
+        { key: 'user_ids' },
       ]),
       this.#fieldBuilder.fieldBuilder([
         {
