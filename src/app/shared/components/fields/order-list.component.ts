@@ -125,7 +125,7 @@ export class FormlyOrderListComponent extends FieldArrayType {
   onDrop(event: CdkDragDrop<any[]>) {
     const array = this.formControl.value;
     moveItemInArray(array, event.previousIndex, event.currentIndex);
-    this.formControl.setValue([...array]);
+    this.formControl.patchValue([...array]);
     this.formControl.markAsDirty();
 
     if (this.props.onReorder) {
@@ -147,10 +147,23 @@ export class FormlyOrderListComponent extends FieldArrayType {
     const m = this.model[oldI];
     this.remove(oldI);
     this.add(newI, m);
+    this.#updateTrigger();
 
     if (this.props.onReorder) {
       this.props.onReorder(this.field, oldI, newI);
     }
+  }
+
+  override remove(i: number) {
+    super.remove(i);
+    this.#updateTrigger();
+    if (this.props.onRemove) {
+      this.props.onRemove(this.field, i);
+    }
+  }
+
+  #updateTrigger() {
+    this.trigger.update((v) => v + 1);
   }
 
   isAddDisabled = computed(() => {
@@ -164,6 +177,6 @@ export class FormlyOrderListComponent extends FieldArrayType {
     if (this.isAddDisabled()) return;
     this.add();
     this.props.onAdd && this.props.onAdd(this.field);
-    this.trigger.update((v) => v + 1);
+    this.#updateTrigger();
   }
 }
